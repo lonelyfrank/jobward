@@ -1,0 +1,180 @@
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { expect, test, type Page } from '@playwright/test';
+
+test.describe.configure({ mode: 'serial' });
+
+/** Legge i valori dichiarati nel blocco `/*` di public/_headers: la fonte di verità. */
+function declaredHeaders(): Record<string, string> {
+  const file = readFileSync(path.resolve(import.meta.dirname, '../public/_headers'), 'utf8');
+  const block = file.split('\n').filter((l) => /^\s+[A-Za-z-]+:\s/.test(l));
+  return Object.fromEntries(
+    block.map((l) => {
+      const [name, ...rest] = l.trim().split(':');
+      return [name!.toLowerCase(), rest.join(':').trim()];
+    }),
+  );
+}
+
+const WATCHED = [
+  'content-security-policy',
+  'x-content-type-options',
+  'x-frame-options',
+  'referrer-policy',
+  'strict-transport-security',
+  'cross-origin-opener-policy',
+  'permissions-policy',
+] as const;
+
+test.describe('header e instradamento (Workers Static Assets)', () => {
+  test('_headers viene applicato a pagina, fallback SPA e asset', async ({ request }) => {
+    const declared = declaredHeaders();
+    for (const name of WATCHED)
+      expect(declared[name], `${name} dichiarato in _headers`).toBeTruthy();
+
+    for (const url of ['/', '/boards', '/settings', '/favicon.svg', '/theme-init.js']) {
+      const res = await request.get(url);
+      expect(res.status(), url).toBe(200);
+      for (const name of WATCHED) {
+        expect(res.headers()[name], `${name} su ${url}`).toBe(declared[name]);
+      }
+    }
+  });
+
+  test('la CSP non contiene scorciatoie pericolose', async ({ request }) => {
+    const csp = (await request.get('/')).headers()['content-security-policy']!;
+    expect(csp).toContain("default-src 'self'");
+    expect(csp).toContain("script-src 'self'");
+    expect(csp).toContain("object-src 'none'");
+    expect(csp).toContain("frame-ancestors 'none'");
+    expect(csp).not.toMatch(/script-src[^;]*('unsafe-inline'|'unsafe-eval'|\*)/);
+    expect(csp).not.toMatch(/default-src[^;]*\*/);
+    // Debito noto e documentato: gli stili inline (Radix) richiedono 'unsafe-inline' su style-src.
+    expect(csp).toMatch(/style-src 'self' 'unsafe-inline';/);
+    expect(csp).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+  });
+
+  test('il fallback SPA serve index.html per i percorsi dell’app e l’API risponde dal Worker', async ({
+    request,
+  }) => {
+    const page = await request.get('/opportunities');
+    expect(page.headers()['content-type']).toContain('text/html');
+    expect(await page.text()).toContain('<div id="root">');
+
+    const health = await request.get('/api/health');
+    expect(health.headers()['content-type']).toContain('application/json');
+    expect(await health.json()).toEqual({ status: 'ok' });
+
+    // Un percorso /api sconosciuto NON deve ricadere nell'HTML della SPA.
+    const unknown = await request.get('/api/v1/non-esiste');
+    expect(unknown.status()).toBe(404);
+    expect(unknown.headers()['content-type']).toContain('application/json');
+    expect(await unknown.json()).toMatchObject({ error: { code: 'not_found' } });
+    // ...e gli header dell'API sono quelli del Worker.
+    expect(unknown.headers()['cache-control']).toBe('no-store');
+    expect(unknown.headers()['x-frame-options']).toBe('DENY');
+  });
+
+  test('un asset con hash mancante non viene reso cacheable "per sempre"', async ({ request }) => {
+    const res = await request.get('/assets/index-VECCHIOHASH.js');
+    expect(res.headers()['cache-control'] ?? '').not.toMatch(/immutable|max-age=(?!0)\d+/);
+  });
+
+  test('gli asset reali sono rivalidabili (ETag) e hanno il tipo MIME corretto', async ({
+    request,
+  }) => {
+    const html = await (await request.get('/')).text();
+    const js = /src="(\/assets\/[^"]+\.js)"/.exec(html)?.[1];
+    const css = /href="(\/assets\/[^"]+\.css)"/.exec(html)?.[1];
+    expect(js && css, 'index.html referenzia JS e CSS con hash').toBeTruthy();
+    const jsRes = await request.get(js!);
+    expect(jsRes.headers()['content-type']).toMatch(/javascript/);
+    expect(jsRes.headers()['etag']).toBeTruthy();
+    expect((await request.get(css!)).headers()['content-type']).toContain('text/css');
+    const cond = await request.get(js!, { headers: { 'if-none-match': jsRes.headers()['etag']! } });
+    expect(cond.status()).toBe(304);
+  });
+
+  test('il file _headers non è esposto come contenuto', async ({ request }) => {
+    const res = await request.get('/_headers');
+    expect(await res.text()).not.toContain('Content-Security-Policy');
+  });
+});
+
+async function watchViolations(page: Page) {
+  const issues: string[] = [];
+  await page.addInitScript(() => {
+    document.addEventListener('securitypolicyviolation', (e) => {
+      ((window as unknown as { __csp: string[] }).__csp ??= []).push(
+        `${e.violatedDirective} ${e.blockedURI}`,
+      );
+    });
+  });
+  page.on('console', (m) => {
+    if (m.type() === 'error' || /Content Security Policy|Refused to/i.test(m.text()))
+      issues.push(`console: ${m.text()}`);
+  });
+  page.on('pageerror', (e) => issues.push(`pageerror: ${e.message}`));
+  page.on('requestfailed', (r) => issues.push(`requestfailed: ${r.url()}`));
+  return {
+    issues,
+    collect: async () => [
+      ...issues,
+      ...(
+        await page.evaluate((): string[] => (window as unknown as { __csp?: string[] }).__csp ?? [])
+      ).map((v) => `CSP: ${v}`),
+    ],
+  };
+}
+
+test.describe('app reale sotto la CSP di produzione', () => {
+  test('onboarding, navigazione, menu, tema e drawer mobile senza violazioni CSP né errori', async ({
+    page,
+  }) => {
+    const watch = await watchViolations(page);
+    await page.emulateMedia({ colorScheme: 'light' });
+
+    await page.goto('/');
+    await expect(page.getByRole('heading', { name: 'Crea il tuo spazio di lavoro' })).toBeVisible();
+    await page.getByLabel('Nome dello spazio').fill('Anteprima');
+    await page.getByRole('button', { name: 'Crea workspace' }).click(); // POST same-origin dal browser
+    await expect(page.getByRole('heading', { name: 'Inizia da qui' })).toBeVisible();
+
+    const nav = page.getByRole('navigation', { name: 'Navigazione principale' });
+    for (const link of ['Bacheche', 'Opportunità', 'Attività', 'Insights', 'Impostazioni']) {
+      await nav.getByRole('link', { name: link }).click();
+      await expect(page.getByRole('heading', { level: 1, name: link })).toBeVisible();
+    }
+
+    // Menu a comparsa (Radix: portali e stili inline) e cambio tema.
+    await page.getByRole('button', { name: 'Menu account' }).click();
+    await page.getByRole('menuitemradio', { name: 'Scuro' }).click();
+    await expect(page.locator('html')).toHaveClass(/dark/);
+    await page.keyboard.press('Escape');
+
+    // Drawer mobile (Dialog Radix).
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('button', { name: 'Apri il menu di navigazione' }).click();
+    await expect(page.getByRole('dialog', { name: 'Menu di navigazione' })).toBeVisible();
+    await page.keyboard.press('Escape');
+
+    // Refresh su un percorso profondo: i dati vengono riletti dal database.
+    await page.goto('/settings');
+    await expect(page.locator('dd', { hasText: 'Anteprima' })).toBeVisible();
+
+    expect(await watch.collect()).toEqual([]);
+  });
+
+  test('le risposte API del Worker non hanno CORS e rifiutano richieste cross-site', async ({
+    request,
+    baseURL,
+  }) => {
+    const bad = await request.post('/api/v1/workspaces', {
+      headers: { origin: 'https://evil.example', 'content-type': 'application/json' },
+      data: { name: 'x' },
+    });
+    expect(bad.status()).toBe(403);
+    const ok = await request.get('/api/v1/me', { headers: { origin: baseURL! } });
+    expect(Object.keys(ok.headers()).filter((h) => h.startsWith('access-control-'))).toEqual([]);
+  });
+});

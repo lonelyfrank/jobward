@@ -1,0 +1,99 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "meet-roulette",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+
+  // Il Worker deve essere raggiungibile SOLO dal dominio protetto da Cloudflare Access.
+  // L'indirizzo *.workers.dev e gli URL di anteprima non sono coperti dalla policy Access:
+  // disattivarli evita un secondo ingresso (gli asset statici sarebbero serviti senza login).
+  "workers_dev": false,
+  "preview_urls": false,
+
+  // Frontend: gli asset statici vengono serviti dallo stesso Worker (stessa origine,
+  // nessun CORS). Il Worker gestisce soltanto /api/*; il resto è SPA fallback.
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "meet-roulette",
+      // Segnaposto: sostituire con l'ID reale (`wrangler d1 create meet-roulette`)
+      // prima di un deploy. Non è un segreto, ma è specifico dell'account.
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "../../packages/database/migrations",
+    },
+  ],
+
+  // Configurazione di PRODUZIONE (default, fail-closed):
+  // l'accesso è consentito solo a chi presenta un JWT valido di Cloudflare Access
+  // e coincide con OWNER_EMAIL. Vedi docs/architecture/authentication.md.
+  "vars": {
+    "ENVIRONMENT": "production",
+    "AUTH_MODE": "access",
+    "OWNER_EMAIL": "",
+    "ACCESS_TEAM_DOMAIN": "",
+    "ACCESS_AUD": "",
+  },
+
+  "env": {
+    // Sviluppo locale: `wrangler dev --env dev`. L'identità è fittizia e locale,
+    // e la modalità "dev" viene rifiutata dal codice se ENVIRONMENT != development.
+    "dev": {
+      "name": "meet-roulette-dev",
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "meet-roulette-local",
+          "database_id": "local-dev",
+          "migrations_dir": "../../packages/database/migrations",
+        },
+      ],
+      "vars": {
+        "ENVIRONMENT": "development",
+        "AUTH_MODE": "dev",
+        "DEV_USER_EMAIL": "dev@meet-roulette.local",
+        // Non usate in modalità dev; dichiarate vuote per evitare l'avviso sulle variabili non ereditate.
+        "OWNER_EMAIL": "",
+        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_AUD": "",
+        "APP_ORIGIN": "http://localhost:5173",
+      },
+    },
+
+    // Anteprima locale della build di produzione: stesso Worker + Static Assets (SPA, _headers),
+    // ma identità di sviluppo e D1 locale. Serve a verificare ciò che `vite dev` non può
+    // mostrare (CSP reale, header degli asset, fallback SPA). Vedi docs/m0h/cloudflare-readiness.md.
+    "preview": {
+      "name": "meet-roulette-preview",
+      "assets": {
+        "directory": "../web/dist",
+        "binding": "ASSETS",
+        "not_found_handling": "single-page-application",
+        "run_worker_first": ["/api/*"],
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "meet-roulette-preview",
+          "database_id": "local-preview",
+          "migrations_dir": "../../packages/database/migrations",
+        },
+      ],
+      "vars": {
+        "ENVIRONMENT": "development",
+        "AUTH_MODE": "dev",
+        "DEV_USER_EMAIL": "dev@meet-roulette.local",
+        "OWNER_EMAIL": "",
+        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_AUD": "",
+      },
+    },
+  },
+}

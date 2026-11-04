@@ -1,0 +1,20 @@
+{
+  // Usato SOLO da Vitest (vedi vitest.config.ts). Nessun segreto, nessun asset.
+  "name": "meet-roulette-test",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-10-01",
+  "d1_databases": [
+    { "binding": "DB", "database_name": "test", "database_id": "test" },
+    // Database separato, usato solo per provare la guardia della migrazione 0001 su dati esistenti.
+    {
+      "binding": "MIGRATION_DB",
+      "database_name": "migration-test",
+      "database_id": "migration-test",
+    },
+  ],
+  "vars": {
+    "ENVIRONMENT": "development",
+    "AUTH_MODE": "dev",
+    "DEV_USER_EMAIL": "owner@test.local",
+  },
+}
