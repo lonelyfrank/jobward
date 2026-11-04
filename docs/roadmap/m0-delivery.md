@@ -1,5 +1,7 @@
 # M0 — Relazione di consegna
 
+> **Aggiornamento M0.H (2026-11-04):** questo report è stato **verificato** da [M0.H](../m0h/delivery.md). Conferma: 101 test, 11 E2E, typecheck/lint/build/contrasto. **Correzioni**: il peso gzip del bundle era **201 kB**, non "≈170"; `_headers` **viene applicato** da Static Assets (verificato in locale) ma conteneva una regola `immutable` difettosa (rimossa); il tablet è stato verificato; il database non garantiva l'isolamento tra workspace (corretto con la migrazione `0001`). I risultati attuali sono in `docs/m0h/`.
+
 **Branch:** `m0-foundation` · **Data:** 2026-11-04 · **Stato:** completata, in attesa di revisione. Non è stato fatto merge su `main`, né deploy, né release.
 
 ## 1. Che cosa è stato implementato
@@ -96,7 +98,7 @@ Variazioni rispetto alla specifica, tutte motivate: TypeScript 6.0 (non 7) per `
 - **Accessibilità**: verifica automatica (axe, contrasto) ma **nessun audit manuale con screen reader**; la conformità WCAG 2.2 AA non è dichiarata, solo l'obiettivo.
 - **CSP** con `style-src 'unsafe-inline'`.
 - **Solo Chromium** negli E2E (build di fallback di Playwright, perché Fedora non è ufficialmente supportata).
-- **Bundle JS ≈ 645 kB** (≈ 170 kB gzip): il build segnala il warning di Vite; in backlog.
+- **Bundle JS ≈ 645 kB** (**≈ 201 kB gzip**, valore corretto in M0.H; era riportato "≈170"): ridotto in M0.H a 606,6 kB / 188,9 kB gzip, senza warning.
 - Se un utente avesse più workspace (impossibile oggi per il limite MVP), l'interfaccia userebbe il primo.
 - `database_id` D1 in `wrangler.jsonc` è un **segnaposto**: va sostituito prima di qualsiasi deploy.
 

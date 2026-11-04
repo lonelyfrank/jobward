@@ -5,6 +5,12 @@
   "compatibility_date": "2026-10-01",
   "observability": { "enabled": true },
 
+  // Il Worker deve essere raggiungibile SOLO dal dominio protetto da Cloudflare Access.
+  // L'indirizzo *.workers.dev e gli URL di anteprima non sono coperti dalla policy Access:
+  // disattivarli evita un secondo ingresso (gli asset statici sarebbero serviti senza login).
+  "workers_dev": false,
+  "preview_urls": false,
+
   // Frontend: gli asset statici vengono serviti dallo stesso Worker (stessa origine,
   // nessun CORS). Il Worker gestisce soltanto /api/*; il resto è SPA fallback.
   "assets": {
@@ -58,6 +64,35 @@
         "ACCESS_TEAM_DOMAIN": "",
         "ACCESS_AUD": "",
         "APP_ORIGIN": "http://localhost:5173",
+      },
+    },
+
+    // Anteprima locale della build di produzione: stesso Worker + Static Assets (SPA, _headers),
+    // ma identità di sviluppo e D1 locale. Serve a verificare ciò che `vite dev` non può
+    // mostrare (CSP reale, header degli asset, fallback SPA). Vedi docs/m0h/cloudflare-readiness.md.
+    "preview": {
+      "name": "meet-roulette-preview",
+      "assets": {
+        "directory": "../web/dist",
+        "binding": "ASSETS",
+        "not_found_handling": "single-page-application",
+        "run_worker_first": ["/api/*"],
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "meet-roulette-preview",
+          "database_id": "local-preview",
+          "migrations_dir": "../../packages/database/migrations",
+        },
+      ],
+      "vars": {
+        "ENVIRONMENT": "development",
+        "AUTH_MODE": "dev",
+        "DEV_USER_EMAIL": "dev@meet-roulette.local",
+        "OWNER_EMAIL": "",
+        "ACCESS_TEAM_DOMAIN": "",
+        "ACCESS_AUD": "",
       },
     },
   },

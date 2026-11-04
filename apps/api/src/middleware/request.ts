@@ -35,6 +35,8 @@ export const apiSecurityHeaders: MiddlewareHandler<AppEnv> = async (c, next) => 
   await secureHeaders({
     contentSecurityPolicy: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] },
     crossOriginResourcePolicy: 'same-origin',
+    // Coerente con frame-ancestors 'none' (il valore predefinito di Hono è SAMEORIGIN).
+    xFrameOptions: 'DENY',
     referrerPolicy: 'no-referrer',
   })(c, async () => {
     await next();

@@ -6,6 +6,9 @@ import { ApiError } from '../lib/errors';
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
+/** `application/json` esatto, con parametri facoltativi (es. `; charset=utf-8`). Non `application/jsonx`. */
+const JSON_CONTENT_TYPE = /^application\/json\s*(;|$)/i;
+
 /**
  * Protezione CSRF per le richieste che modificano dati.
  *
@@ -20,7 +23,7 @@ export const csrfGuard: MiddlewareHandler<AppEnv> = async (c, next) => {
   if (SAFE_METHODS.has(c.req.method)) return next();
 
   const contentType = c.req.header('content-type') ?? '';
-  if (!contentType.toLowerCase().startsWith('application/json')) {
+  if (!JSON_CONTENT_TYPE.test(contentType)) {
     throw new ApiError(415, 'unsupported_media_type', 'Content-Type deve essere application/json');
   }
 

@@ -14,7 +14,23 @@ export default defineConfig({
     // la stessa origine per il browser, come in produzione.
     proxy: { '/api': process.env['API_PROXY_TARGET'] ?? 'http://localhost:8787' },
   },
-  build: { sourcemap: false },
+  build: {
+    sourcemap: false,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          // Vendor stabili (cambiano solo con gli aggiornamenti delle dipendenze) separati dal
+          // codice dell'app: dopo un deploy il browser rivalida (304) ciò che non è cambiato.
+          groups: [
+            {
+              name: 'vendor-react',
+              test: /node_modules[\\/](react|react-dom|scheduler|react-router)[\\/]/,
+            },
+          ],
+        },
+      },
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,

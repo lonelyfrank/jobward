@@ -1,13 +1,14 @@
 # Milestone
 
-| Milestone                              | Obiettivo                                                                     | Stato                                           |
-| -------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------- |
-| **M0** Foundation & Initial Workspace  | Fondamenta solide e primo ambiente navigabile                                 | ✅ Completata (vedi [consegna](m0-delivery.md)) |
-| **M1** Boards & Cards                  | Il nucleo operativo: bacheche, colonne, schede, Kanban                        | ⏳ Prossima                                     |
-| **M2** Job Information & Customization | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella | ⏳                                              |
-| **M3** Tasks & Activity                | Attività, follow-up, scadenze, cronologia, dashboard operativa                | ⏳                                              |
-| **M4** Insights & Private Release      | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato     | ⏳                                              |
-| **M5** Public Readiness                | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi | 🔮 Futuro, fuori incarico                       |
+| Milestone                              | Obiettivo                                                                        | Stato                                                                                      |
+| -------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **M0** Foundation & Initial Workspace  | Fondamenta solide e primo ambiente navigabile                                    | ✅ Completata (vedi [consegna](m0-delivery.md))                                            |
+| **M0.H** Hardening & merge readiness   | Verifica di M0, audit di sicurezza/DB/frontend, correzioni, readiness Cloudflare | ✅ Pronta per revisione (vedi [consegna](../m0h/delivery.md)) — **non** "production ready" |
+| **M1** Boards & Cards                  | Il nucleo operativo: bacheche, colonne, schede, Kanban                           | ⏳ Prossima                                                                                |
+| **M2** Job Information & Customization | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella    | ⏳                                                                                         |
+| **M3** Tasks & Activity                | Attività, follow-up, scadenze, cronologia, dashboard operativa                   | ⏳                                                                                         |
+| **M4** Insights & Private Release      | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato        | ⏳                                                                                         |
+| **M5** Public Readiness                | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi    | 🔮 Futuro, fuori incarico                                                                  |
 
 ## M1 — Boards & Cards (piano)
 
@@ -15,10 +16,13 @@
 
 ### Prerequisiti già pronti da M0
 
-- Schema DB completo (boards, board_columns, cards, activity_events…) e migrazioni.
+- Schema DB completo (boards, board_columns, cards, activity_events…) e migrazioni `0000` + `0001`. **Dopo M0.H il database garantisce l'isolamento tra workspace** con FK composite e trigger: ogni `INSERT` di M1 deve valorizzare `workspace_id` in modo coerente (ADR-0007).
 - Schemi Zod `createBoardInput`, `createColumnInput`, `createCardInput` e vocabolari.
 - Template di bacheca come dati (`BOARD_TEMPLATES`) e già mostrati nella schermata Bacheche.
 - Pattern di API, errori, ownership (`requireMembership`), test su D1, shell e componenti UI.
+- Test che **enumera automaticamente le rotte** di `/api/v1`: una rotta aggiunta in M1 è verificata come protetta senza scrivere altro.
+- Suite di **anteprima** (`pnpm test:preview`) sulla build di produzione: i nuovi flussi con modali vanno aggiunti lì per vedere la CSP reale.
+- Modelli di test E2E per tastiera/focus (drawer, menu) e matrice responsive.
 
 ### Passi proposti (in ordine, ciascuno verificabile)
 

@@ -12,6 +12,7 @@ import {
 import { sql, type SQL } from 'drizzle-orm';
 import {
   check,
+  foreignKey,
   index,
   integer,
   primaryKey,
@@ -29,6 +30,12 @@ import {
  * - Multi-tenancy: ogni tabella di dominio porta `workspace_id`, così ogni query
  *   può (e deve) filtrare per tenant senza join.
  * - I vocabolari controllati sono protetti da vincoli CHECK, non solo dai tipi TS.
+ * - ISOLAMENTO TRA WORKSPACE NEL DATABASE: ogni riferimento a una riga di un altro "livello"
+ *   (scheda→bacheca, scheda→colonna, dettagli→scheda, …) usa una chiave esterna COMPOSITA che
+ *   include `workspace_id`. Il database rifiuta quindi qualunque riga che punti a una risorsa
+ *   di un altro workspace, anche se l'ID esiste. I riferimenti facoltativi con SET NULL
+ *   (activity_events) e la coerenza scheda↔campo sono invece garantiti da TRIGGER, definiti
+ *   solo nella migrazione SQL (drizzle non li modella): vedi migrations/0001_*.sql.
  */
 
 const id = () => text('id').primaryKey();
@@ -110,7 +117,11 @@ export const boards = sqliteTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('boards_workspace_position_idx').on(t.workspaceId, t.position)],
+  (t) => [
+    index('boards_workspace_position_idx').on(t.workspaceId, t.position),
+    // Bersaglio delle chiavi esterne composite dei figli.
+    uniqueIndex('boards_id_workspace_unique').on(t.id, t.workspaceId),
+  ],
 );
 
 export const boardColumns = sqliteTable(
@@ -120,9 +131,7 @@ export const boardColumns = sqliteTable(
     workspaceId: text('workspace_id')
       .notNull()
       .references(() => workspaces.id, { onDelete: 'cascade' }),
-    boardId: text('board_id')
-      .notNull()
-      .references(() => boards.id, { onDelete: 'cascade' }),
+    boardId: text('board_id').notNull(),
     name: text('name').notNull(),
     color: text('color'),
     position: integer('position').notNull(),
@@ -132,7 +141,14 @@ export const boardColumns = sqliteTable(
     updatedAt: updatedAt(),
   },
   (t) => [
+    foreignKey({
+      name: 'board_columns_board_fk',
+      columns: [t.boardId, t.workspaceId],
+      foreignColumns: [boards.id, boards.workspaceId],
+    }).onDelete('cascade'),
     index('board_columns_board_position_idx').on(t.boardId, t.position),
+    // Bersaglio della chiave composita di cards (colonna ⇒ stessa bacheca e stesso workspace).
+    uniqueIndex('board_columns_id_board_workspace_unique').on(t.id, t.boardId, t.workspaceId),
     check(
       'board_columns_category_valid',
       sql`${t.category} is null or ${inList(t.category, STAGES)}`,
@@ -151,13 +167,8 @@ export const cards = sqliteTable(
     workspaceId: text('workspace_id')
       .notNull()
       .references(() => workspaces.id, { onDelete: 'cascade' }),
-    boardId: text('board_id')
-      .notNull()
-      .references(() => boards.id, { onDelete: 'cascade' }),
-    /** RESTRICT: una colonna che contiene schede non può sparire in modo distruttivo. */
-    columnId: text('column_id')
-      .notNull()
-      .references(() => boardColumns.id, { onDelete: 'restrict' }),
+    boardId: text('board_id').notNull(),
+    columnId: text('column_id').notNull(),
     title: text('title').notNull(),
     description: text('description'),
     position: integer('position').notNull(),
@@ -168,9 +179,24 @@ export const cards = sqliteTable(
     archivedAt: integer('archived_at'),
   },
   (t) => [
+    foreignKey({
+      name: 'cards_board_fk',
+      columns: [t.boardId, t.workspaceId],
+      foreignColumns: [boards.id, boards.workspaceId],
+    }).onDelete('cascade'),
+    // La colonna deve appartenere alla STESSA bacheca e allo STESSO workspace della scheda.
+    // NO ACTION (verificata a fine istruzione), non RESTRICT: una colonna con schede non può
+    // essere eliminata da sola, ma eliminare l'intera bacheca/workspace (che rimuove colonne
+    // e schede nella stessa istruzione) riesce senza dipendere dall'ordine interno delle cascade.
+    foreignKey({
+      name: 'cards_column_fk',
+      columns: [t.columnId, t.boardId, t.workspaceId],
+      foreignColumns: [boardColumns.id, boardColumns.boardId, boardColumns.workspaceId],
+    }).onDelete('no action'),
     index('cards_column_position_idx').on(t.columnId, t.position),
     index('cards_workspace_archived_idx').on(t.workspaceId, t.archivedAt),
     index('cards_board_idx').on(t.boardId),
+    uniqueIndex('cards_id_workspace_unique').on(t.id, t.workspaceId),
     check('cards_priority_valid', inList(t.priority, PRIORITIES)),
   ],
 );
@@ -179,9 +205,7 @@ export const cards = sqliteTable(
 export const applicationDetails = sqliteTable(
   'application_details',
   {
-    cardId: text('card_id')
-      .primaryKey()
-      .references(() => cards.id, { onDelete: 'cascade' }),
+    cardId: text('card_id').primaryKey(),
     workspaceId: text('workspace_id')
       .notNull()
       .references(() => workspaces.id, { onDelete: 'cascade' }),
@@ -207,6 +231,11 @@ export const applicationDetails = sqliteTable(
     updatedAt: updatedAt(),
   },
   (t) => [
+    foreignKey({
+      name: 'application_details_card_fk',
+      columns: [t.cardId, t.workspaceId],
+      foreignColumns: [cards.id, cards.workspaceId],
+    }).onDelete('cascade'),
     index('application_details_workspace_stage_idx').on(t.workspaceId, t.stage),
     check(
       'application_details_work_mode_valid',
@@ -243,9 +272,7 @@ export const customFieldDefinitions = sqliteTable(
     workspaceId: text('workspace_id')
       .notNull()
       .references(() => workspaces.id, { onDelete: 'cascade' }),
-    boardId: text('board_id')
-      .notNull()
-      .references(() => boards.id, { onDelete: 'cascade' }),
+    boardId: text('board_id').notNull(),
     name: text('name').notNull(),
     type: text('type', { enum: CUSTOM_FIELD_TYPES }).notNull(),
     /** JSON validato da `customFieldDefinitionInput` (opzioni, limiti, ...). */
@@ -256,7 +283,13 @@ export const customFieldDefinitions = sqliteTable(
     updatedAt: updatedAt(),
   },
   (t) => [
+    foreignKey({
+      name: 'custom_field_definitions_board_fk',
+      columns: [t.boardId, t.workspaceId],
+      foreignColumns: [boards.id, boards.workspaceId],
+    }).onDelete('cascade'),
     index('custom_field_definitions_board_idx').on(t.boardId, t.position),
+    uniqueIndex('custom_field_definitions_id_workspace_unique').on(t.id, t.workspaceId),
     check('custom_field_definitions_type_valid', inList(t.type, CUSTOM_FIELD_TYPES)),
   ],
 );
@@ -264,12 +297,8 @@ export const customFieldDefinitions = sqliteTable(
 export const customFieldValues = sqliteTable(
   'custom_field_values',
   {
-    cardId: text('card_id')
-      .notNull()
-      .references(() => cards.id, { onDelete: 'cascade' }),
-    fieldId: text('field_id')
-      .notNull()
-      .references(() => customFieldDefinitions.id, { onDelete: 'cascade' }),
+    cardId: text('card_id').notNull(),
+    fieldId: text('field_id').notNull(),
     workspaceId: text('workspace_id')
       .notNull()
       .references(() => workspaces.id, { onDelete: 'cascade' }),
@@ -279,6 +308,16 @@ export const customFieldValues = sqliteTable(
   },
   (t) => [
     primaryKey({ columns: [t.cardId, t.fieldId] }),
+    foreignKey({
+      name: 'custom_field_values_card_fk',
+      columns: [t.cardId, t.workspaceId],
+      foreignColumns: [cards.id, cards.workspaceId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'custom_field_values_field_fk',
+      columns: [t.fieldId, t.workspaceId],
+      foreignColumns: [customFieldDefinitions.id, customFieldDefinitions.workspaceId],
+    }).onDelete('cascade'),
     index('custom_field_values_field_idx').on(t.fieldId),
   ],
 );
@@ -294,21 +333,34 @@ export const labels = sqliteTable(
     color: text('color').notNull().default('slate'),
     createdAt: createdAt(),
   },
-  (t) => [uniqueIndex('labels_workspace_name_unique').on(t.workspaceId, sql`lower(${t.name})`)],
+  (t) => [
+    uniqueIndex('labels_workspace_name_unique').on(t.workspaceId, sql`lower(${t.name})`),
+    uniqueIndex('labels_id_workspace_unique').on(t.id, t.workspaceId),
+  ],
 );
 
 export const cardLabels = sqliteTable(
   'card_labels',
   {
-    cardId: text('card_id')
+    cardId: text('card_id').notNull(),
+    labelId: text('label_id').notNull(),
+    /** Aggiunta in 0001: scheda ed etichetta devono appartenere allo stesso workspace. */
+    workspaceId: text('workspace_id')
       .notNull()
-      .references(() => cards.id, { onDelete: 'cascade' }),
-    labelId: text('label_id')
-      .notNull()
-      .references(() => labels.id, { onDelete: 'cascade' }),
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
   },
   (t) => [
     primaryKey({ columns: [t.cardId, t.labelId] }),
+    foreignKey({
+      name: 'card_labels_card_fk',
+      columns: [t.cardId, t.workspaceId],
+      foreignColumns: [cards.id, cards.workspaceId],
+    }).onDelete('cascade'),
+    foreignKey({
+      name: 'card_labels_label_fk',
+      columns: [t.labelId, t.workspaceId],
+      foreignColumns: [labels.id, labels.workspaceId],
+    }).onDelete('cascade'),
     index('card_labels_label_idx').on(t.labelId),
   ],
 );
@@ -325,7 +377,7 @@ export const tasks = sqliteTable(
       .notNull()
       .references(() => workspaces.id, { onDelete: 'cascade' }),
     /** Null = attività del workspace, non legata a una scheda. */
-    cardId: text('card_id').references(() => cards.id, { onDelete: 'cascade' }),
+    cardId: text('card_id'),
     title: text('title').notNull(),
     description: text('description'),
     /** Istante assoluto (ms UTC); viene mostrato nel fuso orario del workspace. */
@@ -337,6 +389,12 @@ export const tasks = sqliteTable(
     updatedAt: updatedAt(),
   },
   (t) => [
+    // card_id NULL = attività del workspace: con chiave composita NULL la FK non si applica.
+    foreignKey({
+      name: 'tasks_card_fk',
+      columns: [t.cardId, t.workspaceId],
+      foreignColumns: [cards.id, cards.workspaceId],
+    }).onDelete('cascade'),
     index('tasks_workspace_open_due_idx').on(t.workspaceId, t.completedAt, t.dueAt),
     index('tasks_card_idx').on(t.cardId),
     check('tasks_priority_valid', inList(t.priority, PRIORITIES)),

@@ -59,14 +59,17 @@ Il Worker non si fida mai di header "email", cookie o altro: **solo del JWT vali
 
 - **Rate limiting applicativo**: non implementato. In M0–M4 l'unico utente ammesso è il proprietario autenticato da Access; il rate limiting su login e recupero account appartiene a M5, quando esisteranno endpoint pubblici. (Il codice `rate_limited` è già nel contratto.)
 - **Recupero account, revoca sessioni, durata sessioni**: delegati ad Access (M0–M4); da realizzare in M5.
-- **CSP**: usa `style-src 'unsafe-inline'` perché Radix/React applicano stili inline. Da stringere con nonce quando possibile.
+- **CSP**: usa `style-src 'unsafe-inline'`. In M0.H si è provato a stringerla: l'app reale viene bloccata da Radix (elemento `<style>` per il blocco dello scroll, contenuto non prevedibile → né hash né nonce con asset statici). `script-src` resta `'self'`. Vedi `docs/m0h/security-audit.md`.
 - La verifica automatica dell'accessibilità e della sicurezza **non sostituisce** un audit manuale prima della release privata (M4).
 
-## Configurazione del deploy privato (non eseguita in M0)
+## Configurazione del deploy privato (non eseguita)
+
+> Elenco completo (configurazione pronta/mancante) e **checklist di collaudo su Cloudflare**: [`docs/m0h/cloudflare-readiness.md`](../m0h/cloudflare-readiness.md).
+> Estensioni di M0.H: `workers_dev` e `preview_urls` sono **disattivati** (Access non protegge `*.workers.dev`), quindi serve un **dominio personalizzato** (`routes` con `custom_domain`); il Worker rifiuta i token con algoritmo diverso da RS256 (provati HS256 e `alg: none`); `pnpm check:config` impedisce di indebolire la configurazione di produzione.
 
 1. Creare il database: `wrangler d1 create meet-roulette` e inserire l'`database_id` in `wrangler.jsonc`.
 2. Applicare le migrazioni in remoto: `wrangler d1 migrations apply DB --remote --env ""`.
-3. In Cloudflare Zero Trust creare un'**applicazione self-hosted** sul dominio del Worker con una policy che ammetta **solo** l'email del proprietario.
+3. Aggiungere una route con **dominio personalizzato** (`routes: [{ "pattern": "app.<dominio>", "custom_domain": true }]`). In Cloudflare Zero Trust creare un'**applicazione self-hosted** su quel dominio (pagine e `/api/*`) con una policy che ammetta **solo** l'email del proprietario.
 4. Impostare in `wrangler.jsonc` (default): `ACCESS_TEAM_DOMAIN` (`<team>.cloudflareaccess.com`), `ACCESS_AUD` (audience tag dell'applicazione), `OWNER_EMAIL`. Non sono segreti, ma sono specifici dell'account.
 5. Costruire e distribuire: `pnpm build` poi `wrangler deploy --env ""`.
 6. Verificare: senza login → redirect ad Access; con token non valido → 401; con un altro account → bloccato da Access e, in ogni caso, 403 dal Worker.

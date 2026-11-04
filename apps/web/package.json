@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:preview": "vite build && playwright test -c playwright.preview.config.ts"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",

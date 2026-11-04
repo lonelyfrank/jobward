@@ -14,4 +14,4 @@
 
 ## Conseguenze
 
-Cambiare palette = modificare un solo file e rieseguire il controllo di contrasto. Il CSP mantiene `style-src 'unsafe-inline'` per gli stili inline di Radix (debito noto, nel backlog).
+Cambiare palette = modificare un solo file e rieseguire il controllo di contrasto. La CSP mantiene `style-src 'unsafe-inline'`: **M0.H ha provato `style-src 'self'`** e l'app reale viene bloccata da Radix (`react-remove-scroll-bar` inietta un `<style>` a ogni menu/dialog modale, con contenuto dipendente dalla scrollbar: né hash né nonce con asset statici). Per ridurre la superficie il menu account è **non modale**; `script-src` resta `'self'` senza `unsafe-inline`/`unsafe-eval` (Zod in modalità `jitless`). Debito accettato: vedi `docs/m0h/security-audit.md`.

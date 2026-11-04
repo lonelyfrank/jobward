@@ -12,3 +12,6 @@ test-results/
 .e2e-state/
 .DS_Store
 *.tsbuildinfo
+.e2e-state-preview/
+playwright-report-preview/
+test-results-preview/

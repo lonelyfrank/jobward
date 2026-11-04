@@ -270,3 +270,29 @@ describe('schermate base', () => {
     expect(screen.getByText(USER.email, { selector: 'dd' })).toBeInTheDocument();
   });
 });
+
+describe('tema condiviso tra componenti', () => {
+  it('il menu account riflette il tema scelto in Impostazioni (stato unico)', async () => {
+    const user = userEvent.setup();
+    mockApi(withWorkspace());
+    renderApp('/settings');
+
+    await user.click(await screen.findByRole('radio', { name: /Scuro/ }));
+    await user.click(screen.getByRole('button', { name: 'Menu account' }));
+
+    expect(await screen.findByRole('menuitemradio', { name: 'Scuro' })).toBeChecked();
+    expect(screen.getByRole('menuitemradio', { name: 'Come il sistema' })).not.toBeChecked();
+  });
+
+  it('e viceversa: la scelta dal menu aggiorna le Impostazioni', async () => {
+    const user = userEvent.setup();
+    mockApi(withWorkspace());
+    renderApp('/settings');
+
+    await user.click(await screen.findByRole('button', { name: 'Menu account' }));
+    await user.click(await screen.findByRole('menuitemradio', { name: 'Chiaro' }));
+
+    expect(screen.getByRole('radio', { name: /Chiaro/ })).toBeChecked();
+    expect(document.documentElement).not.toHaveClass('dark');
+  });
+});

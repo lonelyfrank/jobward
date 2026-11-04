@@ -11,7 +11,7 @@ erDiagram
   workspaces ||--o{ workspace_members : "ha"
   workspaces ||--o{ boards : contiene
   boards ||--o{ board_columns : ha
-  board_columns ||--o{ cards : "contiene (RESTRICT)"
+  board_columns ||--o{ cards : "contiene (NO ACTION)"
   boards ||--o{ cards : raccoglie
   cards ||--o| application_details : "1:1"
   boards ||--o{ custom_field_definitions : definisce
@@ -43,12 +43,14 @@ Descrizione delle entità: [domain-model](../product/domain-model.md).
 
 ## Integrità garantita dal database
 
-Verificata da `apps/api/test/database.test.ts` sulle **migrazioni reali**:
+Verificata da `apps/api/test/database.test.ts` e `tenant-integrity.test.ts` sulle **migrazioni reali** (0000 + 0001):
 
 - CHECK su priorità, fase, esito, modalità di lavoro, tipo di contratto, periodicità, tipo di campo, tipo di evento, ruolo, categoria di colonna.
 - `salary_min <= salary_max`.
 - `users.email` sempre minuscola e univoca; etichette univoche per workspace **senza distinguere maiuscole** (`lower(name)`).
-- `cards.column_id → board_columns` è **`ON DELETE RESTRICT`**: una colonna che contiene schede non può essere eliminata nemmeno per errore.
+- **Isolamento tra workspace** (migrazione `0001`, [ADR-0007](decisions/0007-database-tenant-isolation.md)): ogni riferimento tra tabelle usa una **FK composita con `workspace_id`**; una scheda può puntare solo a una colonna della **stessa bacheca e dello stesso workspace**. Il database rifiuta qualunque associazione tra workspace diversi anche con ID esistenti.
+- `cards.column_id → board_columns` è **`NO ACTION`** (verificata a fine istruzione): una colonna con schede non si elimina da sola, mentre l'eliminazione di una bacheca o di un workspace (colonne e schede nella stessa istruzione) riesce in modo deterministico.
+- **Trigger** (solo nell'SQL di `0001`, non modellati da drizzle): `activity_events` (scheda, bacheca e autore dello stesso workspace), coerenza scheda↔campo personalizzato (stessa bacheca), divieto di cambiare bacheca a una scheda con valori di campi.
 - `ON DELETE CASCADE` da scheda a dettagli, valori e etichette; da workspace a tutto il suo contenuto.
 - `activity_events` usa `SET NULL` per scheda/bacheca/autore: la cronologia sopravvive all'eliminazione dell'oggetto.
 - Foreign key attive (D1 le applica sempre).
@@ -72,10 +74,16 @@ restituisce lo stato aggiornato e il client applica l'aggiornamento ottimistico 
 ```bash
 pnpm db:generate         # drizzle-kit genera SQL da schema.ts (non tocca alcun database)
 pnpm db:migrate:local    # wrangler d1 migrations apply DB --local --env dev
+pnpm db:check            # fallisce se schema.ts non corrisponde alle migrazioni committate (in CI)
 ```
 
-Regole: si rivede l'SQL generato; non si modificano migrazioni già applicate; ogni modifica distruttiva (drop,
-rename) richiede una migrazione dedicata e un piano di backup. I test dell'API applicano le migrazioni reali a un D1 isolato.
+Regole:
+
+- Si rivede l'SQL generato; **non si modificano migrazioni già applicate**; ogni modifica distruttiva richiede una migrazione dedicata e un piano di backup.
+- **D1 non supporta `PRAGMA foreign_keys`** nelle migrazioni. SQLite non ha `ADD FOREIGN KEY`: per aggiungere vincoli a una tabella la si ricrea. L'SQL generato da drizzle-kit per questo caso (copia/rinomina con `PRAGMA foreign_keys=OFF`) **non va applicato così com'è**: va riscritto a mano come in `0001` (guardia + drop/create dei figli prima dei genitori).
+- Una migrazione che elimina tabelle deve aprire con una **guardia** `CHECK` che la interrompe se contengono righe (vedi `0001`).
+- Una ricostruzione di tabelle con drizzle-kit **non ricrea i trigger**: vanno riscritti a mano.
+- I test dell'API applicano le migrazioni reali a un D1 isolato; un test prova anche l'aggiornamento di un database con dati.
 
 ## Backup e ripristino (progettazione)
 

@@ -11,10 +11,12 @@ export function readStorage(key: string): string | null {
   }
 }
 
-export function writeStorage(key: string, value: string): void {
+/** Restituisce `false` se la preferenza non ha potuto essere salvata. */
+export function writeStorage(key: string, value: string): boolean {
   try {
     window.localStorage.setItem(key, value);
+    return true;
   } catch {
-    /* preferenza non persistita: nessun impatto funzionale */
+    return false; // preferenza non persistita: nessun impatto funzionale
   }
 }

@@ -88,12 +88,13 @@ Codici d'errore stabili (`packages/shared/src/errors.ts`): `validation_error` 40
 
 ## Strategia di test
 
-| Livello          | Strumento                              | Cosa copre                                                                       |
-| ---------------- | -------------------------------------- | -------------------------------------------------------------------------------- |
-| Unit             | Vitest (node)                          | Schemi Zod, campi personalizzati, template, serializzazione                      |
-| Integrazione API | Vitest nel runtime Workers (Miniflare) | Middleware, auth, CSRF, ownership, servizi su D1 con **le migrazioni reali**     |
-| Componenti       | Vitest + React Testing Library (jsdom) | Gate, onboarding, shell, navigazione, tema, stati vuoti, client API              |
-| E2E              | Playwright + axe su stack reale        | Flussi utente, persistenza dopo refresh, mobile, WCAG automatica, protezioni API |
-| Contrasto        | `scripts/check-contrast.mjs`           | Rapporti WCAG di ogni coppia di token, chiaro e scuro                            |
+| Livello          | Strumento                                                         | Cosa copre                                                                             |
+| ---------------- | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Unit             | Vitest (node)                                                     | Schemi Zod, campi personalizzati, template, serializzazione                            |
+| Integrazione API | Vitest nel runtime Workers (Miniflare)                            | Middleware, auth, CSRF, ownership, servizi su D1 con **le migrazioni reali**           |
+| Componenti       | Vitest + React Testing Library (jsdom)                            | Gate, onboarding, shell, navigazione, tema, stati vuoti, client API                    |
+| E2E (anteprima)  | Playwright sulla **build di produzione** servita da Static Assets | Header e CSP reali, fallback SPA, instradamento `/api/*`, zero violazioni CSP nell'app |
+| E2E              | Playwright + axe su stack reale                                   | Flussi utente, persistenza dopo refresh, mobile, WCAG automatica, protezioni API       |
+| Contrasto        | `scripts/check-contrast.mjs`                                      | Rapporti WCAG di ogni coppia di token, chiaro e scuro                                  |
 
-Quality gate: typecheck, lint (0 warning), format, contrasto, test, build, E2E. Vedi `.github/workflows/ci.yml`.
+Quality gate: typecheck, lint (0 warning), format, contrasto, `check:config` (invarianti Cloudflare), `db:check` (deriva schema↔migrazioni), test, build, E2E, anteprima. Vedi `.github/workflows/ci.yml`. Esiti verificati in [M0.H](../m0h/testing-report.md).

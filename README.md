@@ -16,7 +16,9 @@ ATS per recruiter e non invia candidature al posto tuo. Funziona per qualsiasi s
 
 ## Stato effettivo del progetto
 
-**Milestone corrente: M0 — Foundation & Initial Workspace** (branch `m0-foundation`).
+**Milestone corrente: M0 — Foundation & Initial Workspace**, consolidata da **M0.H — Hardening** (branch `m0h-hardening`, in attesa di revisione).
+
+M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend e deployabilità, e corretto i difetti trovati (isolamento tra workspace nel database, header e cache degli asset, accessibilità del drawer e del menu, e altri): [`docs/m0h/delivery.md`](docs/m0h/delivery.md). **Non è "production ready"**: Cloudflare Access reale e la CI su GitHub non sono ancora stati provati.
 
 | Area                                                           | Stato                                                       |
 | -------------------------------------------------------------- | ----------------------------------------------------------- |
@@ -37,7 +39,7 @@ Le funzioni non ancora disponibili sono mostrate come tali nell'interfaccia (bad
 controlli disabilitati): nessuna di esse simula un comportamento. Non esistono dati dimostrativi: l'app
 parte vuota e ogni numero deriva dal database.
 
-Dettagli: [`docs/roadmap/m0-delivery.md`](docs/roadmap/m0-delivery.md).
+Dettagli: [`docs/roadmap/m0-delivery.md`](docs/roadmap/m0-delivery.md) · [`docs/m0h/delivery.md`](docs/m0h/delivery.md).
 
 ## Stack
 
@@ -91,7 +93,9 @@ Per ripartire da zero cancella `apps/api/.wrangler/state` e rilancia `pnpm db:mi
 | `DEV_USER_EMAIL`     | —                    | `dev@meet-roulette.local` | Identità fittizia locale                                |
 | `APP_ORIGIN`         | —                    | `http://localhost:5173`   | Origine aggiuntiva ammessa dalla protezione CSRF        |
 
-Con i valori di produzione vuoti l'API **rifiuta ogni richiesta** (fail-closed). Il deploy non fa parte di M0;
+Con i valori di produzione vuoti l'API **rifiuta ogni richiesta** (fail-closed: provato anche eseguendo la configurazione di produzione su workerd).
+`workers_dev` e `preview_urls` sono disattivati in produzione (Access non protegge `*.workers.dev`): il deploy richiede un **dominio personalizzato**.
+L'ambiente `preview` (`wrangler dev --env preview`) serve la build di produzione con identità di sviluppo, per le prove locali. Il deploy non fa parte di M0;
 la procedura è in [`docs/architecture/authentication.md`](docs/architecture/authentication.md).
 
 ## Migrazioni del database
@@ -104,6 +108,7 @@ pnpm db:migrate:local       # la applica al D1 locale
 ```
 
 Le migrazioni generate vanno **riviste e committate**. Non si modificano migrazioni già applicate: se ne crea una nuova.
+**D1 non supporta `PRAGMA foreign_keys`**: se drizzle-kit propone di ricreare una tabella, l'SQL va riscritto a mano (esempio e guardia di sicurezza in `0001_tenant_integrity.sql`). `pnpm db:check` fallisce se lo schema diverge dalle migrazioni.
 Vedi [`docs/architecture/database.md`](docs/architecture/database.md).
 
 ## Test e quality gate
@@ -113,10 +118,14 @@ pnpm typecheck        # TypeScript strict su tutti i package
 pnpm lint             # ESLint (type-aware, hooks, a11y), zero warning ammessi
 pnpm format:check     # Prettier
 pnpm check:contrast   # contrasto WCAG dei token colore, tema chiaro e scuro
+pnpm check:config     # invarianti di sicurezza della configurazione Cloudflare (wrangler.jsonc)
+pnpm db:check         # schema TypeScript coerente con le migrazioni committate
 pnpm test             # unit + integrazione (shared, schemas, API nel runtime Workers, web)
 pnpm build            # build frontend + dry-run di pacchettizzazione del Worker
-pnpm test:e2e         # Playwright su stack reale (porte 5199/8799, DB pulito a ogni esecuzione)
-pnpm check            # typecheck + lint + format + contrasto + test + build
+pnpm test:e2e         # Playwright su stack di sviluppo (porte 5199/8799, DB pulito a ogni esecuzione)
+pnpm test:preview     # Playwright sulla BUILD di produzione servita da Static Assets (porta 8797):
+                      # header, CSP reale, fallback SPA, instradamento /api/*
+pnpm check            # typecheck + lint + format + contrasto + config + db + test + build
 ```
 
 ## Struttura della repository
@@ -152,3 +161,4 @@ meet-roulette/
 - Prodotto: [visione](docs/product/vision.md) · [requisiti](docs/product/requirements.md) · [modello di dominio](docs/product/domain-model.md) · [user stories](docs/product/user-stories.md)
 - UX: [architettura dell'informazione](docs/ux/information-architecture.md) · [design system](docs/ux/design-system.md) · [schermate](docs/ux/screens.md)
 - Roadmap: [milestone](docs/roadmap/milestones.md) · [consegna M0](docs/roadmap/m0-delivery.md) · [backlog](docs/roadmap/backlog.md)
+- Hardening M0.H: [consegna](docs/m0h/delivery.md) · [registro dei problemi](docs/m0h/issue-register.md) · [baseline](docs/m0h/audit-baseline.md) · [sicurezza](docs/m0h/security-audit.md) · [database](docs/m0h/database-audit.md) · [frontend](docs/m0h/frontend-audit.md) · [test](docs/m0h/testing-report.md) · [readiness Cloudflare](docs/m0h/cloudflare-readiness.md)

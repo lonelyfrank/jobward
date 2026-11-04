@@ -42,7 +42,9 @@ export function authenticate(deps: AuthDeps): MiddlewareHandler<AppEnv> {
       if (env.ENVIRONMENT !== 'development' || !LOOPBACK_HOSTS.has(host)) throw misconfigured();
       email = (env.DEV_USER_EMAIL ?? 'dev@meet-roulette.local').toLowerCase();
     } else if (env.AUTH_MODE === 'access') {
-      const { ACCESS_TEAM_DOMAIN: teamDomain, ACCESS_AUD: audience, OWNER_EMAIL: owner } = env;
+      const { ACCESS_TEAM_DOMAIN: teamDomain, ACCESS_AUD: audience } = env;
+      // Le variabili possono essere assenti (undefined) oppure vuote/spazi: stessa risposta.
+      const owner = env.OWNER_EMAIL?.trim().toLowerCase();
       if (!teamDomain || !audience || !owner || !isValidTeamDomain(teamDomain)) {
         throw misconfigured();
       }
@@ -61,7 +63,7 @@ export function authenticate(deps: AuthDeps): MiddlewareHandler<AppEnv> {
         throw new ApiError(401, 'unauthenticated', 'Autenticazione richiesta');
       }
 
-      if (email !== owner.toLowerCase()) {
+      if (email !== owner) {
         throw new ApiError(403, 'forbidden', 'Questo account non è autorizzato');
       }
     } else {

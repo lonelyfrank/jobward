@@ -33,8 +33,9 @@ function StatCard({
 }) {
   return (
     <Surface className="p-4">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Icon aria-hidden="true" className="size-4" />
+      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+        {/* shrink-0: se l'etichetta va a capo l'icona non deve schiacciarsi */}
+        <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
         {label}
       </div>
       <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">{value}</p>
@@ -73,7 +74,7 @@ export function OverviewPage() {
         <div
           role="status"
           aria-label="Caricamento del riepilogo"
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5"
+          className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5"
         >
           {Array.from({ length: 5 }, (_, i) => (
             <Skeleton key={i} className="h-28" />
@@ -106,7 +107,11 @@ export function OverviewPage() {
     <>
       {header}
 
-      <section aria-label="Riepilogo" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <section
+        aria-label="Riepilogo"
+        data-testid="stat-grid"
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5 sm:max-xl:[&>:last-child:nth-child(odd)]:col-span-2"
+      >
         <StatCard
           icon={BriefcaseBusiness}
           label="Opportunità"

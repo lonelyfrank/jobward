@@ -1,3 +1,4 @@
+import './lib/zod-config'; // deve precedere qualunque import che crea schemi Zod
 import '@fontsource-variable/inter';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';

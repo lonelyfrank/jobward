@@ -4,7 +4,10 @@ on:
   pull_request:
   push:
     branches: [main]
+  # Avvio manuale (richiede che il workflow esista sul branch predefinito).
+  workflow_dispatch:
 
+# Permessi minimi: nessun job scrive nella repository o sui pacchetti.
 permissions:
   contents: read
 
@@ -12,15 +15,26 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Niente telemetria di Wrangler e nessun prompt interattivo nei log.
+  WRANGLER_SEND_METRICS: 'false'
+  CI: 'true'
+
+# Le action sono fissate per SHA di commit (il commento indica il tag): un tag mobile può essere
+# riassegnato, soprattutto per le action di terze parti (pnpm/action-setup). Aggiornare con
+# Dependabot o a mano verificando action.yml (input usati: node-version-file, cache, name, path, retention-days).
 jobs:
   quality:
     name: Typecheck · Lint · Test · Build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      # La versione di pnpm viene dal campo "packageManager" di package.json.
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -29,29 +43,39 @@ jobs:
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm check:contrast
+      - run: pnpm check:config
+      - run: pnpm db:check
       - run: pnpm test
       - run: pnpm build
 
   e2e:
     name: E2E (Playwright)
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     needs: quality
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @meet-roulette/web exec playwright install --with-deps chromium
+      # Stack di sviluppo (Vite + Worker + D1 locale).
       - run: pnpm test:e2e
-      - uses: actions/upload-artifact@v4
+      # Build di produzione servita da Workers Static Assets: header, CSP e fallback SPA reali.
+      - run: pnpm test:preview
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-reports
           path: |
             apps/web/playwright-report
             apps/web/test-results
+            apps/web/playwright-report-preview
+            apps/web/test-results-preview
+          if-no-files-found: ignore
           retention-days: 7

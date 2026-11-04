@@ -19,19 +19,32 @@ export function AppShell() {
   const matches = useMatches();
   const title = (matches.at(-1)?.handle as RouteHandle | undefined)?.title ?? 'Meet Roulette';
   const mainRef = useRef<HTMLElement>(null);
-  const firstRender = useRef(true);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const previousPath = useRef(location.pathname);
 
   useEffect(() => {
     document.title = `${title} · Meet Roulette`;
   }, [title]);
 
+  // Il drawer è nascosto da CSS da `md` in su, ma Radix resterebbe in modalità modale
+  // (pagina non cliccabile). Lo si chiude quando la finestra diventa abbastanza larga.
+  useEffect(() => {
+    if (typeof window.matchMedia !== 'function') return;
+    const desktop = window.matchMedia('(min-width: 768px)');
+    const onChange = (event: MediaQueryListEvent) => {
+      if (event.matches) setNavOpen(false);
+    };
+    desktop.addEventListener('change', onChange);
+    return () => desktop.removeEventListener('change', onChange);
+  }, []);
+
   // Dopo una navigazione lato client sposta il focus sul contenuto: chi usa tastiera o
   // screen reader sa che la vista è cambiata. Non al primo caricamento.
+  // Si confronta il percorso precedente (e non un flag "primo render"): in sviluppo StrictMode
+  // esegue gli effetti due volte e il flag farebbe spostare il focus anche al caricamento.
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false;
-      return;
-    }
+    if (previousPath.current === location.pathname) return;
+    previousPath.current = location.pathname;
     mainRef.current?.focus({ preventScroll: true });
     window.scrollTo?.(0, 0);
   }, [location.pathname]);
@@ -55,12 +68,17 @@ export function AppShell() {
           <Sidebar collapsed={collapsed} onToggleCollapsed={toggle} />
         </aside>
 
-        <Sheet open={navOpen} onOpenChange={setNavOpen} title="Menu di navigazione">
+        <Sheet
+          open={navOpen}
+          onOpenChange={setNavOpen}
+          title="Menu di navigazione"
+          returnFocusRef={menuButtonRef}
+        >
           <Sidebar onNavigate={() => setNavOpen(false)} />
         </Sheet>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <Topbar title={title} onOpenNav={() => setNavOpen(true)} />
+          <Topbar title={title} onOpenNav={() => setNavOpen(true)} menuButtonRef={menuButtonRef} />
           <main
             id="main"
             ref={mainRef}

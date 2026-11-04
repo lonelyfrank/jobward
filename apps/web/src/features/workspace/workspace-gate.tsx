@@ -1,4 +1,5 @@
 import { Lock, RefreshCw } from 'lucide-react';
+import { lazy, Suspense } from 'react';
 import { Outlet } from 'react-router';
 import { LogoMark } from '@/components/brand/logo';
 import { Button } from '@/components/ui/button';
@@ -6,7 +7,22 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ApiRequestError } from '@/lib/api';
 import { useMe } from './api';
 import { WorkspaceContext } from './context';
-import { Onboarding } from './onboarding';
+
+// L'onboarding si vede una sola volta nella vita dell'utente e porta con sé react-hook-form e
+// il resolver Zod: caricarlo a richiesta toglie ~35 kB dal percorso di chi ha già un workspace.
+const Onboarding = lazy(() => import('./onboarding').then((m) => ({ default: m.Onboarding })));
+
+function Loading() {
+  return (
+    <div
+      className="grid min-h-dvh place-items-center"
+      role="status"
+      aria-label="Caricamento in corso"
+    >
+      <Skeleton className="h-10 w-48" />
+    </div>
+  );
+}
 
 function FullScreenMessage({
   title,
@@ -70,14 +86,20 @@ export function WorkspaceGate() {
     return (
       <FullScreenMessage
         title="Non riusciamo a caricare i tuoi dati"
-        text="Controlla la connessione e riprova."
+        text="Controlla la connessione e riprova. Se il problema continua, ricarica la pagina: la sessione potrebbe essere scaduta."
         onRetry={() => void me.refetch()}
       />
     );
   }
 
   const workspace = me.data.workspaces[0];
-  if (!workspace) return <Onboarding />;
+  if (!workspace) {
+    return (
+      <Suspense fallback={<Loading />}>
+        <Onboarding />
+      </Suspense>
+    );
+  }
 
   return (
     <WorkspaceContext.Provider value={{ user: me.data.user, workspace }}>
