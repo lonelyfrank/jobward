@@ -1,0 +1,369 @@
+import {
+  ACTIVITY_EVENT_TYPES,
+  CONTRACT_TYPES,
+  CUSTOM_FIELD_TYPES,
+  MEMBER_ROLES,
+  OUTCOMES,
+  PRIORITIES,
+  SALARY_PERIODS,
+  STAGES,
+  WORK_MODES,
+} from '@meet-roulette/shared';
+import { sql, type SQL } from 'drizzle-orm';
+import {
+  check,
+  index,
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+  uniqueIndex,
+  type AnySQLiteColumn,
+} from 'drizzle-orm/sqlite-core';
+
+/**
+ * Convenzioni
+ * - ID: UUID testuale generato dall'applicazione (`crypto.randomUUID()`).
+ * - Timestamp: interi, millisecondi Unix in UTC. Mai stringhe locali.
+ * - Date di calendario (pubblicazione, candidatura): testo `YYYY-MM-DD`.
+ * - Multi-tenancy: ogni tabella di dominio porta `workspace_id`, così ogni query
+ *   può (e deve) filtrare per tenant senza join.
+ * - I vocabolari controllati sono protetti da vincoli CHECK, non solo dai tipi TS.
+ */
+
+const id = () => text('id').primaryKey();
+const createdAt = () => integer('created_at').notNull();
+const updatedAt = () => integer('updated_at').notNull();
+
+/** `col IN ('a','b',...)` costruito da costanti del codice, mai da input utente. */
+function inList(column: AnySQLiteColumn, values: readonly string[]): SQL {
+  const literals = values.map((v) => sql.raw(`'${v.replaceAll("'", "''")}'`));
+  return sql`${column} in (${sql.join(literals, sql`, `)})`;
+}
+
+// ---------------------------------------------------------------------------
+// Identità e tenancy
+// ---------------------------------------------------------------------------
+
+export const users = sqliteTable(
+  'users',
+  {
+    id: id(),
+    /** Sempre in minuscolo. */
+    email: text('email').notNull(),
+    displayName: text('display_name'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex('users_email_unique').on(t.email),
+    check('users_email_lower', sql`${t.email} = lower(${t.email})`),
+  ],
+);
+
+export const workspaces = sqliteTable('workspaces', {
+  id: id(),
+  name: text('name').notNull(),
+  /** Fuso orario IANA usato per mostrare scadenze e calcolare "oggi". */
+  timezone: text('timezone').notNull().default('UTC'),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+/** Membership: predispone permessi articolati. In M0 esiste soltanto il ruolo `owner`. */
+export const workspaceMembers = sqliteTable(
+  'workspace_members',
+  {
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: text('role', { enum: MEMBER_ROLES }).notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.workspaceId, t.userId] }),
+    index('workspace_members_user_idx').on(t.userId),
+    check('workspace_members_role_valid', inList(t.role, MEMBER_ROLES)),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Bacheche
+// ---------------------------------------------------------------------------
+
+export const boards = sqliteTable(
+  'boards',
+  {
+    id: id(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    description: text('description'),
+    icon: text('icon'),
+    color: text('color'),
+    position: integer('position').notNull().default(0),
+    isFavorite: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [index('boards_workspace_position_idx').on(t.workspaceId, t.position)],
+);
+
+export const boardColumns = sqliteTable(
+  'board_columns',
+  {
+    id: id(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    boardId: text('board_id')
+      .notNull()
+      .references(() => boards.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    color: text('color'),
+    position: integer('position').notNull(),
+    /** Fase semantica di default della colonna (facoltativa). */
+    category: text('category', { enum: STAGES }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index('board_columns_board_position_idx').on(t.boardId, t.position),
+    check(
+      'board_columns_category_valid',
+      sql`${t.category} is null or ${inList(t.category, STAGES)}`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Schede
+// ---------------------------------------------------------------------------
+
+export const cards = sqliteTable(
+  'cards',
+  {
+    id: id(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    boardId: text('board_id')
+      .notNull()
+      .references(() => boards.id, { onDelete: 'cascade' }),
+    /** RESTRICT: una colonna che contiene schede non può sparire in modo distruttivo. */
+    columnId: text('column_id')
+      .notNull()
+      .references(() => boardColumns.id, { onDelete: 'restrict' }),
+    title: text('title').notNull(),
+    description: text('description'),
+    position: integer('position').notNull(),
+    priority: text('priority', { enum: PRIORITIES }).notNull().default('none'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+    /** Archiviazione recuperabile: la riga non viene cancellata. */
+    archivedAt: integer('archived_at'),
+  },
+  (t) => [
+    index('cards_column_position_idx').on(t.columnId, t.position),
+    index('cards_workspace_archived_idx').on(t.workspaceId, t.archivedAt),
+    index('cards_board_idx').on(t.boardId),
+    check('cards_priority_valid', inList(t.priority, PRIORITIES)),
+  ],
+);
+
+/** Informazioni strutturate dell'opportunità. 1:1 con la scheda, tutti i campi facoltativi. */
+export const applicationDetails = sqliteTable(
+  'application_details',
+  {
+    cardId: text('card_id')
+      .primaryKey()
+      .references(() => cards.id, { onDelete: 'cascade' }),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    company: text('company'),
+    position: text('position'),
+    location: text('location'),
+    workMode: text('work_mode', { enum: WORK_MODES }),
+    contractType: text('contract_type', { enum: CONTRACT_TYPES }),
+    /** Importi in unità intere della valuta (non in centesimi). */
+    salaryMin: integer('salary_min'),
+    salaryMax: integer('salary_max'),
+    currency: text('currency'),
+    salaryPeriod: text('salary_period', { enum: SALARY_PERIODS }),
+    source: text('source'),
+    sourceUrl: text('source_url'),
+    publishedOn: text('published_on'),
+    appliedOn: text('applied_on'),
+    /** Fase semantica: indipendente dalla colonna Kanban. */
+    stage: text('stage', { enum: STAGES }),
+    /** Esito: indipendente dalla fase. */
+    outcome: text('outcome', { enum: OUTCOMES }),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index('application_details_workspace_stage_idx').on(t.workspaceId, t.stage),
+    check(
+      'application_details_work_mode_valid',
+      sql`${t.workMode} is null or ${inList(t.workMode, WORK_MODES)}`,
+    ),
+    check(
+      'application_details_contract_valid',
+      sql`${t.contractType} is null or ${inList(t.contractType, CONTRACT_TYPES)}`,
+    ),
+    check(
+      'application_details_period_valid',
+      sql`${t.salaryPeriod} is null or ${inList(t.salaryPeriod, SALARY_PERIODS)}`,
+    ),
+    check('application_details_stage_valid', sql`${t.stage} is null or ${inList(t.stage, STAGES)}`),
+    check(
+      'application_details_outcome_valid',
+      sql`${t.outcome} is null or ${inList(t.outcome, OUTCOMES)}`,
+    ),
+    check(
+      'application_details_salary_range',
+      sql`${t.salaryMin} is null or ${t.salaryMax} is null or ${t.salaryMin} <= ${t.salaryMax}`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Personalizzazione
+// ---------------------------------------------------------------------------
+
+export const customFieldDefinitions = sqliteTable(
+  'custom_field_definitions',
+  {
+    id: id(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    boardId: text('board_id')
+      .notNull()
+      .references(() => boards.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    type: text('type', { enum: CUSTOM_FIELD_TYPES }).notNull(),
+    /** JSON validato da `customFieldDefinitionInput` (opzioni, limiti, ...). */
+    config: text('config').notNull().default('{}'),
+    position: integer('position').notNull().default(0),
+    isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index('custom_field_definitions_board_idx').on(t.boardId, t.position),
+    check('custom_field_definitions_type_valid', inList(t.type, CUSTOM_FIELD_TYPES)),
+  ],
+);
+
+export const customFieldValues = sqliteTable(
+  'custom_field_values',
+  {
+    cardId: text('card_id')
+      .notNull()
+      .references(() => cards.id, { onDelete: 'cascade' }),
+    fieldId: text('field_id')
+      .notNull()
+      .references(() => customFieldDefinitions.id, { onDelete: 'cascade' }),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    /** Valore serializzato in JSON: preserva numeri, booleani e array. */
+    value: text('value').notNull(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.cardId, t.fieldId] }),
+    index('custom_field_values_field_idx').on(t.fieldId),
+  ],
+);
+
+export const labels = sqliteTable(
+  'labels',
+  {
+    id: id(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    color: text('color').notNull().default('slate'),
+    createdAt: createdAt(),
+  },
+  (t) => [uniqueIndex('labels_workspace_name_unique').on(t.workspaceId, sql`lower(${t.name})`)],
+);
+
+export const cardLabels = sqliteTable(
+  'card_labels',
+  {
+    cardId: text('card_id')
+      .notNull()
+      .references(() => cards.id, { onDelete: 'cascade' }),
+    labelId: text('label_id')
+      .notNull()
+      .references(() => labels.id, { onDelete: 'cascade' }),
+  },
+  (t) => [
+    primaryKey({ columns: [t.cardId, t.labelId] }),
+    index('card_labels_label_idx').on(t.labelId),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Attività e cronologia
+// ---------------------------------------------------------------------------
+
+export const tasks = sqliteTable(
+  'tasks',
+  {
+    id: id(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    /** Null = attività del workspace, non legata a una scheda. */
+    cardId: text('card_id').references(() => cards.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    description: text('description'),
+    /** Istante assoluto (ms UTC); viene mostrato nel fuso orario del workspace. */
+    dueAt: integer('due_at'),
+    /** Null = non completata. */
+    completedAt: integer('completed_at'),
+    priority: text('priority', { enum: PRIORITIES }).notNull().default('none'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    index('tasks_workspace_open_due_idx').on(t.workspaceId, t.completedAt, t.dueAt),
+    index('tasks_card_idx').on(t.cardId),
+    check('tasks_priority_valid', inList(t.priority, PRIORITIES)),
+  ],
+);
+
+/**
+ * Cronologia degli eventi significativi. `metadata` contiene solo dati strutturati
+ * minimi (es. colonna di origine/destinazione), mai testo libero riservato.
+ */
+export const activityEvents = sqliteTable(
+  'activity_events',
+  {
+    id: id(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    boardId: text('board_id').references(() => boards.id, { onDelete: 'set null' }),
+    cardId: text('card_id').references(() => cards.id, { onDelete: 'set null' }),
+    actorUserId: text('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
+    type: text('type', { enum: ACTIVITY_EVENT_TYPES }).notNull(),
+    metadata: text('metadata').notNull().default('{}'),
+    occurredAt: integer('occurred_at').notNull(),
+  },
+  (t) => [
+    index('activity_events_workspace_time_idx').on(t.workspaceId, t.occurredAt),
+    index('activity_events_card_time_idx').on(t.cardId, t.occurredAt),
+    check('activity_events_type_valid', inList(t.type, ACTIVITY_EVENT_TYPES)),
+  ],
+);

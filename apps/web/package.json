@@ -1,0 +1,49 @@
+{
+  "name": "@meet-roulette/web",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.2.8",
+    "@hookform/resolvers": "7.0.2",
+    "@meet-roulette/schemas": "workspace:*",
+    "@meet-roulette/shared": "workspace:*",
+    "@tanstack/react-query": "5.105.3",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "lucide-react": "1.67.0",
+    "radix-ui": "1.8.1",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "react-hook-form": "7.91.0",
+    "react-router": "8.5.1",
+    "tailwind-merge": "3.7.0",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "1.64.1",
+    "@tailwindcss/vite": "4.3.4",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.0",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "^14.6.0",
+    "@types/node": "catalog:",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "6.2.1",
+    "jsdom": "30.1.3",
+    "tailwindcss": "4.3.4",
+    "typescript": "catalog:",
+    "vite": "8.3.5",
+    "vitest": "catalog:"
+  }
+}

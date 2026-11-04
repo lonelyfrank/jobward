@@ -1,0 +1,48 @@
+# Milestone
+
+| Milestone                              | Obiettivo                                                                     | Stato                                           |
+| -------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------- |
+| **M0** Foundation & Initial Workspace  | Fondamenta solide e primo ambiente navigabile                                 | ✅ Completata (vedi [consegna](m0-delivery.md)) |
+| **M1** Boards & Cards                  | Il nucleo operativo: bacheche, colonne, schede, Kanban                        | ⏳ Prossima                                     |
+| **M2** Job Information & Customization | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella | ⏳                                              |
+| **M3** Tasks & Activity                | Attività, follow-up, scadenze, cronologia, dashboard operativa                | ⏳                                              |
+| **M4** Insights & Private Release      | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato     | ⏳                                              |
+| **M5** Public Readiness                | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi | 🔮 Futuro, fuori incarico                       |
+
+## M1 — Boards & Cards (piano)
+
+**Obiettivo**: poter creare una bacheca da un template, aggiungere schede e spostarle, con persistenza.
+
+### Prerequisiti già pronti da M0
+
+- Schema DB completo (boards, board_columns, cards, activity_events…) e migrazioni.
+- Schemi Zod `createBoardInput`, `createColumnInput`, `createCardInput` e vocabolari.
+- Template di bacheca come dati (`BOARD_TEMPLATES`) e già mostrati nella schermata Bacheche.
+- Pattern di API, errori, ownership (`requireMembership`), test su D1, shell e componenti UI.
+
+### Passi proposti (in ordine, ciascuno verificabile)
+
+| #   | Task                                                                                                                 | Criteri di accettazione                                                                      |
+| --- | -------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| 1   | **API bacheche**: `GET/POST /boards`, `PATCH/DELETE /boards/:id` (preferita, ordine)                                 | 404 su workspace altrui; eliminazione con conferma lato UI; test ownership                   |
+| 2   | **Creazione da template** (`POST /boards` con `templateId`)                                                          | Colonne create nello stesso `batch()` della bacheca (atomico); template `custom` → 0 colonne |
+| 3   | **API colonne**: CRUD + riordino. DELETE rifiuta con 409 se contiene schede                                          | Messaggio chiaro; test RESTRICT + regola di servizio                                         |
+| 4   | **API schede**: `POST /cards` (solo titolo), `GET` per bacheca, `PATCH`, archivia/ripristina                         | Creazione col solo titolo; evento `card_created` registrato                                  |
+| 5   | **Spostamento**: `POST /cards/:id/move` con posizioni a gap (ADR-0004)                                               | Unit test dell'algoritmo (inserimento, ribilanciamento); batch atomico; evento `card_moved`  |
+| 6   | **UI Bacheche**: elenco, creazione (con template), rinomina, preferita, elimina con conferma                         | E2E: crea → refresh → persiste                                                               |
+| 7   | **UI Kanban**: colonne dinamiche, creazione rapida di schede, conteggi                                               | Test componenti + E2E                                                                        |
+| 8   | **Drag & drop** (`@dnd-kit`) con aggiornamento ottimistico e rollback; **alternativa da tastiera/menu "Sposta in…"** | E2E: sposta, refresh, persiste; errore simulato → ripristino                                 |
+| 9   | **Pannello di dettaglio** (desktop laterale / mobile schermo intero): Overview e History                             | Si apre senza perdere il contesto; focus gestito                                             |
+| 10  | **Onboarding completo**: scelta template + prima opportunità                                                         | E2E del flusso completo della specifica                                                      |
+| 11  | Overview: i contatori e "bacheche recenti" si popolano; rimuovere i badge M1                                         | Test aggiornati                                                                              |
+
+### Decisioni da prendere all'inizio di M1
+
+- Dimensione/paginazione del carico delle schede per bacheca (tutte insieme finché sono poche centinaia?).
+- Colori e icone delle bacheche: elenco chiuso di token e icone Lucide ammesse.
+- Comportamento esatto del cambio di fase proposto quando si sposta in una colonna con categoria semantica.
+
+### Rischi
+
+- Spostamenti concorrenti e ribilanciamento delle posizioni su D1 senza transazioni interattive → algoritmo e test mirati (passo 5).
+- Accessibilità del drag & drop → l'alternativa da tastiera è un requisito, non un extra.
