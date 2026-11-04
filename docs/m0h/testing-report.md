@@ -54,6 +54,10 @@ Ogni controllo di sicurezza o correzione è stato **rotto di proposito** e si è
 
 Errori **miei** scoperti dai test e corretti durante il lavoro: `owner.trim()` su variabile non definita (typecheck + test), misure del test sulle righe senza considerare il gap, `sed` che non corrispondeva (la mutazione sull'icona è stata rifatta), aspettativa sul menu legata all'implementazione modale.
 
+## 3b. Lezione dalla prima run di CI
+
+Gli E2E di sviluppo risultavano verdi in locale ma **dipendevano da una `apps/web/dist` residua** (H-23). Un test eseguito sempre sulla stessa macchina non distingue "funziona" da "funziona perché c'è uno stato nascosto". Dopo la correzione gli E2E sono stati rieseguiti **senza `dist`** (31/31) e il flusso del README è stato provato su un **clone pulito**. Per le prossime verifiche: partire sempre da `rm -rf apps/*/dist` e da un clone pulito.
+
 ## 4. Limiti dei test (onestà)
 
 - **CI GitHub non eseguita**: nessuna run esiste (`gh run list` vuoto). Il workflow è stato riscritto e i suoi comandi sono stati eseguiti uno a uno in locale, ma il workflow stesso, le action fissate per SHA e l'installazione di Playwright con `--with-deps` su `ubuntu-latest` **non sono verificati**.
