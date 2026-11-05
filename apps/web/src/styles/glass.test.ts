@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -74,5 +74,39 @@ describe('materiale Glass Subtle', () => {
 
   it('non contiene animazioni né transizioni (nessun riflesso animato)', () => {
     expect(css).not.toMatch(/@keyframes|animation\s*:|transition\s*:|will-change/);
+  });
+
+  it('la variante delle colonne Kanban cambia solo token, non introduce un secondo materiale', () => {
+    const variant = css.match(/\.glass-subtle\.kanban-column-glass\s*{([^}]*)}/)?.[1] ?? '';
+    expect(variant).toContain('--glass-tint:');
+    expect(variant.split(';').filter((d) => d.trim() && !d.trim().startsWith('--glass-'))).toEqual(
+      [],
+    );
+    expect(css).not.toMatch(/\.kanban-column-glass::/);
+  });
+
+  it('non ridefinisce globalmente .surface, .card, .panel, bg-surface o bg-surface-muted', () => {
+    expect(css).not.toMatch(/(^|[\s,>])\.(surface|card|panel|bg-surface(-muted)?)\b/m);
+  });
+});
+
+/**
+ * Guardia d'ambito: Glass Subtle è una finitura esclusiva delle colonne Kanban. Il comportamento
+ * è verificato in kanban-glass.test.tsx e in e2e/kanban-glass.spec.ts; questo controllo segnala
+ * subito un uso della classe in qualunque altro sorgente.
+ */
+describe('ambito di Glass Subtle nei sorgenti', () => {
+  const root = path.join(import.meta.dirname, '..');
+  const walk = (dir: string): string[] =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)],
+    );
+
+  it('solo KanbanColumn applica la classe glass-subtle', () => {
+    const users = walk(root)
+      .filter((f) => /\.(tsx?|html)$/.test(f) && !/\.test\.tsx?$/.test(f))
+      .filter((f) => readFileSync(f, 'utf8').includes('glass-subtle'))
+      .map((f) => path.relative(root, f));
+    expect(users).toEqual(['features/kanban/kanban-column.tsx']);
   });
 });

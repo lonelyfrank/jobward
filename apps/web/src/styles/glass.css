@@ -68,6 +68,18 @@
   --glass-opaque-edge: var(--border-strong);
 }
 
+/*
+ * Variante di contesto: colonne Kanban (unico uso di Glass Subtle in Jobward). Non è un secondo
+ * materiale: cambia solo la tinta, per restare sul colore originale della colonna
+ * (--surface-muted: #EFF0F8 chiaro, #1E203D scuro) e mantenere il contrasto con le schede
+ * opache (bg-surface) che la colonna contiene.
+ */
+.glass-subtle.kanban-column-glass {
+  --glass-tint: var(--surface-muted);
+  --glass-tint-alpha: 0.8;
+  --glass-opaque: var(--surface-muted);
+}
+
 @layer components {
   .glass-subtle {
     position: relative;

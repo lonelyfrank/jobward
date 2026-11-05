@@ -55,7 +55,10 @@ export function KanbanColumn({
       data-column-id={column.id}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        'flex max-h-full w-[85vw] shrink-0 snap-center flex-col rounded-xl bg-surface-muted pb-1 sm:w-[18rem] sm:snap-align-none',
+        'flex max-h-full w-[85vw] shrink-0 snap-center flex-col rounded-xl pb-1 sm:w-[18rem] sm:snap-align-none',
+        // Unico uso del materiale Glass Subtle: lo sfondo del contenitore esterno della colonna
+        // (sostituisce bg-surface-muted). Le schede interne restano opache (bg-surface).
+        'glass-subtle kanban-column-glass',
         isDragging && 'opacity-40',
       )}
     >
