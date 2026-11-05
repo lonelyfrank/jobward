@@ -110,7 +110,20 @@ expect(
   Boolean(envs.preview?.assets),
   'env.preview: assets richiesti (anteprima della build di produzione)',
 );
-expect(!envs.dev?.assets, 'env.dev: non serve la build del frontend');
+// `assets` è ereditato dal livello superiore: se env.dev non lo ridefinisce, Wrangler richiede la build
+// (apps/web/dist) anche in sviluppo e fallisce su un clone pulito o in un job CI senza build.
+expect(
+  Boolean(envs.dev?.assets),
+  'env.dev: deve ridefinire `assets` (altrimenti eredita ../web/dist e richiede la build)',
+);
+expect(
+  !/web\/dist/.test(envs.dev?.assets?.directory ?? ''),
+  'env.dev: assets.directory non deve puntare alla build (apps/web/dist)',
+);
+expect(
+  fs.existsSync(path.resolve(root, 'apps/api', envs.dev?.assets?.directory ?? 'inesistente')),
+  'env.dev: assets.directory deve esistere nel repo (senza build)',
+);
 
 // --- Il placeholder D1 di produzione non deve sembrare un ID reale.
 expect(

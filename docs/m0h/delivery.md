@@ -78,7 +78,9 @@ Composizione prima: react-dom 202 kB (32%), react-router 92 (15%), zod 84 (13%),
 
 ## 8. Stato della CI
 
-**Non verificata.** `gh run list` non mostra alcuna esecuzione: il workflow parte solo su PR o push su `main`. È stato riscritto (action v7/v6 fissate per SHA dopo aver letto i loro `action.yml`; input verificati) e **ogni suo comando** è stato eseguito in locale. Restano non provati: risoluzione delle action, `playwright install --with-deps` su `ubuntu-latest`, tempi. Per verificarla basta aprire una PR da `m0h-hardening` (o fare push, che qui non è stato fatto).
+> **Aggiornamento post-merge.** La prima run su GitHub (PR #1) ha dato: job **`quality` ✅** (installazione con lockfile, action v7/v6 fissate per SHA, typecheck, lint, formattazione, contrasto, `check:config`, `db:check`, 163 test, build) e job **E2E ❌**: Wrangler non trovava `apps/web/dist`. La causa non era soltanto "runner separato": `env.dev` **eredita `assets`** dal livello superiore, quindi gli E2E dipendevano da una build che in locale esisteva sempre per caso (H-23). Il difetto è stato corretto nel branch `fix/m0h-ci-e2e`. L'affermazione originale di questa sezione ("non verificata") era onesta; l'affermazione che gli E2E fossero "verdi" valeva solo con una `dist` presente.
+
+Stato precedente al merge (storico): **non verificata**, nessuna run esistente; il workflow era stato riscritto e ogni comando eseguito in locale.
 
 ## 9. Stato Cloudflare
 

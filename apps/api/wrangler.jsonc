@@ -47,6 +47,15 @@
     // e la modalità "dev" viene rifiutata dal codice se ENVIRONMENT != development.
     "dev": {
       "name": "meet-roulette-dev",
+      // `assets` è una chiave EREDITATA dal livello superiore: senza questa riga l'ambiente dev
+      // erediterebbe `../web/dist` e Wrangler non partirebbe su un clone pulito (nessuna build).
+      // In sviluppo il frontend lo serve Vite: qui basta una cartella che esiste sempre nel repo.
+      // Le API restano sul Worker (`run_worker_first`). Verificato da `pnpm check:config`.
+      "assets": {
+        "directory": "../web/public",
+        "binding": "ASSETS",
+        "run_worker_first": ["/api/*"],
+      },
       "d1_databases": [
         {
           "binding": "DB",
