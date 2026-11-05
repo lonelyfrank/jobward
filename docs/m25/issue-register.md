@@ -41,6 +41,7 @@ Nessun P0/P1. Nessun problema aperto.
 
 - **Evidenza.** Dopo M25-01 il gate completo ha mostrato 1 E2E rosso (`details` n. 4: «Minima» non visibile) più 5 non eseguiti (serial); in locale, prima della correzione, passavano 8/9 perché i campi di «Dettagli» erano visibili anche con un'altra scheda selezionata.
 - **Correzione.** I test aprono la scheda «Dettagli»/«Panoramica» prima di toccare i suoi campi (quello a 390 px ora controlla axe e aree di tocco su **entrambe** le schede).
+- **Anteprima (locator).** Con la modale a schede il pulsante «Salva» compare due volte (intestazione e piè di pagina, il secondo `type=submit form="card-form"`) e «Fase»/etichette stanno in Panoramica: i test M1 e M2 della preview usano `exact: true` + `.last()` e aprono la scheda giusta.
 - **Anteprima.** `requestfailed` segnalava `ERR_ABORTED` di `/api/v1/opportunities`: è l'annullamento intenzionale (`AbortSignal`) di una ricerca superata, introdotto in M2. Il controllo ignora **solo** `ERR_ABORTED`; ogni altro `requestfailed`, errore di console, `pageerror` o violazione CSP resta un fallimento.
 
 ## Note di processo (non difetti del prodotto)
