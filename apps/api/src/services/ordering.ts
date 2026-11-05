@@ -19,6 +19,7 @@ export const ORDERED_LISTS = {
   boards: { table: 'boards', scope: 'workspace_id' },
   columns: { table: 'board_columns', scope: 'board_id' },
   cards: { table: 'cards', scope: 'column_id' },
+  customFields: { table: 'custom_field_definitions', scope: 'board_id' },
 } as const;
 export type OrderedList = keyof typeof ORDERED_LISTS;
 

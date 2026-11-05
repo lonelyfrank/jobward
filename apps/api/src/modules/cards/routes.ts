@@ -1,8 +1,13 @@
 import {
+  assignLabelInput,
+  cardCustomFieldResponse,
+  cardCustomFieldsResponse,
   cardDetailResponse,
+  cardLabelsResponse,
   cardResponse,
   createCardInput,
   moveCardInput,
+  putCustomFieldValueInput,
   updateCardInput,
 } from '@meet-roulette/schemas';
 import { Hono } from 'hono';
@@ -10,6 +15,8 @@ import { z } from 'zod';
 import type { AppEnv } from '../../env';
 import { parseJsonBody } from '../../lib/validate';
 import { idParam, workspaceScope } from '../../middleware/workspace';
+import { listCardFields, putCardFieldValue } from '../../services/custom-fields';
+import { assignLabel, unassignLabel } from '../../services/labels';
 import {
   archiveCard,
   createCard,
@@ -94,4 +101,49 @@ export const cardRoutes = new Hono<AppEnv>()
       Date.now(),
     );
     return c.json(cardResponse.parse({ card }));
+  })
+
+  .get('/:id/custom-fields', async (c) => {
+    const fields = await listCardFields(c.get('db'), c.get('workspaceId'), idParam(c));
+    return c.json(cardCustomFieldsResponse.parse({ fields }));
+  })
+
+  .put('/:id/custom-fields/:fieldId', async (c) => {
+    const { value } = await parseJsonBody(c, putCustomFieldValueInput);
+    const field = await putCardFieldValue(
+      c.env.DB,
+      c.get('db'),
+      c.get('workspaceId'),
+      idParam(c),
+      idParam(c, 'fieldId'),
+      value,
+      Date.now(),
+    );
+    return c.json(cardCustomFieldResponse.parse({ field }));
+  })
+
+  .post('/:id/labels', async (c) => {
+    const { labelId } = await parseJsonBody(c, assignLabelInput);
+    const labelIds = await assignLabel(
+      c.env.DB,
+      c.get('db'),
+      c.get('workspaceId'),
+      idParam(c),
+      labelId,
+      Date.now(),
+    );
+    return c.json(cardLabelsResponse.parse({ labelIds }));
+  })
+
+  .delete('/:id/labels/:labelId', async (c) => {
+    await parseJsonBody(c, emptyObject);
+    const labelIds = await unassignLabel(
+      c.env.DB,
+      c.get('db'),
+      c.get('workspaceId'),
+      idParam(c),
+      idParam(c, 'labelId'),
+      Date.now(),
+    );
+    return c.json(cardLabelsResponse.parse({ labelIds }));
   });

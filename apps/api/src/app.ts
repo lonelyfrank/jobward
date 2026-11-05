@@ -8,7 +8,9 @@ import { apiSecurityHeaders, requestId, requestLogger } from './middleware/reque
 import { boardRoutes } from './modules/boards/routes';
 import { cardRoutes } from './modules/cards/routes';
 import { columnRoutes } from './modules/columns/routes';
+import { customFieldRoutes } from './modules/custom-fields/routes';
 import { healthRoutes } from './modules/health/routes';
+import { labelRoutes } from './modules/labels/routes';
 import { meRoutes } from './modules/me/routes';
 import { overviewRoutes } from './modules/overview/routes';
 import { workspaceRoutes } from './modules/workspaces/routes';
@@ -39,6 +41,8 @@ export function createApp(deps: AuthDeps = defaultAuthDeps) {
   v1.route('/boards', boardRoutes);
   v1.route('/columns', columnRoutes);
   v1.route('/cards', cardRoutes);
+  v1.route('/labels', labelRoutes);
+  v1.route('/custom-fields', customFieldRoutes);
   app.route('/api/v1', v1);
 
   return app;

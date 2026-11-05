@@ -120,6 +120,7 @@ export const LIMITS = {
   /** Etichette per workspace e per scheda; campi personalizzati per bacheca (applicati in modo atomico). */
   labelsPerWorkspaceMax: 100,
   labelsPerCardMax: 20,
+  labelNameMax: 40,
   customFieldsPerBoardMax: 30,
   customFieldOptionsMax: 100,
   /** Ricerca: lunghezza del testo, numero di parole e dimensione di pagina. */

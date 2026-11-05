@@ -7,6 +7,9 @@ import {
   columnResponse,
   createBoardInput,
   createColumnInput,
+  createCustomFieldInput,
+  customFieldResponse,
+  customFieldsResponse,
   deletedResponse,
   moveInput,
   updateBoardInput,
@@ -26,6 +29,7 @@ import {
 } from '../../services/boards';
 import { listActiveCards, listArchivedCards } from '../../services/cards';
 import { createColumn, listColumns } from '../../services/columns';
+import { createField, listFields } from '../../services/custom-fields';
 
 const emptyObject = z.object({}).strict();
 
@@ -54,6 +58,24 @@ export const boardRoutes = new Hono<AppEnv>()
       listActiveCards(db, workspaceId, boardId),
     ]);
     return c.json(boardDetailResponse.parse({ board, columns, cards }));
+  })
+
+  .get('/:id/custom-fields', async (c) => {
+    const fields = await listFields(c.get('db'), c.get('workspaceId'), idParam(c));
+    return c.json(customFieldsResponse.parse({ fields }));
+  })
+
+  .post('/:id/custom-fields', async (c) => {
+    const input = await parseJsonBody(c, createCustomFieldInput);
+    const field = await createField(
+      c.env.DB,
+      c.get('db'),
+      c.get('workspaceId'),
+      idParam(c),
+      input,
+      Date.now(),
+    );
+    return c.json(customFieldResponse.parse({ field }), 201);
   })
 
   .patch('/:id', async (c) => {

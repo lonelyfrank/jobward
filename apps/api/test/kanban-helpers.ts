@@ -20,6 +20,7 @@ export function clientFor(email: string, workspaceId: string) {
     get: (path: string) => call<any>(app, env, url(path)),
     post: (path: string, json?: unknown) => send('POST', path, json),
     patch: (path: string, json: unknown) => send('PATCH', path, json),
+    put: (path: string, json: unknown) => send('PUT', path, json),
     delete: (path: string, json?: unknown) => send('DELETE', path, json),
   };
 }
