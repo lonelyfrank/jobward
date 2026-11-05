@@ -70,7 +70,7 @@ test.beforeAll(async ({ browser }) => {
   await api.assign(b, interesting);
   await api.assign(b, abroad);
   await api.card(other.columns[0]!.id, 'Barista serale', {
-    company: 'Caffè Roma',
+    company: 'Caffè Trastevere',
     location: 'Roma',
     priority: 'medium',
   });
@@ -342,20 +342,20 @@ test('9. Opportunità: tutte le bacheche, filtro per bacheca, ricerca globale da
 
   await page.getByRole('button', { name: /Filtri/ }).click();
   // Ricerca globale dalla barra superiore (Invio): porta qui con il testo e l'ambito esteso.
-  await page.getByRole('searchbox', { name: 'Cerca in tutte le bacheche' }).fill('roma');
+  await page.getByRole('searchbox', { name: 'Cerca in tutte le bacheche' }).fill('trastevere');
   await page.getByRole('searchbox', { name: 'Cerca in tutte le bacheche' }).press('Enter');
-  await expect(page).toHaveURL(/\/opportunities\?q=roma$/);
-  await expect(searchBox(page, 'Cerca nelle opportunità')).toHaveValue('roma');
-  await expect.poll(() => tableTitles(page)).toEqual(['Barista serale']); // "Roma" compare nell'azienda e nella sede
+  await expect(page).toHaveURL(/\/opportunities\?q=trastevere$/);
+  await expect(searchBox(page, 'Cerca nelle opportunità')).toHaveValue('trastevere');
+  await expect.poll(() => tableTitles(page)).toEqual(['Barista serale']); // testo presente solo nell'azienda di questa scheda
   await expectNoA11yViolations(page, 'opportunità');
 
   // Dettaglio da qui: pannello sotto /opportunities, chiusura sulla stessa ricerca.
   await page.getByRole('link', { name: 'Barista serale', exact: true }).click();
-  await expect(page).toHaveURL(/\/opportunities\/cards\/[0-9a-f-]{36}\?q=roma$/);
+  await expect(page).toHaveURL(/\/opportunities\/cards\/[0-9a-f-]{36}\?q=trastevere$/);
   const panel = page.getByRole('dialog', { name: 'Barista serale' });
   await expect(panel.getByLabel('Colonna')).toHaveValue(/.+/);
   await page.keyboard.press('Escape');
-  await expect(page).toHaveURL(/\/opportunities\?q=roma$/);
+  await expect(page).toHaveURL(/\/opportunities\?q=trastevere$/);
 });
 
 test('10. colonne: mostra/nascondi, ripristino e preferenza locale dopo il refresh', async ({
