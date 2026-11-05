@@ -113,6 +113,7 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   await page.reload();
   const again = panelOf(page, 'Infermiere di reparto');
   await expect(again.getByLabel('Azienda o ente')).toHaveValue('Ospedale Civile');
+  await openTab(again, 'Dettagli');
   await expect(again.getByLabel('Sede')).toHaveValue('Brescia');
   await expect(again.getByLabel('Modalità di lavoro')).toHaveValue('onsite');
   await expect(again.getByLabel('Tipo di contratto')).toHaveValue('fixed_term');
@@ -120,6 +121,7 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   await expect(again.getByLabel('Valuta')).toHaveValue('EUR'); // normalizzata in maiuscolo
   await expect(again.getByLabel('Lordo o netto')).toHaveValue('net');
   await expect(again.getByLabel('Data di candidatura')).toHaveValue('2026-10-25');
+  await openTab(again, 'Panoramica');
   await expect(again.getByLabel('Fase')).toHaveValue('applied');
   await expect(again.getByLabel('Esito')).toHaveValue('pending');
 });
@@ -138,6 +140,7 @@ test('4. validazione inline: intervallo incoerente e importo senza valuta; la bo
   await cardLink(page, 'Infermiere di reparto').click();
   const panel = panelOf(page, 'Infermiere di reparto');
 
+  await openTab(panel, 'Dettagli');
   await panel.getByLabel('Minima').fill('3000');
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(panel.getByText('La retribuzione minima non può superare la massima')).toBeVisible();
@@ -178,6 +181,7 @@ test('5. un errore del server non cancella ciò che hai scritto e lo spiega', as
         })
       : route.continue(),
   );
+  await openTab(panel, 'Dettagli');
   await panel.getByLabel('Sede').fill('Milano');
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(panel.getByRole('alert')).toContainText('modificata nel frattempo');
@@ -279,6 +283,7 @@ test('9. da telefono (390 px) il pannello è a schermo intero e i dettagli si mo
   await expect(panel).toBeVisible();
   const box = (await panel.boundingBox())!;
   expect(box.width).toBeGreaterThanOrEqual(388);
+  await openTab(panel, 'Dettagli');
   await panel.getByLabel('Sede').fill('Bergamo');
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
@@ -288,7 +293,10 @@ test('9. da telefono (390 px) il pannello è a schermo intero e i dettagli si mo
   expect(overflow).toBe(0);
   await openSection(panel, 'Opportunità');
   await openSection(panel, 'Candidatura');
+  await expectNoA11yViolations(page, 'modale — Dettagli a 390 px');
+  expect(await smallTouchTargets(page, '[role=dialog]')).toEqual([]);
+  await openTab(panel, 'Panoramica');
   await panel.getByRole('button', { name: 'Aggiungi etichetta' }).click();
-  await expectNoA11yViolations(page, 'pannello 2.0 a 390 px');
+  await expectNoA11yViolations(page, 'modale — Panoramica a 390 px');
   expect(await smallTouchTargets(page, '[role=dialog]')).toEqual([]);
 });

@@ -115,7 +115,12 @@ async function watchViolations(page: Page) {
       issues.push(`console: ${m.text()}`);
   });
   page.on('pageerror', (e) => issues.push(`pageerror: ${e.message}`));
-  page.on('requestfailed', (r) => issues.push(`requestfailed: ${r.url()}`));
+  page.on('requestfailed', (r) => {
+    // Una richiesta ANNULLATA di proposito (ricerca superata da un'altra, componente smontato:
+    // AbortSignal di TanStack Query) è un comportamento previsto, non un errore di rete.
+    if (r.failure()?.errorText.includes('ERR_ABORTED')) return;
+    issues.push(`requestfailed: ${r.url()}`);
+  });
   return {
     issues,
     collect: async () => [
