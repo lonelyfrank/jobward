@@ -207,8 +207,8 @@ test.describe('app reale sotto la CSP di produzione', () => {
     await page.getByRole('link', { name: 'Uno', exact: true }).click();
     const panel = page.getByRole('dialog', { name: 'Uno' });
     await panel.getByLabel('Azienda').fill('ACME');
-    await panel.getByRole('button', { name: 'Salva' }).click();
-    await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
+    await panel.getByRole('button', { name: 'Salva', exact: true }).last().click();
+    await expect(panel.getByRole('button', { name: 'Salva', exact: true }).last()).toBeDisabled();
     await page.keyboard.press('Escape');
     await page.getByRole('button', { name: 'Azioni bacheca' }).click();
     await page.getByRole('menuitem', { name: 'Elimina bacheca…' }).click();
@@ -234,7 +234,9 @@ test.describe('app reale sotto la CSP di produzione', () => {
     await panel.getByLabel('Modalità di lavoro').selectOption('hybrid');
     await panel.getByLabel('Minima').fill('1800');
     await panel.getByLabel('Valuta').fill('EUR');
-    await panel.getByLabel('Fase').selectOption('applied');
+    // Fase ed etichette stanno in Panoramica.
+    await panel.getByRole('tab', { name: 'Panoramica' }).click();
+    await panel.getByLabel('Fase', { exact: true }).selectOption('applied');
     // Etichetta creata al volo.
     await panel.getByRole('button', { name: 'Aggiungi etichetta' }).click();
     await panel.getByLabel('Nuova etichetta').fill('Interessante');
@@ -242,8 +244,8 @@ test.describe('app reale sotto la CSP di produzione', () => {
     await expect(
       panel.getByRole('list', { name: 'Etichette assegnate' }).getByText('Interessante'),
     ).toBeVisible();
-    await panel.getByRole('button', { name: 'Salva' }).click();
-    await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
+    await panel.getByRole('button', { name: 'Salva', exact: true }).last().click();
+    await expect(panel.getByRole('button', { name: 'Salva', exact: true }).last()).toBeDisabled();
     await page.keyboard.press('Escape');
 
     // Configuratore dei campi (modulo caricato a richiesta: stessi vincoli della CSP).
