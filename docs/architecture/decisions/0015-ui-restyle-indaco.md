@@ -21,7 +21,7 @@ schermate desktop e mobile) con palette indaco su fondo lavanda, forme più morb
 - Il bordo dei controlli resta ≥ 3:1 (regola di ADR-0005): il valore del design (`#8E92B2`) è stato scurito di poco.
 - I colori scelti dall'utente per bacheche e colonne restano token validati. Nel Kanban la barra colorata in cima alla colonna
   diventa un punto accanto al nome, perché il design non prevede barre colorate.
-- **Logo in tema scuro**: si usa `jobward-light.png` (865 × 289, trasparente, scritta chiara) senza targa bianca, per wordmark e simbolo compatto. Sostituisce la targa su `jobward-white.png` descritta in [ADR-0014](0014-jobward-technical-rebranding.md). Il tema chiaro e la favicon restano invariati.
+- **Logo in tema scuro**: si usa `jobward-light.png` (865 × 289, trasparente, scritta chiara) senza targa bianca, per il wordmark. Il simbolo compatto e la favicon mostrano solo i due chevron blu (senza scritta e senza targa). Sostituisce la targa su `jobward-white.png` descritta in [ADR-0014](0014-jobward-technical-rebranding.md). Il tema chiaro resta invariato.
 
 ## Non incluso (volutamente)
 

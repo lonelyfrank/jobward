@@ -1,22 +1,19 @@
 import { BRAND } from '@/lib/brand';
 import { cn } from '@/lib/cn';
 
-/** Ritaglio di visualizzazione del simbolo originale, senza ridisegno né modifica del PNG. */
+/**
+ * Solo i due chevron blu del marchio (senza la scritta), come la favicon: ritaglio di visualizzazione
+ * dei pixel originali, senza ridisegno. I chevron sono identici nelle due varianti, quindi vale per entrambi i temi.
+ */
 export function LogoMark({ className }: { className?: string }) {
   return (
     <svg
-      viewBox="60 75 170 170"
+      viewBox="65 74 160 160"
       role="img"
       aria-label={BRAND.name}
-      className={cn('size-7 shrink-0 rounded bg-white dark:bg-transparent', className)}
+      className={cn('size-7 shrink-0', className)}
     >
-      <image href={BRAND.assets.logo} width="866" height="288" className="dark:hidden" />
-      <image
-        href={BRAND.assets.logoOnDark}
-        width="865"
-        height="289"
-        className="hidden dark:block"
-      />
+      <image href={BRAND.assets.logo} width="866" height="288" />
     </svg>
   );
 }
