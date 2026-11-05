@@ -32,7 +32,7 @@ test.beforeAll(async ({ browser }) => {
   const abroad = await api.label('Estero', 'blue');
 
   const a = await api.card(todo!.id, 'Infermiere di reparto', {
-    company: 'Ospedale Civile',
+    company: 'Clinica Aurora',
     location: 'Brescia',
     workMode: 'onsite',
     priority: 'high',
@@ -133,7 +133,7 @@ test('2. la ricerca ha un\'attesa, è nell\'indirizzo e sopravvive al refresh; "
   await expect.poll(() => tableTitles(page)).toEqual(['Sviluppatore backend']);
 
   // Ogni parola deve comparire, anche in campi diversi (azienda + sede).
-  await searchBox(page).fill('ospedale brescia');
+  await searchBox(page).fill('aurora brescia');
   await expect(results(page)).toHaveText('1 risultato');
   await searchBox(page).fill('zzz inesistente');
   await expect(page.getByRole('heading', { name: 'Nessun risultato' })).toBeVisible();
@@ -446,12 +446,12 @@ test('13. da telefono (390 px): elenco compatto al posto della tabella, senza sc
   page,
 }) => {
   await page.setViewportSize({ width: 390, height: 800 });
-  await page.goto('/opportunities?q=ospedale');
+  await page.goto('/opportunities?q=aurora');
   await expect(results(page)).toHaveText('1 risultato');
   await expect(page.getByRole('table')).toBeHidden();
   const list = page.getByRole('list', { name: 'Opportunità' });
   await expect(list.getByRole('link', { name: 'Infermiere di reparto' })).toBeVisible();
-  await expect(list.getByText('Ospedale Civile · Brescia')).toBeVisible();
+  await expect(list.getByText('Clinica Aurora · Brescia')).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
