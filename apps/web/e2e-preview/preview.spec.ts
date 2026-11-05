@@ -115,7 +115,12 @@ async function watchViolations(page: Page) {
       issues.push(`console: ${m.text()}`);
   });
   page.on('pageerror', (e) => issues.push(`pageerror: ${e.message}`));
-  page.on('requestfailed', (r) => issues.push(`requestfailed: ${r.url()}`));
+  page.on('requestfailed', (r) => {
+    // Una richiesta ANNULLATA di proposito (ricerca superata da un'altra, componente smontato:
+    // AbortSignal di TanStack Query) è un comportamento previsto, non un errore di rete.
+    if (r.failure()?.errorText.includes('ERR_ABORTED')) return;
+    issues.push(`requestfailed: ${r.url()}`);
+  });
   return {
     issues,
     collect: async () => [
@@ -202,10 +207,10 @@ test.describe('app reale sotto la CSP di produzione', () => {
     await page.getByRole('link', { name: 'Uno', exact: true }).click();
     const panel = page.getByRole('dialog', { name: 'Uno' });
     await panel.getByLabel('Azienda').fill('ACME');
-    await panel.getByRole('button', { name: 'Salva' }).click();
-    await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
+    await panel.getByRole('button', { name: 'Salva', exact: true }).last().click();
+    await expect(panel.getByRole('button', { name: 'Salva', exact: true }).last()).toBeDisabled();
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Azioni bacheca' }).click();
+    await page.getByRole('button', { name: 'Azioni della vista' }).click();
     await page.getByRole('menuitem', { name: 'Elimina bacheca…' }).click();
     await expect(page.getByRole('alertdialog')).toBeVisible();
     await page.getByRole('alertdialog').getByRole('button', { name: 'Annulla' }).click();
@@ -223,12 +228,15 @@ test.describe('app reale sotto la CSP di produzione', () => {
     const panel = page.getByRole('dialog', { name: 'Uno' });
 
     // Dettagli professionali (sezioni comprimibili) e fase/esito.
+    await panel.getByRole('tab', { name: 'Dettagli' }).click();
     await panel.getByRole('button', { name: /Opportunità/ }).click();
     await panel.getByLabel('Sede').fill('Brescia');
     await panel.getByLabel('Modalità di lavoro').selectOption('hybrid');
     await panel.getByLabel('Minima').fill('1800');
     await panel.getByLabel('Valuta').fill('EUR');
-    await panel.getByLabel('Fase').selectOption('applied');
+    // Fase ed etichette stanno in Panoramica.
+    await panel.getByRole('tab', { name: 'Panoramica' }).click();
+    await panel.getByLabel('Fase', { exact: true }).selectOption('applied');
     // Etichetta creata al volo.
     await panel.getByRole('button', { name: 'Aggiungi etichetta' }).click();
     await panel.getByLabel('Nuova etichetta').fill('Interessante');
@@ -236,12 +244,12 @@ test.describe('app reale sotto la CSP di produzione', () => {
     await expect(
       panel.getByRole('list', { name: 'Etichette assegnate' }).getByText('Interessante'),
     ).toBeVisible();
-    await panel.getByRole('button', { name: 'Salva' }).click();
-    await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
+    await panel.getByRole('button', { name: 'Salva', exact: true }).last().click();
+    await expect(panel.getByRole('button', { name: 'Salva', exact: true }).last()).toBeDisabled();
     await page.keyboard.press('Escape');
 
     // Configuratore dei campi (modulo caricato a richiesta: stessi vincoli della CSP).
-    await page.getByRole('button', { name: 'Azioni bacheca' }).click();
+    await page.getByRole('button', { name: 'Azioni della vista' }).click();
     await page.getByRole('menuitem', { name: 'Campi personalizzati…' }).click();
     const fields = page.getByRole('dialog', { name: 'Campi personalizzati' });
     await fields.getByRole('button', { name: 'Aggiungi campo' }).click();
@@ -290,6 +298,58 @@ test.describe('app reale sotto la CSP di produzione', () => {
     expect(await watch.collect()).toEqual([]);
   });
 
+  test('M2.5: modale ampia, schede, colloqui, guardia delle modifiche e card Kanban sotto la CSP reale', async ({
+    page,
+  }) => {
+    const watch = await watchViolations(page);
+    await page.setViewportSize({ width: 1360, height: 800 });
+    await page.goto('/boards');
+    await page.getByRole('main').getByRole('link', { name: 'Anteprima Kanban' }).click();
+    await page.getByRole('link', { name: 'Uno', exact: true }).click();
+    const panel = page.getByRole('dialog', { name: 'Uno' });
+    const box = (await panel.boundingBox())!;
+    expect(box.width).toBeLessThanOrEqual(1000.5);
+
+    await panel.getByRole('tab', { name: 'Colloqui' }).click();
+    await expect(page).toHaveURL(/#colloqui$/);
+    await panel.getByRole('button', { name: 'Aggiungi colloquio' }).click();
+    const form = panel
+      .locator('form')
+      .filter({ has: page.getByRole('heading', { name: 'Nuovo colloquio' }) });
+    await form.getByLabel('Data e ora').fill('2027-05-04T10:00');
+    await form.getByRole('button', { name: 'Aggiungi colloquio' }).click();
+    await expect(panel.getByRole('article', { name: /^Round 1:/ })).toContainText('Programmato');
+
+    // Guardia delle modifiche non salvate (AlertDialog annidato) e chiusura.
+    await panel.getByRole('tab', { name: 'Panoramica' }).click();
+    await panel.getByLabel('Azienda o ente').fill('Bozza');
+    await page.keyboard.press('Escape');
+    await expect(
+      page.getByRole('alertdialog', { name: 'Hai modifiche non salvate' }),
+    ).toBeVisible();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Esci senza salvare' }).click();
+    await expect(panel).toBeHidden();
+
+    // La card mostra il prossimo colloquio; densità compatta (preferenza locale).
+    const card = page
+      .locator('[data-card-id]')
+      .filter({ has: page.getByRole('link', { name: 'Uno', exact: true }) });
+    await expect(card.getByText(/4 mag/)).toBeVisible();
+    await page
+      .getByRole('group', { name: 'Densità delle schede' })
+      .getByRole('button', { name: 'Compatta' })
+      .click();
+    await expect(card.getByText(/4 mag/)).toBeVisible();
+
+    // Telefono: schermo intero.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('link', { name: 'Uno', exact: true }).click();
+    const mobile = (await page.getByRole('dialog', { name: 'Uno' }).boundingBox())!;
+    expect(mobile.width).toBeGreaterThanOrEqual(388);
+
+    expect(await watch.collect()).toEqual([]);
+  });
+
   test('le risposte API del Worker non hanno CORS e rifiutano richieste cross-site', async ({
     request,
     baseURL,
@@ -302,4 +362,24 @@ test.describe('app reale sotto la CSP di produzione', () => {
     const ok = await request.get('/api/v1/me', { headers: { origin: baseURL! } });
     expect(Object.keys(ok.headers()).filter((h) => h.startsWith('access-control-'))).toEqual([]);
   });
+});
+
+test('M3.UI.1: ricerca globale e menu nella build con CSP reale', async ({ page }) => {
+  const watch = await watchViolations(page);
+  await page.goto('/');
+  const search = page.getByRole('button', { name: 'Cerca in Jobward' });
+  await expect(search).toBeVisible();
+  await page.keyboard.press('Control+k');
+  const input = page.getByRole('combobox', { name: 'Cerca in Jobward' });
+  await expect(input).toBeFocused();
+  await input.fill('ACME');
+  await expect(page.getByRole('group', { name: 'Opportunità', exact: true })).toBeVisible();
+  await input.press('Enter');
+  await expect(page.getByRole('dialog', { name: 'Uno' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Azioni della vista' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Nuova scheda' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('banner')).toHaveCount(0);
+  expect(await watch.collect()).toEqual([]);
 });

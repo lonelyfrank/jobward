@@ -217,13 +217,13 @@ importers:
 
   apps/api:
     dependencies:
-      '@meet-roulette/database':
+      '@jobward/database':
         specifier: workspace:*
         version: link:../../packages/database
-      '@meet-roulette/schemas':
+      '@jobward/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
-      '@meet-roulette/shared':
+      '@jobward/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       drizzle-orm:
@@ -272,10 +272,10 @@ importers:
       '@hookform/resolvers':
         specifier: 7.0.2
         version: 7.0.2(@standard-schema/spec@1.1.0)(react-hook-form@7.91.0(@types/react@19.3.0)(react@19.3.1))(zod@4.6.7)
-      '@meet-roulette/schemas':
+      '@jobward/schemas':
         specifier: workspace:*
         version: link:../../packages/schemas
-      '@meet-roulette/shared':
+      '@jobward/shared':
         specifier: workspace:*
         version: link:../../packages/shared
       '@tanstack/react-query':
@@ -363,7 +363,7 @@ importers:
 
   packages/database:
     dependencies:
-      '@meet-roulette/shared':
+      '@jobward/shared':
         specifier: workspace:*
         version: link:../shared
       drizzle-orm:
@@ -382,7 +382,7 @@ importers:
 
   packages/schemas:
     dependencies:
-      '@meet-roulette/shared':
+      '@jobward/shared':
         specifier: workspace:*
         version: link:../shared
       zod:

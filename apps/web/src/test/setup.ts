@@ -1,6 +1,10 @@
 import '@testing-library/jest-dom/vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
 import { cleanup } from '@testing-library/react';
-import { afterEach, beforeEach, vi } from 'vitest';
+import { afterEach, beforeEach, expect, vi } from 'vitest';
+
+// Registra esplicitamente sull'istanza del runner anche con risoluzione workspace/Vite.
+expect.extend(matchers);
 
 // jsdom non implementa alcune API del browser usate da Radix e dal tema.
 beforeEach(() => {

@@ -1,4 +1,4 @@
-import { newId, schema, type Database } from '@meet-roulette/database';
+import { newId, schema, type Database } from '@jobward/database';
 import { eq } from 'drizzle-orm';
 import type { AuthUser } from '../env';
 

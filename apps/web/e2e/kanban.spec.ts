@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import {
   cardItem,
   cardLink,
+  openTab,
   column,
   createBoard,
   dragWithMouse,
@@ -70,6 +71,7 @@ test('mouse: sposta tra colonne (in mezzo, in colonna vuota) e persiste', async 
   // Lo spostamento tra colonne è registrato nella cronologia.
   await cardLink(page, 'Alfa').click();
   const panel = page.getByRole('dialog', { name: 'Alfa' });
+  await openTab(panel, 'Cronologia');
   await expect(panel.getByText('Spostata da “Da fare” a “Completate”')).toBeVisible();
 });
 
@@ -213,8 +215,11 @@ test.describe('responsive', () => {
       expect(overflow).toBeLessThanOrEqual(0);
       const kanban = page.getByTestId('kanban');
       const scrolls = await kanban.evaluate((el) => el.scrollWidth > el.clientWidth);
-      expect(scrolls).toBe(true); // 3 colonne + "Aggiungi colonna" non entrano in nessuna di queste larghezze... tranne desktop largo
-      await expect(page.getByRole('button', { name: 'Aggiungi colonna' })).toBeAttached();
+      // Dopo la rimozione della colonna aggiuntiva le tre colonne possono entrare sul laptop.
+      expect(scrolls).toBe(width < 1360);
+      await page.getByRole('button', { name: 'Azioni della vista' }).click();
+      await expect(page.getByRole('menuitem', { name: 'Aggiungi colonna' })).toBeVisible();
+      await page.keyboard.press('Escape');
       await expectNoA11yViolations(page, `bacheca ${width}px`);
     });
   }
@@ -257,14 +262,23 @@ test.describe('responsive', () => {
     await expect(panel).toBeHidden();
   });
 
-  test('1024px: il pannello è laterale e la bacheca resta visibile accanto', async ({ page }) => {
-    await page.setViewportSize({ width: 1024, height: 800 });
-    await page.reload();
-    await cardLink(page, 'Epsilon').click();
-    const panel = page.getByRole('dialog', { name: 'Epsilon' });
-    const box = (await panel.boundingBox())!;
-    expect(box.width).toBeLessThan(600);
-    expect(box.x).toBeGreaterThan(400);
+  test('1024px e 1360px: la modale è centrata, larga al massimo 1000 px e alta al massimo 90% dello schermo', async ({
+    page,
+  }) => {
+    for (const width of [1024, 1360]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.reload();
+      await cardLink(page, 'Epsilon').click();
+      const panel = page.getByRole('dialog', { name: 'Epsilon' });
+      await expect(panel).toBeVisible();
+      const box = (await panel.boundingBox())!;
+      expect(box.width).toBeLessThanOrEqual(1000.5);
+      expect(box.height).toBeLessThanOrEqual(720.5); // 90dvh di 800
+      expect(Math.abs(box.x + box.width / 2 - width / 2)).toBeLessThan(2); // centrata
+      expect(Math.abs(box.y + box.height / 2 - 400)).toBeLessThan(2);
+      await page.keyboard.press('Escape');
+      await expect(panel).toBeHidden();
+    }
   });
 });
 

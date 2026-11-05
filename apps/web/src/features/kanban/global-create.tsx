@@ -1,4 +1,4 @@
-import { LIMITS } from '@meet-roulette/shared';
+import { LIMITS } from '@jobward/shared';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -16,12 +16,14 @@ import { useCreateCard, userMessage } from './mutations';
 export function GlobalCreateCardDialog({
   open,
   onOpenChange,
+  initialBoardId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialBoardId?: string;
 }) {
   const boards = useBoards();
-  const [boardId, setBoardId] = useState<string | null>(null);
+  const [boardId, setBoardId] = useState<string | null>(initialBoardId ?? null);
   const [columnId, setColumnId] = useState('');
   const [title, setTitle] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export function GlobalCreateCardDialog({
   const notify = useNotify();
 
   const selectedBoardId = boardId ?? boards.data?.[0]?.id ?? '';
-  const detail = useBoardDetail(selectedBoardId);
+  const detail = useBoardDetail(selectedBoardId, selectedBoardId !== '');
   const create = useCreateCard(selectedBoardId);
   const columns = detail.data?.columns ?? [];
   const selectedColumnId = columns.some((c) => c.id === columnId)

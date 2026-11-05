@@ -1,6 +1,6 @@
 import { BarChart3, ListChecks, type LucideIcon } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
-import { PageHeader } from '@/components/ui/page-header';
+import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
 
 function ComingSoon({
   title,
@@ -19,7 +19,7 @@ function ComingSoon({
 }) {
   return (
     <>
-      <PageHeader title={title} description={description} />
+      <WorkspacePageHeader title={title} description={description} />
       <EmptyState icon={icon} milestone={milestone} title={emptyTitle} description={emptyText} />
     </>
   );

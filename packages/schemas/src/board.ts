@@ -1,4 +1,4 @@
-import { BOARD_TEMPLATE_IDS, LIMITS, STAGES } from '@meet-roulette/shared';
+import { BOARD_TEMPLATE_IDS, LIMITS, STAGES } from '@jobward/shared';
 import { z } from 'zod';
 import { colorToken, idSchema, optionalText, requiredText } from './primitives';
 

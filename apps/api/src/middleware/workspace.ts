@@ -1,4 +1,4 @@
-import { idSchema } from '@meet-roulette/schemas';
+import { idSchema } from '@jobward/schemas';
 import type { MiddlewareHandler } from 'hono';
 import type { AppEnv } from '../env';
 import { ApiError } from '../lib/errors';

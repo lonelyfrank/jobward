@@ -1,4 +1,4 @@
-import type { ApiErrorCode } from '@meet-roulette/shared';
+import type { ApiErrorCode } from '@jobward/shared';
 import type { ContentfulStatusCode } from 'hono/utils/http-status';
 
 /** Errore applicativo con codice stabile e status HTTP. Il messaggio è sicuro da mostrare. */

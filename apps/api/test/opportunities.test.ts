@@ -1,6 +1,6 @@
 import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
-import { opportunitiesResponse } from '@meet-roulette/schemas';
+import { opportunitiesResponse } from '@jobward/schemas';
 import { addCard, createMinimalBoard, newUser, type Api } from './kanban-helpers';
 
 /** Ricerca e filtri (M2.3): `GET /opportunities`. */

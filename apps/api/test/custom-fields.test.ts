@@ -4,9 +4,9 @@ import {
   customFieldResponse,
   customFieldsResponse,
   deletedResponse,
-} from '@meet-roulette/schemas';
-import { LIMITS } from '@meet-roulette/shared';
-import { newId, schema } from '@meet-roulette/database';
+} from '@jobward/schemas';
+import { LIMITS } from '@jobward/shared';
+import { newId, schema } from '@jobward/database';
 import { db } from './helpers';
 import { addCard, createMinimalBoard, newUser, type Api } from './kanban-helpers';
 

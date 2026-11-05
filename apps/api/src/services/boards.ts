@@ -1,12 +1,12 @@
-import { newId, schema, type Database } from '@meet-roulette/database';
+import { newId, schema, type Database } from '@jobward/database';
 import type {
   Board,
   BoardListItem,
   Column,
   CreateBoardInput,
   UpdateBoardInput,
-} from '@meet-roulette/schemas';
-import { getBoardTemplate, LIMITS, POSITION_GAP } from '@meet-roulette/shared';
+} from '@jobward/schemas';
+import { getBoardTemplate, LIMITS, POSITION_GAP } from '@jobward/shared';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { conflict, notFound } from '../lib/errors';
 import { decidePlacement, readSiblings, rebalanceStatement } from './ordering';

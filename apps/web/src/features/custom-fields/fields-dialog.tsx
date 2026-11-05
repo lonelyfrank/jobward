@@ -1,5 +1,5 @@
-import type { CustomField } from '@meet-roulette/schemas';
-import { LIMITS } from '@meet-roulette/shared';
+import type { CustomField } from '@jobward/schemas';
+import { LIMITS } from '@jobward/shared';
 import { ArrowDown, ArrowUp, Eye, EyeOff, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';

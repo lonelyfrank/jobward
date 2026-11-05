@@ -1,4 +1,4 @@
-import type { Label, Opportunity } from '@meet-roulette/schemas';
+import type { Label, Opportunity } from '@jobward/schemas';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
@@ -12,6 +12,7 @@ import {
   PRIORITY_LABELS,
   PRIORITY_TONE,
   STAGE_LABELS,
+  STAGE_TONE,
   WORK_MODE_LABELS,
 } from '@/lib/labels';
 import { formatSalary } from '@/lib/salary';
@@ -253,7 +254,9 @@ export function ResultsList({
                   Priorità {PRIORITY_LABELS[item.priority].toLowerCase()}
                 </Badge>
               ) : null}
-              {item.stage ? <Badge tone="primary">{STAGE_LABELS[item.stage]}</Badge> : null}
+              {item.stage ? (
+                <Badge tone={STAGE_TONE[item.stage]}>{STAGE_LABELS[item.stage]}</Badge>
+              ) : null}
               {item.outcome ? <Badge>{OUTCOME_LABELS[item.outcome]}</Badge> : null}
               {item.appliedOn ? (
                 <span className="text-xs text-muted-foreground">

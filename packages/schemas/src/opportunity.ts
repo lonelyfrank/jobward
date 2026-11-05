@@ -6,7 +6,7 @@ import {
   SALARY_PERIODS,
   STAGES,
   WORK_MODES,
-} from '@meet-roulette/shared';
+} from '@jobward/shared';
 import { z } from 'zod';
 import { cardSchema } from './card';
 import { calendarDate, idSchema } from './primitives';

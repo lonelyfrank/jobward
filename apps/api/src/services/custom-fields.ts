@@ -1,4 +1,4 @@
-import { newId, type Database } from '@meet-roulette/database';
+import { newId, type Database } from '@jobward/database';
 import {
   createCustomFieldInput,
   customFieldDefinitionInput,
@@ -12,8 +12,8 @@ import {
   type CustomFieldDefinitionInput,
   type CustomFieldValue,
   type UpdateCustomFieldInput,
-} from '@meet-roulette/schemas';
-import { LIMITS, POSITION_GAP } from '@meet-roulette/shared';
+} from '@jobward/schemas';
+import { LIMITS, POSITION_GAP } from '@jobward/shared';
 import { sql } from 'drizzle-orm';
 import { ApiError, conflict, notFound } from '../lib/errors';
 import { getBoard } from './boards';

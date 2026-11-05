@@ -67,7 +67,7 @@ Il Worker non si fida mai di header "email", cookie o altro: **solo del JWT vali
 > Elenco completo (configurazione pronta/mancante) e **checklist di collaudo su Cloudflare**: [`docs/m0h/cloudflare-readiness.md`](../m0h/cloudflare-readiness.md).
 > Estensioni di M0.H: `workers_dev` e `preview_urls` sono **disattivati** (Access non protegge `*.workers.dev`), quindi serve un **dominio personalizzato** (`routes` con `custom_domain`); il Worker rifiuta i token con algoritmo diverso da RS256 (provati HS256 e `alg: none`); `pnpm check:config` impedisce di indebolire la configurazione di produzione.
 
-1. Creare il database: `wrangler d1 create meet-roulette` e inserire l'`database_id` in `wrangler.jsonc`.
+1. Creare il database: `wrangler d1 create jobward` (solo per un ambiente nuovo; per risorse esistenti conservare il database e seguire ADR-0014) e inserire l'`database_id` in `wrangler.jsonc`.
 2. Applicare le migrazioni in remoto: `wrangler d1 migrations apply DB --remote --env ""`.
 3. Aggiungere una route con **dominio personalizzato** (`routes: [{ "pattern": "app.<dominio>", "custom_domain": true }]`). In Cloudflare Zero Trust creare un'**applicazione self-hosted** su quel dominio (pagine e `/api/*`) con una policy che ammetta **solo** l'email del proprietario.
 4. Impostare in `wrangler.jsonc` (default): `ACCESS_TEAM_DOMAIN` (`<team>.cloudflareaccess.com`), `ACCESS_AUD` (audience tag dell'applicazione), `OWNER_EMAIL`. Non sono segreti, ma sono specifici dell'account.

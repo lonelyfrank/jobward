@@ -1,6 +1,6 @@
 # Architettura — panoramica
 
-Meet Roulette è un **modular monolith** su Cloudflare: un solo Worker serve sia l'API (`/api/*`) sia il
+Jobward è un **modular monolith** su Cloudflare: un solo Worker serve sia l'API (`/api/*`) sia il
 frontend statico, e un solo database D1 contiene i dati. Non ci sono microservizi, code o sistemi distribuiti:
 nessuna esigenza attuale li giustifica.
 
@@ -98,3 +98,9 @@ Codici d'errore stabili (`packages/shared/src/errors.ts`): `validation_error` 40
 | Contrasto        | `scripts/check-contrast.mjs`                                      | Rapporti WCAG di ogni coppia di token, chiaro e scuro                                  |
 
 Quality gate: typecheck, lint (0 warning), format, contrasto, `check:config` (invarianti Cloudflare), `db:check` (deriva schema↔migrazioni), test, build, E2E, anteprima. Vedi `.github/workflows/ci.yml`. Esiti verificati in [M0.H](../m0h/testing-report.md).
+
+## Dominio puro della pipeline (M3-C1)
+
+`@jobward/shared` espone derivazione, mapping, grafo e valutazione delle transizioni, coerenza dei colloqui, timeline sicura e azioni contestuali. Il riepilogo `summarizeInterviews()` vive ora in shared e resta riesportato da schemas per compatibilità. Le funzioni non dipendono da React, Zod, Hono, D1 o autenticazione e ricevono esplicitamente l'istante quando necessario.
+
+C1 non impone ancora queste regole alle API: validazione, persistenza e scrittura atomica appartengono a C2, non avviato. Il tipo di dominio `application_reopened` non modifica il CHECK SQL. [Consegna C1](../m3/c1-delivery.md) e [ADR-0014](decisions/0014-jobward-technical-rebranding.md) descrivono perimetro e compatibilità residue.

@@ -6,7 +6,7 @@ import {
   type CardDetailResponse,
   type CreateCardInput,
   type UpdateCardInput,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import { useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useNotify } from '@/components/ui/notices';
 import { invalidateSummaries, keys, scoped } from '@/features/boards/api';

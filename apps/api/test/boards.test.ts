@@ -1,4 +1,4 @@
-import { BOARD_TEMPLATES } from '@meet-roulette/shared';
+import { BOARD_TEMPLATES } from '@jobward/shared';
 import { describe, expect, it } from 'vitest';
 import { db } from './helpers';
 import { addCard, createMinimalBoard, newUser } from './kanban-helpers';
@@ -54,7 +54,7 @@ describe('bacheche', () => {
   it('la creazione è atomica: al tetto di bacheche non resta nulla a metà', async () => {
     const { api, workspaceId } = await newUser('b-cap@example.com');
     // Riempie il workspace fino al tetto direttamente nel database (100 righe in un colpo).
-    const { LIMITS } = await import('@meet-roulette/shared');
+    const { LIMITS } = await import('@jobward/shared');
     const d1 = (await import('cloudflare:workers')).env.DB;
     await d1.batch(
       Array.from({ length: LIMITS.boardsPerWorkspaceMax }, (_, i) =>

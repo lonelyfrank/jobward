@@ -96,7 +96,8 @@ describe('Galleria bacheche', () => {
     });
     const { router } = renderApp('/boards');
 
-    await user.click(await screen.findByRole('button', { name: 'Nuova bacheca' }));
+    await user.click(await screen.findByRole('button', { name: 'Azioni della vista' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Nuova bacheca' }));
     const dialog = await screen.findByRole('dialog', { name: 'Nuova bacheca' });
     await user.type(within(dialog).getByLabelText('Nome'), 'Ricerca 2027');
     await user.click(within(dialog).getByRole('radio', { name: /Minimal/ }));
@@ -118,7 +119,8 @@ describe('Galleria bacheche', () => {
     const calls = mockApi({ ...withWorkspace(), 'GET /boards': () => ({ body: { boards: [] } }) });
     renderApp('/boards');
 
-    await user.click(await screen.findByRole('button', { name: 'Nuova bacheca' }));
+    await user.click(await screen.findByRole('button', { name: 'Azioni della vista' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Nuova bacheca' }));
     const dialog = await screen.findByRole('dialog', { name: 'Nuova bacheca' });
     expect(within(dialog).getByRole('radio', { name: /Job Search Standard/ })).toBeChecked();
     await user.click(within(dialog).getByRole('button', { name: 'Crea bacheca' }));
@@ -422,7 +424,8 @@ describe('Bacheca aperta', () => {
       await waitFor(() => expect(titlesIn('Salvate')).toEqual(['Barista part-time']));
       expect(await screen.findByText(/Scheda “Magazziniere” archiviata/)).toBeInTheDocument();
       expect(calls.some((c) => c.path.startsWith('/cards/k2/archive'))).toBe(true);
-      expect(screen.getByRole('button', { name: /Archiviate/ })).toHaveTextContent('1');
+      await user.click(screen.getByRole('button', { name: 'Azioni della vista' }));
+      expect(await screen.findByRole('menuitem', { name: /Archiviate/ })).toHaveTextContent('1');
     });
 
     it('le schede archiviate si vedono e si ripristinano dal pannello', async () => {
@@ -441,7 +444,8 @@ describe('Bacheca aperta', () => {
       });
       renderApp('/boards/b1');
 
-      await user.click(await screen.findByRole('button', { name: /Archiviate/ }));
+      await user.click(await screen.findByRole('button', { name: 'Azioni della vista' }));
+      await user.click(await screen.findByRole('menuitem', { name: /Archiviate/ }));
       const dialog = await screen.findByRole('dialog', { name: 'Schede archiviate' });
       expect(await within(dialog).findByText('Vecchia offerta')).toBeInTheDocument();
       await user.click(within(dialog).getByRole('button', { name: /Ripristina/ }));
@@ -461,7 +465,8 @@ describe('Bacheca aperta', () => {
       });
       renderApp('/boards/b1');
 
-      await user.click(await screen.findByRole('button', { name: 'Aggiungi colonna' }));
+      await user.click(await screen.findByRole('button', { name: 'Azioni della vista' }));
+      await user.click(await screen.findByRole('menuitem', { name: 'Aggiungi colonna' }));
       const dialog = await screen.findByRole('dialog', { name: 'Nuova colonna' });
       await user.type(within(dialog).getByLabelText('Nome'), 'Offerta');
       await user.click(within(dialog).getByRole('radio', { name: 'Verde' }));
@@ -593,16 +598,16 @@ describe('Bacheca aperta', () => {
       });
       renderApp('/boards/b1');
 
-      await user.click(await screen.findByRole('button', { name: 'Aggiungi ai preferiti' }));
-      await waitFor(() =>
-        expect(screen.getByRole('button', { name: 'Rimuovi dai preferiti' })).toHaveAttribute(
-          'aria-pressed',
-          'true',
-        ),
-      );
+      await user.click(await screen.findByRole('button', { name: 'Azioni della vista' }));
+      await user.click(await screen.findByRole('menuitem', { name: 'Aggiungi ai preferiti' }));
+      await user.click(screen.getByRole('button', { name: 'Azioni della vista' }));
+      expect(
+        await screen.findByRole('menuitem', { name: 'Rimuovi dai preferiti' }),
+      ).toBeInTheDocument();
+      await user.keyboard('{Escape}');
       expect(calls.find((c) => c.method === 'PATCH')?.body).toEqual({ isFavorite: true });
 
-      await user.click(screen.getByRole('button', { name: 'Azioni bacheca' }));
+      await user.click(screen.getByRole('button', { name: 'Azioni della vista' }));
       await user.click(await screen.findByRole('menuitem', { name: 'Modifica bacheca…' }));
       const dialog = await screen.findByRole('dialog', { name: 'Modifica bacheca' });
       const name = within(dialog).getByLabelText('Nome');

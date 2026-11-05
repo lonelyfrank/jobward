@@ -1,6 +1,6 @@
 # Visione del prodotto
 
-Meet Roulette è un **workspace digitale per il candidato**: permette di organizzare e seguire il proprio percorso
+Jobward (già «Meet Roulette») è un **workspace digitale per il candidato**: permette di organizzare e seguire il proprio percorso
 di ricerca del lavoro in un unico posto, in qualsiasi settore.
 
 ## Cosa NON è

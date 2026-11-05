@@ -260,7 +260,7 @@ describe('cronologia', () => {
 describe('tetto di schede per bacheca', () => {
   it('rifiuta la scheda oltre il tetto (409) senza lasciare dati a metà', async () => {
     const { api, workspaceId } = await newUser('k-cap@example.com');
-    const { LIMITS } = await import('@meet-roulette/shared');
+    const { LIMITS } = await import('@jobward/shared');
     const { boardId, columnIds } = await createMinimalBoard(api);
     await env.DB.batch(
       Array.from({ length: LIMITS.cardsPerBoardMax }, (_, i) =>

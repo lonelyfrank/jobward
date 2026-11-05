@@ -1,4 +1,4 @@
-import { LIMITS, PRIORITIES } from '@meet-roulette/shared';
+import { LIMITS, PRIORITIES } from '@jobward/shared';
 import { z } from 'zod';
 import { idSchema, instant, optionalText, requiredText } from './primitives';
 

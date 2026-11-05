@@ -1,13 +1,17 @@
 import type {
   ContractType,
+  InterviewModality,
+  InterviewResult,
+  InterviewStatus,
+  InterviewType,
   Outcome,
   Priority,
   SalaryBasis,
   SalaryPeriod,
   Stage,
   WorkMode,
-} from '@meet-roulette/shared';
-import type { ColorToken } from '@meet-roulette/schemas';
+} from '@jobward/shared';
+import type { ColorToken } from '@jobward/schemas';
 
 /** Testi dell'interfaccia per i vocabolari controllati (i valori restano neutri nel dominio). */
 export const PRIORITY_LABELS: Record<Priority, string> = {
@@ -36,6 +40,20 @@ export const STAGE_LABELS: Record<Stage, string> = {
   offer: 'Offerta',
   closed: 'Conclusa',
 };
+
+/** Tono del contrassegno per fase: lo stesso colore in Kanban, tabella e pannello (il testo c'è sempre). */
+export const STAGE_TONE = {
+  saved: 'neutral',
+  preparing: 'info',
+  applied: 'primary',
+  in_contact: 'warning',
+  interviewing: 'success',
+  offer: 'teal',
+  closed: 'danger',
+} as const satisfies Record<
+  Stage,
+  'neutral' | 'info' | 'primary' | 'warning' | 'success' | 'teal' | 'danger'
+>;
 
 export const OUTCOME_LABELS: Record<Outcome, string> = {
   pending: 'In attesa',
@@ -111,3 +129,33 @@ export const COLOR_BORDER_TOP: Record<ColorToken, string> = {
 export function isColorToken(value: string | null | undefined): value is ColorToken {
   return value != null && value in COLOR_BG;
 }
+
+export const INTERVIEW_TYPE_LABELS: Record<InterviewType, string> = {
+  screening: 'Primo contatto / screening',
+  technical: 'Tecnico o prova pratica',
+  behavioral: 'Conoscitivo / motivazionale',
+  panel: 'Commissione o più persone',
+  final: 'Finale',
+  other: 'Altro',
+};
+
+/** Stato ORGANIZZATIVO del round (non l'esito). */
+export const INTERVIEW_STATUS_LABELS: Record<InterviewStatus, string> = {
+  to_schedule: 'Da programmare',
+  scheduled: 'Programmato',
+  completed: 'Completato',
+  cancelled: 'Annullato',
+};
+
+export const INTERVIEW_MODALITY_LABELS: Record<InterviewModality, string> = {
+  video: 'Videochiamata',
+  phone: 'Telefono',
+  onsite: 'In presenza',
+};
+
+/** Esito del SINGOLO round: indipendente dall'esito della candidatura. */
+export const INTERVIEW_RESULT_LABELS: Record<InterviewResult, string> = {
+  positive: 'Positivo',
+  neutral: 'Neutro',
+  negative: 'Negativo',
+};

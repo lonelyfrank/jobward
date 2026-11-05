@@ -104,7 +104,7 @@ describe('shell e navigazione', () => {
     );
   });
 
-  it('naviga tra le schermate, aggiorna titolo e topbar e sposta il focus sul contenuto', async () => {
+  it('naviga tra le schermate, aggiorna titolo e header e sposta il focus sul contenuto', async () => {
     const user = userEvent.setup();
     mockApi(withWorkspace());
     renderApp();
@@ -119,8 +119,9 @@ describe('shell e navigazione', () => {
     ] as const) {
       await user.click(within(nav).getByRole('link', { name: link }));
       expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
-      expect(screen.getByTestId('topbar-title')).toHaveTextContent(heading);
-      expect(document.title).toBe(`${heading} · Meet Roulette`);
+      expect(screen.getByTestId('workspace-page-header')).toHaveTextContent(heading);
+      expect(screen.queryByTestId('topbar-title')).not.toBeInTheDocument();
+      expect(document.title).toBe(`${heading} · Jobward`);
       expect(screen.getByRole('main')).toHaveFocus();
     }
   });
@@ -138,7 +139,9 @@ describe('shell e navigazione', () => {
     await screen.findByRole('navigation', { name: 'Navigazione principale' });
     expect(screen.getByRole('link', { name: 'Vai al contenuto' })).toHaveAttribute('href', '#main');
     expect(screen.getByRole('main')).toBeInTheDocument();
-    expect(screen.getByRole('banner')).toBeInTheDocument();
+    expect(screen.getByTestId('workspace-page-header').closest('main')).toBe(
+      screen.getByRole('main'),
+    );
   });
 
   it('comprime la sidebar, mantiene i link accessibili e ricorda la scelta', async () => {
@@ -154,31 +157,23 @@ describe('shell e navigazione', () => {
     );
     // Etichette presenti per gli screen reader anche con la sidebar compressa.
     expect(screen.getByRole('link', { name: 'Bacheche' })).toBeInTheDocument();
-    expect(window.localStorage.getItem('mr-sidebar-collapsed')).toBe('1');
+    expect(window.localStorage.getItem('jobward-sidebar-collapsed')).toBe('1');
   });
 
-  it('creazione rapida e ricerca globale sono operative: la ricerca porta a Opportunità con il testo', async () => {
+  it('ricerca globale e creazione sono accessibili dall’header', async () => {
     const user = userEvent.setup();
     mockApi({
       ...withWorkspace(),
-      'GET /opportunities': () => ({
-        body: { items: [], total: 0, page: 1, pageSize: 25, pageCount: 0 },
-      }),
-      'GET /labels': () => ({ body: { labels: [] } }),
+      'GET /search': () => ({ body: { opportunities: [], boards: [], interviews: [] } }),
     });
     renderApp();
-    expect(await screen.findByRole('button', { name: /Nuova scheda/ })).toBeEnabled();
-    const search = screen.getByRole('searchbox', { name: 'Cerca in tutte le bacheche' });
-    expect(search).toBeEnabled();
-    await user.type(search, 'infermiere{Enter}');
-    // Ambito dichiarato e testo già applicato nella casella di ricerca della schermata.
-    expect(
-      await screen.findByRole('heading', { name: 'Opportunità', level: 1 }),
-    ).toBeInTheDocument();
-    expect(await screen.findByRole('searchbox', { name: 'Cerca nelle opportunità' })).toHaveValue(
-      'infermiere',
-    );
-    expect(screen.getByText(/Ambito: tutte le bacheche/)).toBeInTheDocument();
+    await user.click(await screen.findByRole('button', { name: 'Azioni della vista' }));
+    expect(await screen.findByRole('menuitem', { name: 'Nuova scheda' })).toBeEnabled();
+    await user.keyboard('{Escape}');
+    await user.click(screen.getByRole('button', { name: 'Cerca in Jobward' }));
+    const input = await screen.findByRole('combobox', { name: 'Cerca in Jobward' });
+    await user.type(input, 'infermiere');
+    expect(await screen.findByText('Nessun risultato per “infermiere”.')).toBeInTheDocument();
   });
 });
 
@@ -285,14 +280,17 @@ describe('schermate base', () => {
         .getAllByRole('listitem')
         .map((i) => i.textContent),
     ).toEqual(['Salvate', 'Da candidarsi', 'Inviate', 'Contattato', 'Colloquio', 'Concluse']);
-    expect(screen.getByRole('button', { name: 'Nuova bacheca' })).toBeEnabled();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Azioni della vista' }));
+    expect(await screen.findByRole('menuitem', { name: 'Nuova bacheca' })).toBeEnabled();
   });
 
   it('le schermate future dichiarano la milestone e non offrono azioni attive', async () => {
     mockApi(withWorkspace());
     renderApp('/insights');
     expect(await screen.findByText(/In arrivo · M4/)).toBeInTheDocument();
-    expect(within(screen.getByRole('main')).queryAllByRole('button')).toHaveLength(0);
+    expect(screen.queryByRole('button', { name: 'Azioni della vista' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Cerca in Jobward' })).toBeEnabled();
   });
 
   it('Impostazioni cambia davvero il tema e mostra workspace e account reali', async () => {
@@ -301,7 +299,7 @@ describe('schermate base', () => {
     renderApp('/settings');
     await user.click(await screen.findByRole('radio', { name: /Scuro/ }));
     expect(document.documentElement).toHaveClass('dark');
-    expect(window.localStorage.getItem('mr-theme')).toBe('dark');
+    expect(window.localStorage.getItem('jobward-theme')).toBe('dark');
     expect(screen.getByText('La mia ricerca', { selector: 'dd' })).toBeInTheDocument();
     expect(screen.getByText('Europe/Rome')).toBeInTheDocument();
     expect(screen.getByText(USER.email, { selector: 'dd' })).toBeInTheDocument();

@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { newId, schema } from '@meet-roulette/database';
+import { newId, schema } from '@jobward/database';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app';
 import { call, db, devEnv, seedWorkspace } from './helpers';

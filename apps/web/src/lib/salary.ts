@@ -1,4 +1,4 @@
-import type { Card } from '@meet-roulette/schemas';
+import type { Card } from '@jobward/schemas';
 import { BASIS_LABELS, PERIOD_LABELS } from './labels';
 
 type SalaryFields = Pick<

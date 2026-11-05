@@ -14,9 +14,9 @@ import {
   type CreateColumnInput,
   type UpdateBoardInput,
   type UpdateColumnInput,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { applyPlacement } from '@meet-roulette/shared';
+import { applyPlacement } from '@jobward/shared';
 import { apiRequest } from '@/lib/api';
 import { useWorkspace } from '@/features/workspace/context';
 
@@ -28,6 +28,7 @@ export const keys = {
   card: (ws: string, cardId: string) => ['card', ws, cardId] as const,
   overview: (ws: string) => ['overview', ws] as const,
   labels: (ws: string) => ['labels', ws] as const,
+  interviews: (ws: string, cardId: string) => ['interviews', ws, cardId] as const,
   boardFields: (ws: string, boardId: string) => ['board-fields', ws, boardId] as const,
   cardFields: (ws: string, cardId: string) => ['card-fields', ws, cardId] as const,
   /** Prefisso di tutte le ricerche del workspace (si invalida in blocco dopo una modifica). */

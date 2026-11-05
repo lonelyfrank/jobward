@@ -5,13 +5,8 @@ import {
   updateBoardInput,
   type Board,
   type ColorToken,
-} from '@meet-roulette/schemas';
-import {
-  BOARD_TEMPLATE_IDS,
-  BOARD_TEMPLATES,
-  LIMITS,
-  type BoardTemplateId,
-} from '@meet-roulette/shared';
+} from '@jobward/schemas';
+import { BOARD_TEMPLATE_IDS, BOARD_TEMPLATES, LIMITS, type BoardTemplateId } from '@jobward/shared';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
 import { Badge } from '@/components/ui/badge';

@@ -1,5 +1,5 @@
-import type { CustomField } from '@meet-roulette/schemas';
-import { LIMITS } from '@meet-roulette/shared';
+import type { CustomField } from '@jobward/schemas';
+import { LIMITS } from '@jobward/shared';
 import { Field } from '@/components/ui/field';
 import { Input, Select } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';

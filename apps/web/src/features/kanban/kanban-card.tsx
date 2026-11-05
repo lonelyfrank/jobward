@@ -1,6 +1,6 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import type { Card, Column } from '@meet-roulette/schemas';
+import type { Card, Column } from '@jobward/schemas';
 import { EllipsisVertical, GripVertical } from 'lucide-react';
 import type { KeyboardEventHandler } from 'react';
 import { useNavigate } from 'react-router';

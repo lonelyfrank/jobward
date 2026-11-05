@@ -1,0 +1,177 @@
+/*
+ * Materiale "Glass Subtle" di Jobward — adapter CSS locale.
+ *
+ * NON è il runtime di Jello. Il repository Jello (privato, UNLICENSED, non pubblicato su npm) ha
+ * un runtime imperativo con renderer JS; qui si riprendono soltanto i PRINCIPI e i PARAMETRI
+ * documentati del suo materiale Glass (core/glass.css, core/params.ts, preset `satin`):
+ *   tinta + opacità tinta · blur · saturazione · riflesso perimetrale direzionale · ombra.
+ * Non c'è rifrazione (Jello `satin` la ha a 0 e comunque richiede una GlassSource SVG), né
+ * aberrazione cromatica, né luce di pressione, né movimento. Differenze dettagliate in
+ * docs/m3-ui-glass/README.md.
+ *
+ * Mappa dei token → parametri Jello:
+ *   --glass-tint / --glass-tint-alpha     tint / tintOpacity
+ *   --glass-blur, --glass-saturation      blur / saturation
+ *   --glass-light, --glass-light-angle    light / lightAngle     (--glass-rim = colore del riflesso)
+ *   --glass-shadow, -blur, -y             shadow / shadowBlur / shadowOffset
+ *   --glass-radius (opzionale)            radius (se assente i livelli ereditano il raggio dell'host)
+ *
+ * Struttura (stessa idea di Jello: materiale sotto, contenuto sopra, mai filtrato):
+ *   host.glass-subtle        position: relative; isolation: isolate (nessun filtro, nessuna opacità)
+ *     ::before  z-index -1   tinta + backdrop-filter + ombra          (solo decorativo)
+ *     ::after   z-index -1   riflesso perimetrale (anello 1px)         (solo decorativo)
+ *     figli                  non toccati
+ * I due pseudo-elementi non ricevono eventi (pointer-events: none) e non sono nell'albero di
+ * accessibilità. Sono in `@layer components`: le utility di Tailwind (rounded-*, border-*) vincono.
+ *
+ * Contratto di sfondo: il materiale poggia sul fondo dell'app (--background). Il contrasto del
+ * testo è verificato anche su sfondi estremi del tema da scripts/check-glass-contrast.mjs.
+ */
+
+:root {
+  /* Tema chiaro: superficie chiara traslucida, bordo definito ma delicato, ombra leggera. */
+  --glass-tint: oklch(0.995 0.004 280);
+  --glass-tint-alpha: 0.68;
+  --glass-blur: 12px;
+  --glass-saturation: 140%;
+  --glass-rim: oklch(1 0 0);
+  --glass-light: 0.9;
+  --glass-light-angle: 315deg;
+  --glass-edge: oklch(0.45 0.05 280);
+  --glass-edge-alpha: 0.2;
+  --glass-shadow-color: oklch(0.2 0.05 280);
+  --glass-shadow: 0.1;
+  --glass-shadow-blur: 20px;
+  --glass-shadow-y: 6px;
+  --glass-shadow-spread: -6px;
+  --glass-rim-width: 1px;
+  /* Fallback opaco (nessun backdrop-filter, trasparenza ridotta, contrasto alto). */
+  --glass-opaque: var(--surface);
+  --glass-opaque-edge: var(--border-strong);
+}
+
+.dark {
+  /* Tema scuro: vetro blu/viola profondo, centro neutro, highlight freddo sul bordo. */
+  --glass-tint: oklch(0.285 0.055 281);
+  --glass-tint-alpha: 0.72;
+  --glass-blur: 12px;
+  --glass-saturation: 140%;
+  --glass-rim: oklch(0.86 0.06 270);
+  --glass-light: 0.34;
+  --glass-edge: oklch(0.8 0.05 280);
+  --glass-edge-alpha: 0.12;
+  --glass-shadow-color: oklch(0 0 0);
+  --glass-shadow: 0.32;
+  --glass-shadow-blur: 24px;
+  --glass-shadow-y: 8px;
+  --glass-opaque: var(--surface);
+  --glass-opaque-edge: var(--border-strong);
+}
+
+/*
+ * Variante di contesto: colonne Kanban (unico uso di Glass Subtle in Jobward). Non è un secondo
+ * materiale: cambia solo la tinta, per restare sul colore originale della colonna
+ * (--surface-muted: #EFF0F8 chiaro, #1E203D scuro) e mantenere il contrasto con le schede
+ * opache (bg-surface) che la colonna contiene.
+ */
+.glass-subtle.kanban-column-glass {
+  --glass-tint: var(--surface-muted);
+  --glass-tint-alpha: 0.8;
+  --glass-opaque: var(--surface-muted);
+}
+
+@layer components {
+  .glass-subtle {
+    position: relative;
+    isolation: isolate;
+    /* Il bordo (se l'host ne ha uno) resta per dimensioni, ma lo disegna l'anello ::after. */
+    border-color: transparent;
+  }
+
+  .glass-subtle::before,
+  .glass-subtle::after {
+    content: '';
+    position: absolute;
+    /* `--glass-bw` = spessore del bordo dell'host: i livelli ricoprono anche il bordo. */
+    inset: calc(var(--glass-bw, 0px) * -1);
+    z-index: -1;
+    border-radius: var(--glass-radius, inherit);
+    pointer-events: none;
+  }
+
+  /* Materiale: tinta, sfocatura dello sfondo, highlight interno e ombra contenuta. */
+  .glass-subtle::before {
+    background: color-mix(
+      in oklab,
+      var(--glass-tint) calc(var(--glass-tint-alpha) * 100%),
+      transparent
+    );
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    box-shadow:
+      inset 0 1px 0
+        color-mix(in oklab, var(--glass-rim) calc(var(--glass-light) * 55%), transparent),
+      0 var(--glass-shadow-y) var(--glass-shadow-blur) var(--glass-shadow-spread)
+        color-mix(in oklab, var(--glass-shadow-color) calc(var(--glass-shadow) * 100%), transparent);
+  }
+
+  /* Riflesso perimetrale: anello sottile, più luminoso dal lato della luce, più debole
+     sul lato opposto, con un filo di base così il contorno si legge anche su fondo uniforme. */
+  .glass-subtle::after {
+    padding: var(--glass-rim-width);
+    background: linear-gradient(
+      var(--glass-light-angle),
+      color-mix(in oklab, var(--glass-rim) calc(var(--glass-light) * 100%), transparent) 0%,
+      color-mix(in oklab, var(--glass-edge) calc(var(--glass-edge-alpha) * 100%), transparent) 34%,
+      color-mix(in oklab, var(--glass-edge) calc(var(--glass-edge-alpha) * 100%), transparent) 66%,
+      color-mix(in oklab, var(--glass-rim) calc(var(--glass-light) * 45%), transparent) 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+  }
+
+  /* Contenitori con bordo tratteggiato (stati vuoti): resta il tratteggio originale, quindi il
+     materiale sta dentro il bordo e l'anello del riflesso non si disegna. */
+  .glass-subtle.border-dashed::before {
+    inset: 0;
+  }
+  .glass-subtle.border-dashed::after {
+    display: none;
+  }
+
+  /* Senza backdrop-filter la tinta traslucida non basta a garantire il contrasto: opaco. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-subtle::before {
+      background: var(--glass-opaque);
+    }
+  }
+
+  /* Preferenze di sistema: niente trasparenza, niente sfocatura, bordo pieno. */
+  @media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+    .glass-subtle::before {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      background: var(--glass-opaque);
+      box-shadow: 0 0 0 var(--glass-rim-width) var(--glass-opaque-edge);
+    }
+    .glass-subtle::after {
+      display: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .glass-subtle {
+      background: Canvas;
+      border: 1px solid CanvasText;
+    }
+    .glass-subtle::before,
+    .glass-subtle::after {
+      display: none;
+    }
+  }
+}

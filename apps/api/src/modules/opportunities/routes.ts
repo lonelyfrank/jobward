@@ -1,4 +1,4 @@
-import { opportunitiesQuery, opportunitiesResponse } from '@meet-roulette/schemas';
+import { opportunitiesQuery, opportunitiesResponse } from '@jobward/schemas';
 import { Hono } from 'hono';
 import type { AppEnv } from '../../env';
 import { ApiError } from '../../lib/errors';
@@ -33,6 +33,11 @@ export const opportunityRoutes = new Hono<AppEnv>()
         })),
       );
     }
-    const result = await searchOpportunities(c.env.DB, c.get('workspaceId'), parsed.data);
+    const result = await searchOpportunities(
+      c.env.DB,
+      c.get('db'),
+      c.get('workspaceId'),
+      parsed.data,
+    );
     return c.json(opportunitiesResponse.parse(result));
   });

@@ -1,5 +1,5 @@
-import type { ColorToken } from '@meet-roulette/schemas';
-import { LIMITS } from '@meet-roulette/shared';
+import type { ColorToken } from '@jobward/schemas';
+import { LIMITS } from '@jobward/shared';
 import { Plus, X } from 'lucide-react';
 import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';

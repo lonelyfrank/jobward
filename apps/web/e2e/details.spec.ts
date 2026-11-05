@@ -6,6 +6,7 @@ import {
   ensureWorkspace,
   expectNoA11yViolations,
   openSection,
+  openTab,
   quickAdd,
   smallTouchTargets,
 } from './helpers';
@@ -57,7 +58,9 @@ test('1. una scheda si crea con il solo titolo; i dettagli sono opzionali e le s
 
   const panel = panelOf(page, 'Infermiere di reparto');
   await expect(panel.getByLabel('Titolo')).toHaveValue('Infermiere di reparto');
-  // Panoramica aperta; Opportunità e Candidatura chiuse perché vuote.
+  // Panoramica (con il riepilogo) subito visibile; in «Dettagli» Opportunità e Candidatura sono chiuse perché vuote.
+  await expect(panel.getByRole('region', { name: 'Riepilogo' })).toBeVisible();
+  await openTab(panel, 'Dettagli');
   await expect(panel.getByRole('button', { name: /Opportunità/ })).toHaveAttribute(
     'aria-expanded',
     'false',
@@ -67,6 +70,7 @@ test('1. una scheda si crea con il solo titolo; i dettagli sono opzionali e le s
     'false',
   );
   await expect(panel.getByLabel('Sede')).toBeHidden();
+  await openTab(panel, 'Panoramica');
   await expect(panel.getByLabel('Fase')).toHaveValue('');
   await expect(panel.getByLabel('Esito')).toHaveValue('');
   await expectNoA11yViolations(page, 'pannello 2.0 (sezioni chiuse)');
@@ -94,19 +98,22 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   await openSection(panel, 'Candidatura');
   await panel.getByLabel('Data di pubblicazione').fill('2026-10-20');
   await panel.getByLabel('Data di candidatura').fill('2026-10-25');
+  await expectNoA11yViolations(page, 'modale — Dettagli con tutte le sezioni aperte');
+  await openTab(panel, 'Panoramica');
   await panel.getByLabel('Fase').selectOption('applied');
   await panel.getByLabel('Esito').selectOption('pending');
-  await expectNoA11yViolations(page, 'pannello 2.0 (tutte le sezioni aperte)');
 
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
   await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
+  await openTab(panel, 'Cronologia');
   await expect(panel.getByText('Candidatura registrata (25 ott 2026)')).toBeVisible();
   await expect(panel.getByText('Fase impostata su “Inviata”')).toBeVisible();
 
   await page.reload();
   const again = panelOf(page, 'Infermiere di reparto');
   await expect(again.getByLabel('Azienda o ente')).toHaveValue('Ospedale Civile');
+  await openTab(again, 'Dettagli');
   await expect(again.getByLabel('Sede')).toHaveValue('Brescia');
   await expect(again.getByLabel('Modalità di lavoro')).toHaveValue('onsite');
   await expect(again.getByLabel('Tipo di contratto')).toHaveValue('fixed_term');
@@ -114,6 +121,7 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   await expect(again.getByLabel('Valuta')).toHaveValue('EUR'); // normalizzata in maiuscolo
   await expect(again.getByLabel('Lordo o netto')).toHaveValue('net');
   await expect(again.getByLabel('Data di candidatura')).toHaveValue('2026-10-25');
+  await openTab(again, 'Panoramica');
   await expect(again.getByLabel('Fase')).toHaveValue('applied');
   await expect(again.getByLabel('Esito')).toHaveValue('pending');
 });
@@ -132,6 +140,7 @@ test('4. validazione inline: intervallo incoerente e importo senza valuta; la bo
   await cardLink(page, 'Infermiere di reparto').click();
   const panel = panelOf(page, 'Infermiere di reparto');
 
+  await openTab(panel, 'Dettagli');
   await panel.getByLabel('Minima').fill('3000');
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(panel.getByText('La retribuzione minima non può superare la massima')).toBeVisible();
@@ -172,6 +181,7 @@ test('5. un errore del server non cancella ciò che hai scritto e lo spiega', as
         })
       : route.continue(),
   );
+  await openTab(panel, 'Dettagli');
   await panel.getByLabel('Sede').fill('Milano');
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(panel.getByRole('alert')).toContainText('modificata nel frattempo');
@@ -254,6 +264,7 @@ test('8. Overview: "in colloquio" esclude le candidature concluse; "inviate" usa
   await expect(panel.getByLabel('Fase')).toHaveValue('interviewing');
   await panel.getByLabel('Esito').selectOption('rejected');
   await panel.getByRole('button', { name: 'Salva' }).click();
+  await openTab(panel, 'Cronologia');
   await expect(panel.getByText('Esito registrato: “Rifiutata”')).toBeVisible();
   await page.keyboard.press('Escape');
 
@@ -272,6 +283,7 @@ test('9. da telefono (390 px) il pannello è a schermo intero e i dettagli si mo
   await expect(panel).toBeVisible();
   const box = (await panel.boundingBox())!;
   expect(box.width).toBeGreaterThanOrEqual(388);
+  await openTab(panel, 'Dettagli');
   await panel.getByLabel('Sede').fill('Bergamo');
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
@@ -281,7 +293,10 @@ test('9. da telefono (390 px) il pannello è a schermo intero e i dettagli si mo
   expect(overflow).toBe(0);
   await openSection(panel, 'Opportunità');
   await openSection(panel, 'Candidatura');
+  await expectNoA11yViolations(page, 'modale — Dettagli a 390 px');
+  expect(await smallTouchTargets(page, '[role=dialog]')).toEqual([]);
+  await openTab(panel, 'Panoramica');
   await panel.getByRole('button', { name: 'Aggiungi etichetta' }).click();
-  await expectNoA11yViolations(page, 'pannello 2.0 a 390 px');
+  await expectNoA11yViolations(page, 'modale — Panoramica a 390 px');
   expect(await smallTouchTargets(page, '[role=dialog]')).toEqual([]);
 });

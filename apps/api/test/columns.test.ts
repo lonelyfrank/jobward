@@ -1,4 +1,4 @@
-import { LIMITS } from '@meet-roulette/shared';
+import { LIMITS } from '@jobward/shared';
 import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
 import { addCard, columnTitles, createMinimalBoard, newUser } from './kanban-helpers';

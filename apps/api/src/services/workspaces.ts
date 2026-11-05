@@ -1,5 +1,5 @@
-import { newId, schema, type Database } from '@meet-roulette/database';
-import type { CreateWorkspaceInput, Workspace } from '@meet-roulette/schemas';
+import { newId, schema, type Database } from '@jobward/database';
+import type { CreateWorkspaceInput, Workspace } from '@jobward/schemas';
 import { and, eq } from 'drizzle-orm';
 import { conflict, notFound } from '../lib/errors';
 

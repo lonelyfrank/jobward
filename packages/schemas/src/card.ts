@@ -8,9 +8,10 @@ import {
   SALARY_PERIODS,
   STAGES,
   WORK_MODES,
-} from '@meet-roulette/shared';
+} from '@jobward/shared';
 import { z } from 'zod';
 import { boardSchema, columnSchema } from './board';
+import { interviewSummarySchema } from './interview';
 import { calendarDate, httpUrl, idSchema, optionalText, requiredText } from './primitives';
 
 /** Testo facoltativo dei dettagli: rifilato, e la stringa vuota equivale a "nessun valore" (`null`). */
@@ -167,6 +168,8 @@ export const cardSchema = z.object({
   outcome: z.enum(OUTCOMES).nullable(),
   /** Identificativi delle etichette del workspace assegnate alla scheda. */
   labelIds: z.array(idSchema),
+  /** Colloqui in sintesi (proiezione leggera, senza note): vedi `interviewSummarySchema`. */
+  interviewSummary: interviewSummarySchema,
   createdAt: z.number().int(),
   updatedAt: z.number().int(),
   archivedAt: z.number().int().nullable(),

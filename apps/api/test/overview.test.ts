@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { overviewResponse } from '@meet-roulette/schemas';
+import { overviewResponse } from '@jobward/schemas';
 import { createApp } from '../src/app';
 import { addCard, createMinimalBoard, newUser } from './kanban-helpers';
 import { call, devEnv, seedBoardWithColumn, seedCard, seedTask, seedWorkspace } from './helpers';

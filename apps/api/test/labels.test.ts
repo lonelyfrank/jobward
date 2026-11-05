@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { deletedResponse, labelResponse, labelsResponse } from '@meet-roulette/schemas';
-import { LIMITS } from '@meet-roulette/shared';
-import { newId, schema } from '@meet-roulette/database';
+import { deletedResponse, labelResponse, labelsResponse } from '@jobward/schemas';
+import { LIMITS } from '@jobward/shared';
+import { newId, schema } from '@jobward/database';
 import { db } from './helpers';
 import { addCard, createMinimalBoard, newUser } from './kanban-helpers';
 

@@ -1,4 +1,4 @@
-import { anchorBefore, BOARD_TEMPLATES } from '@meet-roulette/shared';
+import { anchorBefore, BOARD_TEMPLATES } from '@jobward/shared';
 import { Plus, SquareKanban } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useNotify } from '@/components/ui/notices';
-import { PageHeader } from '@/components/ui/page-header';
+import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Surface } from '@/components/ui/surface';
 import {
@@ -64,15 +64,19 @@ export function BoardsPage() {
   };
 
   const header = (
-    <PageHeader
+    <WorkspacePageHeader
       title="Bacheche"
       description="Una bacheca raccoglie le opportunità di una ricerca, organizzate nelle tue colonne."
-      actions={
-        <Button onClick={() => setCreating(true)}>
-          <Plus aria-hidden="true" />
-          Nuova bacheca
-        </Button>
-      }
+      canCreateCard={ordered.some((board) => board.columnCount > 0)}
+      actions={[
+        {
+          id: 'create-board',
+          label: 'Nuova bacheca',
+          icon: Plus,
+          separator: true,
+          onSelect: () => setCreating(true),
+        },
+      ]}
     />
   );
 
@@ -140,7 +144,7 @@ export function BoardsPage() {
         <div
           role="status"
           aria-label="Caricamento delle bacheche"
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
         >
           {Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} className="h-32" />
@@ -184,13 +188,16 @@ export function BoardsPage() {
         </EmptyState>
 
         <section aria-labelledby="templates-title" className="mt-8">
-          <h2 id="templates-title" className="text-sm font-semibold">
+          <h2
+            id="templates-title"
+            className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase"
+          >
             Template disponibili
           </h2>
-          <ul className="mt-3 grid gap-4 md:grid-cols-3">
+          <ul className="mt-3.5 grid gap-5 md:grid-cols-3">
             {BOARD_TEMPLATES.map((template) => (
               <li key={template.id}>
-                <Surface className="h-full p-4">
+                <Surface className="h-full border-dashed border-border-strong/50 p-5">
                   <h3 className="font-medium">{template.name}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">{template.description}</p>
                   {template.columns.length > 0 ? (
@@ -222,8 +229,12 @@ export function BoardsPage() {
   const renderGroup = (group: BoardListItem[], label: string | null) =>
     group.length === 0 ? null : (
       <section aria-label={label ?? 'Bacheche'}>
-        {label ? <h2 className="mb-3 text-sm font-semibold">{label}</h2> : null}
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {label ? (
+          <h2 className="mb-3.5 text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            {label}
+          </h2>
+        ) : null}
+        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {group.map((board, index) => (
             <li key={board.id}>
               <BoardCard

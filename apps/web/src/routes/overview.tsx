@@ -9,10 +9,10 @@ import {
   SquareKanban,
   type LucideIcon,
 } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/ui/page-header';
+import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Surface } from '@/components/ui/surface';
 import { useOverview } from '@/features/overview/api';
@@ -31,14 +31,18 @@ function StatCard({
   hint: string;
 }) {
   return (
-    <Surface className="p-4">
-      <div className="flex items-start gap-2 text-sm text-muted-foreground">
+    <Surface className="px-5 pt-5 pb-[18px]">
+      <div className="flex items-start justify-between gap-3">
+        <span className="text-sm font-semibold text-muted-foreground">{label}</span>
         {/* shrink-0: se l'etichetta va a capo l'icona non deve schiacciarsi */}
-        <Icon aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-        {label}
+        <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-primary-soft text-primary-soft-foreground">
+          <Icon aria-hidden="true" className="size-4" />
+        </span>
       </div>
-      <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
+      <p className="mt-3 text-[32px] leading-tight font-bold tracking-tight tabular-nums">
+        {value}
+      </p>
+      <p className="mt-0.5 text-[13px] text-muted-foreground">{hint}</p>
     </Surface>
   );
 }
@@ -46,19 +50,22 @@ function StatCard({
 export function OverviewPage() {
   const { workspace } = useWorkspace();
   const overview = useOverview(workspace.id);
+  const navigate = useNavigate();
 
   const header = (
-    <PageHeader
+    <WorkspacePageHeader
       title={`${greetingFor(new Date(), workspace.timezone)}!`}
       description={`Ecco a che punto è la tua ricerca in “${workspace.name}”.`}
-      actions={
-        <Button asChild>
-          <Link to="/boards">
-            <SquareKanban aria-hidden="true" />
-            Le mie bacheche
-          </Link>
-        </Button>
-      }
+      canCreateCard
+      actions={[
+        {
+          id: 'boards',
+          label: 'Le mie bacheche',
+          icon: SquareKanban,
+          separator: true,
+          onSelect: () => void navigate('/boards'),
+        },
+      ]}
     />
   );
 
@@ -157,8 +164,8 @@ export function OverviewPage() {
       </section>
 
       {counts.boards === 0 || counts.opportunities === 0 ? (
-        <Surface className="mt-6 p-6">
-          <h2 className="font-semibold">Inizia da qui</h2>
+        <Surface className="mt-5 p-6">
+          <h2 className="text-[17px] font-bold">Inizia da qui</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             I numeri qui sopra si riempiono con i tuoi dati reali. Questi sono i primi passi:
           </p>
@@ -195,9 +202,9 @@ export function OverviewPage() {
         </Surface>
       ) : null}
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-2">
-        <Surface className="p-5">
-          <h2 className="flex items-center gap-2 font-semibold">
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <Surface className="p-6">
+          <h2 className="flex items-center gap-2 text-[17px] font-bold">
             <BriefcaseBusiness aria-hidden="true" className="size-4 text-muted-foreground" />
             Opportunità recenti
           </h2>
@@ -225,8 +232,8 @@ export function OverviewPage() {
           )}
         </Surface>
 
-        <Surface className="p-5">
-          <h2 className="flex items-center gap-2 font-semibold">
+        <Surface className="p-6">
+          <h2 className="flex items-center gap-2 text-[17px] font-bold">
             <SquareKanban aria-hidden="true" className="size-4 text-muted-foreground" />
             Bacheche recenti
           </h2>
@@ -255,8 +262,8 @@ export function OverviewPage() {
         </Surface>
       </div>
 
-      <Surface className="mt-4 p-5">
-        <h2 className="flex items-center gap-2 font-semibold">
+      <Surface className="mt-5 p-6">
+        <h2 className="flex items-center gap-2 text-[17px] font-bold">
           <CalendarClock aria-hidden="true" className="size-4 text-muted-foreground" />
           Prossime scadenze
         </h2>

@@ -1,5 +1,5 @@
-import { schema, type Database } from '@meet-roulette/database';
-import type { Card } from '@meet-roulette/schemas';
+import { schema, type Database } from '@jobward/database';
+import { EMPTY_INTERVIEW_SUMMARY, type Card } from '@jobward/schemas';
 import { eq, sql } from 'drizzle-orm';
 
 const { cards, applicationDetails } = schema;
@@ -67,7 +67,7 @@ export type CardRow = Omit<Card, 'labelIds'> & { labelIds: string };
 /** `labelIds` arriva come JSON da SQLite: lo si decodifica e lo si rende ordinato e deterministico. */
 export function toCard<T extends { labelIds: string }>(
   row: T,
-): Omit<T, 'labelIds'> & { labelIds: string[] } {
+): Omit<T, 'labelIds'> & { labelIds: string[]; interviewSummary: Card['interviewSummary'] } {
   let ids: string[] = [];
   try {
     const parsed: unknown = JSON.parse(row.labelIds);
@@ -75,7 +75,8 @@ export function toCard<T extends { labelIds: string }>(
   } catch {
     ids = [];
   }
-  return { ...row, labelIds: ids.sort() };
+  // Il riepilogo dei colloqui si aggiunge dopo, con UNA query per bacheca/pagina (mai per scheda).
+  return { ...row, labelIds: ids.sort(), interviewSummary: EMPTY_INTERVIEW_SUMMARY };
 }
 
 /** Scheda con i suoi dettagli (1:1, facoltativi): la base di ogni lettura di schede. */

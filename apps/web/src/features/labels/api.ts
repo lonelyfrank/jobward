@@ -7,7 +7,7 @@ import {
   type CardDetailResponse,
   type CreateLabelInput,
   type UpdateLabelInput,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { invalidateSummaries, keys, scoped } from '@/features/boards/api';
 import { useWorkspace } from '@/features/workspace/context';

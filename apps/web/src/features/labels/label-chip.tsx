@@ -1,4 +1,4 @@
-import type { ColorToken } from '@meet-roulette/schemas';
+import type { ColorToken } from '@jobward/schemas';
 import type { ReactNode } from 'react';
 import { cn } from '@/lib/cn';
 import { COLOR_BG, COLOR_LABELS } from '@/lib/labels';

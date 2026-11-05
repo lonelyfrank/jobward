@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { cardResponse } from '@meet-roulette/schemas';
+import { cardResponse } from '@jobward/schemas';
 import { addCard, createMinimalBoard, newUser } from './kanban-helpers';
 
 /** Dettagli professionali di una scheda (M2.1): contratto, semantica della patch, eventi, isolamento. */

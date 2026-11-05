@@ -6,15 +6,19 @@ import {
   cardLabelsResponse,
   cardResponse,
   createCardInput,
+  createInterviewInput,
+  interviewResponse,
+  interviewsResponse,
   moveCardInput,
   putCustomFieldValueInput,
   updateCardInput,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../../env';
 import { parseJsonBody } from '../../lib/validate';
 import { idParam, workspaceScope } from '../../middleware/workspace';
+import { createInterview, listInterviews } from '../../services/interviews';
 import { listCardFields, putCardFieldValue } from '../../services/custom-fields';
 import { assignLabel, unassignLabel } from '../../services/labels';
 import {
@@ -146,4 +150,22 @@ export const cardRoutes = new Hono<AppEnv>()
       Date.now(),
     );
     return c.json(cardLabelsResponse.parse({ labelIds }));
+  })
+  .get('/:id/interviews', async (c) => {
+    const interviews = await listInterviews(c.get('db'), c.get('workspaceId'), idParam(c));
+    return c.json(interviewsResponse.parse({ interviews }));
+  })
+
+  .post('/:id/interviews', async (c) => {
+    const input = await parseJsonBody(c, createInterviewInput);
+    const interview = await createInterview(
+      c.env.DB,
+      c.get('db'),
+      c.get('workspaceId'),
+      c.get('user').id,
+      idParam(c),
+      input,
+      Date.now(),
+    );
+    return c.json(interviewResponse.parse({ interview }), 201);
   });

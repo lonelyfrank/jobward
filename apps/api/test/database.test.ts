@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { newId, schema } from '@meet-roulette/database';
+import { newId, schema } from '@jobward/database';
 import { eq } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 import { db, seedBoardWithColumn, seedCard, seedWorkspace } from './helpers';
@@ -19,6 +19,7 @@ describe('schema D1 (migrazioni reali)', () => {
       'cards',
       'custom_field_definitions',
       'custom_field_values',
+      'interviews',
       'labels',
       'tasks',
       'users',

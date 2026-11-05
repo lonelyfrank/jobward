@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { expectNoA11yViolations } from './helpers';
+import { expectNoA11yViolations, waitForAnimationsToSettle } from './helpers';
 
 // I test sono sequenziali e condividono lo stesso D1 locale: il primo crea il workspace.
 test.describe.configure({ mode: 'serial' });
@@ -56,7 +56,8 @@ test('naviga tra tutte le schermate e ciascuna dichiara cosa non è ancora dispo
   // Un URL diretto (SPA fallback) deve funzionare anche dopo un refresh.
   await page.goto('/boards');
   await expect(page.getByRole('heading', { level: 1, name: 'Bacheche' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Nuova bacheca' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Azioni della vista' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Nuova bacheca' })).toBeEnabled();
 });
 
 test('accessibilità WCAG 2.2 AA (automatica) su ogni schermata, tema chiaro e scuro', async ({
@@ -96,8 +97,12 @@ test('il tema scelto in Impostazioni viene applicato e ricordato dopo il refresh
 
 test('la sidebar si comprime e la scelta resta dopo il refresh', async ({ page }) => {
   await page.goto('/');
+  await expect(page.locator('aside')).toHaveCSS('width', '220px');
+  await page.mouse.move(221, 350);
   await page.getByRole('button', { name: 'Comprimi la barra laterale' }).click();
   await page.reload();
+  await expect(page.locator('aside')).toHaveCSS('width', '52px');
+  await page.mouse.move(53, 350);
   await expect(page.getByRole('button', { name: 'Espandi la barra laterale' })).toBeVisible();
   await page.getByRole('button', { name: 'Espandi la barra laterale' }).click();
 });
@@ -130,11 +135,13 @@ test.describe('mobile', () => {
 
   test('i controlli interattivi hanno un’area touch di almeno 44px', async ({ page }) => {
     await page.goto('/settings');
+    await waitForAnimationsToSettle(page);
     const menu = await page
       .getByRole('button', { name: 'Apri il menu di navigazione' })
       .boundingBox();
-    expect(menu?.width).toBeGreaterThanOrEqual(44);
-    expect(menu?.height).toBeGreaterThanOrEqual(44);
+    // La traslazione d'ingresso può produrre 43.999996 px per un target CSS da 44 px.
+    expect(Math.round(menu?.width ?? 0)).toBeGreaterThanOrEqual(44);
+    expect(Math.round(menu?.height ?? 0)).toBeGreaterThanOrEqual(44);
   });
 });
 

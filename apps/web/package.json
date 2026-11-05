@@ -1,5 +1,5 @@
 {
-  "name": "@meet-roulette/web",
+  "name": "@jobward/web",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -18,8 +18,8 @@
     "@dnd-kit/utilities": "3.2.2",
     "@fontsource-variable/inter": "^5.2.8",
     "@hookform/resolvers": "7.0.2",
-    "@meet-roulette/schemas": "workspace:*",
-    "@meet-roulette/shared": "workspace:*",
+    "@jobward/schemas": "workspace:*",
+    "@jobward/shared": "workspace:*",
     "@tanstack/react-query": "5.105.3",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",

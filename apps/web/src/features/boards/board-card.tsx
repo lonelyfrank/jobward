@@ -1,4 +1,4 @@
-import { EllipsisVertical, Star } from 'lucide-react';
+import { EllipsisVertical, SquareKanban, Star } from 'lucide-react';
 import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import {
@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Surface } from '@/components/ui/surface';
-import { COLOR_BORDER_TOP, isColorToken } from '@/lib/labels';
+import { COLOR_BG, isColorToken } from '@/lib/labels';
 import { cn } from '@/lib/cn';
 import type { BoardListItem } from './api';
 
@@ -33,17 +33,21 @@ export function BoardCard({
   onDelete: () => void;
 }) {
   return (
-    <Surface
-      className={cn(
-        'flex h-full flex-col border-t-4 p-4',
-        isColorToken(board.color) ? COLOR_BORDER_TOP[board.color] : 'border-t-border-strong',
-      )}
-    >
-      <div className="flex items-start gap-1">
-        <h3 className="min-w-0 flex-1 text-base font-semibold">
+    <Surface className="flex h-full flex-col p-6">
+      <div className="flex items-start gap-3.5">
+        <span
+          aria-hidden="true"
+          className={cn(
+            'grid size-11 shrink-0 place-items-center rounded-[14px] text-white',
+            isColorToken(board.color) ? COLOR_BG[board.color] : 'bg-primary',
+          )}
+        >
+          <SquareKanban className="size-5" />
+        </span>
+        <h3 className="min-w-0 flex-1 text-lg font-bold">
           <Link
             to={`/boards/${board.id}`}
-            className="block truncate rounded-sm hover:underline max-md:py-2.5"
+            className="block truncate rounded-sm hover:text-primary max-md:py-2.5"
             title={board.name}
           >
             {board.name}
@@ -59,7 +63,7 @@ export function BoardCard({
           }
           aria-pressed={board.isFavorite}
           onClick={onToggleFavorite}
-          className="-mt-1.5"
+          className="-mt-0.5"
         >
           <Star
             aria-hidden="true"
@@ -72,7 +76,7 @@ export function BoardCard({
               variant="ghost"
               size="icon"
               aria-label={`Azioni per “${board.name}”`}
-              className="-mt-1.5 -mr-2"
+              className="-mt-0.5 -mr-2"
             >
               <EllipsisVertical aria-hidden="true" />
             </Button>
@@ -93,13 +97,25 @@ export function BoardCard({
       </div>
 
       {board.description ? (
-        <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{board.description}</p>
+        <p className="mt-3 line-clamp-2 text-sm leading-snug text-muted-foreground">
+          {board.description}
+        </p>
       ) : null}
 
-      <p className="mt-auto pt-4 text-xs text-muted-foreground">
-        {plural(board.columnCount, 'colonna', 'colonne')} ·{' '}
-        {plural(board.cardCount, 'scheda', 'schede')}
-      </p>
+      <div className="mt-auto flex items-center justify-between gap-3 border-t border-border pt-4">
+        <p className="text-[13px] text-muted-foreground">
+          {plural(board.columnCount, 'colonna', 'colonne')} ·{' '}
+          {plural(board.cardCount, 'scheda', 'schede')}
+        </p>
+        <Link
+          to={`/boards/${board.id}`}
+          tabIndex={-1}
+          aria-hidden="true"
+          className="text-[13px] font-semibold text-primary"
+        >
+          Apri bacheca →
+        </Link>
+      </div>
     </Surface>
   );
 }

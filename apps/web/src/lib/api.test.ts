@@ -1,4 +1,4 @@
-import { workspaceResponse } from '@meet-roulette/schemas';
+import { workspaceResponse } from '@jobward/schemas';
 import { describe, expect, it, vi } from 'vitest';
 import { ApiRequestError, apiRequest } from './api';
 

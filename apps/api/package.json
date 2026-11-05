@@ -1,5 +1,5 @@
 {
-  "name": "@meet-roulette/api",
+  "name": "@jobward/api",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -12,9 +12,9 @@
     "cf-typegen": "wrangler types"
   },
   "dependencies": {
-    "@meet-roulette/database": "workspace:*",
-    "@meet-roulette/schemas": "workspace:*",
-    "@meet-roulette/shared": "workspace:*",
+    "@jobward/database": "workspace:*",
+    "@jobward/schemas": "workspace:*",
+    "@jobward/shared": "workspace:*",
     "drizzle-orm": "catalog:",
     "hono": "catalog:",
     "jose": "6.2.15",

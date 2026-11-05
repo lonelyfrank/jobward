@@ -2,7 +2,7 @@ import {
   validateCustomFieldValue,
   type CustomField,
   type CustomFieldValue,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 
 /**
  * Bozza di un valore nel modulo: sempre testo (o elenco di ID per la scelta multipla), anche per

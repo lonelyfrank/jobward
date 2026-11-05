@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { ensureWorkspace, expectNoA11yViolations } from './helpers';
+import { ensureWorkspace, expectNoA11yViolations, seedApi } from './helpers';
 
 const PATHS = [
   '/',
@@ -29,14 +29,59 @@ async function offscreen(page: Page) {
       const r = el.getBoundingClientRect();
       if (r.width === 0 || r.height === 0 || getComputedStyle(el).visibility === 'hidden') continue;
       if (el.closest('[aria-hidden=true]') || el.matches('.sr-only')) continue;
-      if (r.right > width + 1 || r.left < -1)
+      if (r.right > width + 1 || r.left < -1) {
+        // Dentro un'area che scorre in orizzontale ed è essa stessa nel viewport l'elemento è
+        // raggiungibile scorrendo (tabella a 768 px): non è un elemento perso fuori pagina.
+        let scroller: HTMLElement | null = el.parentElement;
+        let reachable = false;
+        while (scroller && scroller !== document.body) {
+          const overflowX = getComputedStyle(scroller).overflowX;
+          const box = scroller.getBoundingClientRect();
+          if (
+            (overflowX === 'auto' || overflowX === 'scroll') &&
+            scroller.scrollWidth > scroller.clientWidth &&
+            box.left >= -1 &&
+            box.right <= width + 1
+          ) {
+            reachable = true;
+            break;
+          }
+          scroller = scroller.parentElement;
+        }
+        if (reachable) continue;
         bad.push(
           `${el.tagName} "${(el.textContent ?? '').trim().slice(0, 25)}" ${Math.round(r.left)}-${Math.round(r.right)}/${width}`,
         );
+      }
     }
     return bad;
   });
 }
+
+test.describe('tabella con dati (regressione: flaky su CI, run 41960496233)', () => {
+  // Il controllo «elementi fuori viewport» passava solo se la pagina era ancora in caricamento.
+  // Con la tabella popolata le colonne oltre il bordo stanno nel suo contenitore a scorrimento
+  // confinato (voluto): non sono "fuori viewport", sono raggiungibili scorrendo l'area.
+  test("768px: con dati, le colonne fuori vista sono dentro un'area che scorre, non fuori pagina", async ({
+    page,
+  }) => {
+    await ensureWorkspace(page);
+    const api = await seedApi(page);
+    const board = await api.board('Regressione tabella');
+    await api.card(board.columns[0]!.id, 'Scheda per la tabella', { company: 'Azienda lunga' });
+    await page.setViewportSize({ width: 768, height: 800 });
+    await page.goto('/opportunities?q=tabella');
+    await expect(page.getByRole('table')).toBeVisible(); // dati caricati, non lo scheletro
+    const overflow = await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+    expect(await offscreen(page)).toEqual([]);
+    const region = page.getByRole('region', { name: /Tabella delle opportunità/ });
+    const metrics = await region.evaluate((el) => ({ s: el.scrollWidth, c: el.clientWidth }));
+    expect(metrics.s).toBeGreaterThan(metrics.c); // il caso che prima faceva fallire il controllo
+  });
+});
 
 test.describe('responsive: 320 / 390 / 768 / 1024 / 1360 px', () => {
   for (const width of WIDTHS) {

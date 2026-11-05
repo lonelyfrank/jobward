@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "meet-roulette",
+  "name": "jobward",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
   "observability": { "enabled": true },
@@ -24,7 +24,7 @@
     {
       "binding": "DB",
       "database_name": "meet-roulette",
-      // Segnaposto: sostituire con l'ID reale (`wrangler d1 create meet-roulette`)
+      // Segnaposto: per un ambiente nuovo configurare nome e ID; per dati esistenti conservare l'ID (ADR-0014).
       // prima di un deploy. Non è un segreto, ma è specifico dell'account.
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "../../packages/database/migrations",
@@ -46,7 +46,7 @@
     // Sviluppo locale: `wrangler dev --env dev`. L'identità è fittizia e locale,
     // e la modalità "dev" viene rifiutata dal codice se ENVIRONMENT != development.
     "dev": {
-      "name": "meet-roulette-dev",
+      "name": "jobward-dev",
       // `assets` è una chiave EREDITATA dal livello superiore: senza questa riga l'ambiente dev
       // erediterebbe `../web/dist` e Wrangler non partirebbe su un clone pulito (nessuna build).
       // In sviluppo il frontend lo serve Vite: qui basta una cartella che esiste sempre nel repo.
@@ -67,6 +67,7 @@
       "vars": {
         "ENVIRONMENT": "development",
         "AUTH_MODE": "dev",
+        // Identità persistente conservata: vedi ADR-0014 e procedura locale di migrazione.
         "DEV_USER_EMAIL": "dev@meet-roulette.local",
         // Non usate in modalità dev; dichiarate vuote per evitare l'avviso sulle variabili non ereditate.
         "OWNER_EMAIL": "",
@@ -80,7 +81,7 @@
     // ma identità di sviluppo e D1 locale. Serve a verificare ciò che `vite dev` non può
     // mostrare (CSP reale, header degli asset, fallback SPA). Vedi docs/m0h/cloudflare-readiness.md.
     "preview": {
-      "name": "meet-roulette-preview",
+      "name": "jobward-preview",
       "assets": {
         "directory": "../web/dist",
         "binding": "ASSETS",
@@ -98,7 +99,7 @@
       "vars": {
         "ENVIRONMENT": "development",
         "AUTH_MODE": "dev",
-        "DEV_USER_EMAIL": "dev@meet-roulette.local",
+        "DEV_USER_EMAIL": "dev@jobward.local",
         "OWNER_EMAIL": "",
         "ACCESS_TEAM_DOMAIN": "",
         "ACCESS_AUD": "",

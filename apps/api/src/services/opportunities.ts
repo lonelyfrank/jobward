@@ -1,11 +1,10 @@
-import type {
-  OpportunitiesQuery,
-  OpportunitiesResponse,
-  OpportunitySort,
-} from '@meet-roulette/schemas';
-import { DEFAULT_SORT_DIR } from '@meet-roulette/schemas';
-import { CONTRACT_TYPES, OUTCOMES, PRIORITIES, STAGES, WORK_MODES } from '@meet-roulette/shared';
+import type { OpportunitiesQuery, OpportunitiesResponse, OpportunitySort } from '@jobward/schemas';
+import { DEFAULT_SORT_DIR } from '@jobward/schemas';
+import { CONTRACT_TYPES, OUTCOMES, PRIORITIES, STAGES, WORK_MODES } from '@jobward/shared';
+import type { Database } from '@jobward/database';
 import { toCard } from './card-rows';
+import { summariesForCards, withSummaries } from './interview-summaries';
+import { foldSql, searchTerms, literalPattern } from './search-text';
 
 /**
  * Ricerca server-side sulle opportunità del workspace (M2.3).
@@ -58,9 +57,12 @@ interface Row {
 
 export async function searchOpportunities(
   d1: D1Database,
+  db: Database,
   workspaceId: string,
   query: OpportunitiesQuery,
+  options: { globalSearch?: boolean } = {},
 ): Promise<OpportunitiesResponse> {
+  const global = options.globalSearch ?? false;
   const binds: unknown[] = [];
   /** Aggiunge un parametro e restituisce il suo segnaposto numerato. */
   const bind = (value: unknown) => {
@@ -74,11 +76,29 @@ export async function searchOpportunities(
   if (query.boardId) where.push(`k.board_id = ${bind(query.boardId)}`);
   if (query.columnId) where.push(`k.column_id = ${bind(query.columnId)}`);
 
-  // Testo: ogni parola deve comparire (AND) in almeno uno dei campi (OR). Un solo parametro per parola.
-  for (const term of (query.q ?? '').split(/\s+/).filter(Boolean)) {
-    const p = bind(likePattern(term));
+  // La modalità globale estende soltanto il documento testuale; filtri e paginazione restano condivisi.
+  const globalDocument = global
+    ? foldSql(
+        [
+          ...SEARCH_COLUMNS,
+          'b.name',
+          'd.stage',
+          `CASE d.stage WHEN 'saved' THEN 'Salvata' WHEN 'preparing' THEN 'In preparazione'
+      WHEN 'applied' THEN 'Inviata' WHEN 'in_contact' THEN 'In contatto'
+      WHEN 'interviewing' THEN 'Colloquio' WHEN 'offer' THEN 'Offerta' WHEN 'closed' THEN 'Conclusa' END`,
+        ]
+          .map((column) => `coalesce(${column}, '')`)
+          .join(' || char(10) || '),
+      )
+    : '';
+  const terms = global ? searchTerms(query.q ?? '') : (query.q ?? '').split(/\s+/).filter(Boolean);
+  // Ogni parola deve comparire (AND) in almeno un campo (OR). Un parametro per parola.
+  for (const term of terms) {
+    const p = bind(global ? literalPattern(term) : likePattern(term));
     where.push(
-      `(${SEARCH_COLUMNS.map((column) => `${column} LIKE ${p} ESCAPE '\\'`).join(' OR ')})`,
+      global
+        ? `search_documents.text LIKE ${p} ESCAPE '\\'`
+        : `(${SEARCH_COLUMNS.map((column) => `${column} LIKE ${p} ESCAPE '\\'`).join(' OR ')})`,
     );
   }
 
@@ -123,10 +143,21 @@ export async function searchOpportunities(
     }
   }
 
+  // Materializzare una volta evita di espandere la normalizzazione per ogni parola:
+  // D1 limita a 100 la profondità delle espressioni SQL.
+  const documents = global
+    ? `WITH search_documents AS MATERIALIZED (
+        SELECT k.id, ${globalDocument} AS text FROM cards k
+        JOIN boards b ON b.id = k.board_id AND b.workspace_id = k.workspace_id
+        LEFT JOIN application_details d ON d.card_id = k.id AND d.workspace_id = k.workspace_id
+        WHERE k.workspace_id = ?1
+      )`
+    : '';
   const from = `FROM cards k
     JOIN boards b ON b.id = k.board_id AND b.workspace_id = k.workspace_id
     JOIN board_columns c ON c.id = k.column_id AND c.workspace_id = k.workspace_id
     LEFT JOIN application_details d ON d.card_id = k.id AND d.workspace_id = k.workspace_id
+    ${global ? 'JOIN search_documents ON search_documents.id = k.id' : ''}
     WHERE ${where.join(' AND ')}`;
 
   const direction = (query.dir ?? DEFAULT_SORT_DIR[query.sort]) === 'desc' ? 'DESC' : 'ASC';
@@ -136,7 +167,7 @@ export async function searchOpportunities(
   const limitPlaceholder = bind(query.pageSize);
   const offsetPlaceholder = bind(offset);
 
-  const select = `SELECT k.id AS id, k.board_id AS boardId, k.column_id AS columnId, k.title AS title,
+  const select = `${documents} SELECT k.id AS id, k.board_id AS boardId, k.column_id AS columnId, k.title AS title,
       k.description AS description, k.priority AS priority, k.position AS position,
       d.company AS company, d.position AS jobTitle, d.location AS location,
       d.work_mode AS workMode, d.contract_type AS contractType,
@@ -155,14 +186,20 @@ export async function searchOpportunities(
   // Pagina e totale nello stesso batch: la stessa fotografia dei dati.
   const [items, count] = await d1.batch([
     d1.prepare(select).bind(...binds),
-    d1.prepare(`SELECT count(*) AS total ${from}`).bind(...filterBinds),
+    d1.prepare(`${documents} SELECT count(*) AS total ${from}`).bind(...filterBinds),
   ]);
 
   const total = Number((count?.results[0] as Row | undefined)?.['total'] ?? 0);
+  const cards = ((items?.results ?? []) as unknown as { id: string; labelIds: string }[]).map(
+    (row) => toCard(row),
+  );
+  const summaries = await summariesForCards(
+    db,
+    workspaceId,
+    cards.map((card) => card.id),
+  );
   return {
-    items: ((items?.results ?? []) as (Row & { labelIds: string })[]).map((row) =>
-      toCard(row),
-    ) as unknown as OpportunitiesResponse['items'],
+    items: withSummaries(cards, summaries) as unknown as OpportunitiesResponse['items'],
     total,
     page: query.page,
     pageSize: query.pageSize,

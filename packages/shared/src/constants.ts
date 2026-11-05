@@ -93,8 +93,38 @@ export const ACTIVITY_EVENT_TYPES = [
   'task_added',
   'task_completed',
   'application_closed',
+  // M2.5 — colloqui. I metadati non contengono mai note o feedback (solo id, numero del round, date).
+  'interview_created',
+  'interview_next_round_created',
+  'interview_rescheduled',
+  'interview_completed',
+  'interview_cancelled',
+  'interview_feedback_recorded',
 ] as const;
 export type ActivityEventType = (typeof ACTIVITY_EVENT_TYPES)[number];
+
+/**
+ * Colloqui (M2.5). Tipi neutri rispetto al settore; lo STATO è organizzativo, l'ESITO è un'altra cosa
+ * (e vale solo per i colloqui completati).
+ */
+export const INTERVIEW_TYPES = [
+  'screening',
+  'technical',
+  'behavioral',
+  'panel',
+  'final',
+  'other',
+] as const;
+export type InterviewType = (typeof INTERVIEW_TYPES)[number];
+
+export const INTERVIEW_STATUSES = ['to_schedule', 'scheduled', 'completed', 'cancelled'] as const;
+export type InterviewStatus = (typeof INTERVIEW_STATUSES)[number];
+
+export const INTERVIEW_MODALITIES = ['video', 'phone', 'onsite'] as const;
+export type InterviewModality = (typeof INTERVIEW_MODALITIES)[number];
+
+export const INTERVIEW_RESULTS = ['positive', 'neutral', 'negative'] as const;
+export type InterviewResult = (typeof INTERVIEW_RESULTS)[number];
 
 /** Ruoli di membership. In M0 esiste solo `owner`; gli altri sono predisposti per il futuro. */
 export const MEMBER_ROLES = ['owner', 'editor', 'viewer'] as const;
@@ -123,6 +153,9 @@ export const LIMITS = {
   labelNameMax: 40,
   customFieldsPerBoardMax: 30,
   customFieldOptionsMax: 100,
+  /** Round di colloquio per candidatura (atomico) e persone che conducono un colloquio. */
+  interviewsPerCardMax: 50,
+  interviewersMax: 10,
   /** Ricerca: lunghezza del testo, numero di parole e dimensione di pagina. */
   searchTextMax: 100,
   searchTermsMax: 6,

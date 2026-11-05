@@ -1,6 +1,6 @@
 {
   // Usato SOLO da Vitest (vedi vitest.config.ts). Nessun segreto, nessun asset.
-  "name": "meet-roulette-test",
+  "name": "jobward-test",
   "main": "src/index.ts",
   "compatibility_date": "2026-10-01",
   "d1_databases": [

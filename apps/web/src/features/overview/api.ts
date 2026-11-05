@@ -1,4 +1,4 @@
-import { overviewResponse } from '@meet-roulette/schemas';
+import { overviewResponse } from '@jobward/schemas';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/api';
 
