@@ -1,10 +1,6 @@
 import { env } from 'cloudflare:workers';
 import { describe, expect, it } from 'vitest';
-import {
-  interviewResponse,
-  interviewsResponse,
-  opportunitiesResponse,
-} from '@jobward/schemas';
+import { interviewResponse, interviewsResponse, opportunitiesResponse } from '@jobward/schemas';
 import { LIMITS } from '@jobward/shared';
 import { addCard, createMinimalBoard, newUser, type Api } from './kanban-helpers';
 

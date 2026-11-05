@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { ensureWorkspace, expectNoA11yViolations } from './helpers';
+import { ensureWorkspace, expectNoA11yViolations, waitForAnimationsToSettle } from './helpers';
 
 test('marchio originale: temi, proporzioni, simbolo compatto e navigazione mobile', async ({
   page,
@@ -23,6 +23,7 @@ test('marchio originale: temi, proporzioni, simbolo compatto e navigazione mobil
   }
   await page.getByRole('button', { name: 'Comprimi la barra laterale' }).click();
   await expect(page.locator('svg[aria-label="Jobward"]')).toBeVisible();
+  await waitForAnimationsToSettle(page);
   await page.screenshot({ path: info.outputPath('brand-collapsed.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'Apri il menu di navigazione' }).click();
@@ -31,6 +32,7 @@ test('marchio originale: temi, proporzioni, simbolo compatto e navigazione mobil
       .getByRole('dialog', { name: 'Menu di navigazione' })
       .getByRole('img', { name: 'Jobward', exact: true }),
   ).toBeVisible();
+  await waitForAnimationsToSettle(page);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath('brand-mobile.png') });
   const favicon = await page.request.get('/favicon.svg');

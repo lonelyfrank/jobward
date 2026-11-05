@@ -1,8 +1,4 @@
-import type {
-  OpportunitiesQuery,
-  OpportunitiesResponse,
-  OpportunitySort,
-} from '@jobward/schemas';
+import type { OpportunitiesQuery, OpportunitiesResponse, OpportunitySort } from '@jobward/schemas';
 import { DEFAULT_SORT_DIR } from '@jobward/schemas';
 import { CONTRACT_TYPES, OUTCOMES, PRIORITIES, STAGES, WORK_MODES } from '@jobward/shared';
 import type { Database } from '@jobward/database';

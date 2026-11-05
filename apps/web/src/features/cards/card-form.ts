@@ -1,9 +1,4 @@
-import {
-  salaryIssues,
-  updateCardInput,
-  type Card,
-  type UpdateCardInput,
-} from '@jobward/schemas';
+import { salaryIssues, updateCardInput, type Card, type UpdateCardInput } from '@jobward/schemas';
 import type { Priority } from '@jobward/shared';
 
 /**

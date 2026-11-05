@@ -44,6 +44,8 @@ jobs:
       - run: pnpm format:check
       - run: pnpm check:contrast
       - run: pnpm check:config
+      - run: pnpm check:brand
+      - run: pnpm test:identity
       - run: pnpm db:check
       # Un database di M1 popolato viene aggiornato all'ultima migrazione senza perdere dati.
       - run: pnpm db:upgrade-test

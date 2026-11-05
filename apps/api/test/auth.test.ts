@@ -104,7 +104,7 @@ describe('fail closed: configurazione incoerente', () => {
   it('la modalità dev è rifiutata su un hostname pubblico, anche con ENVIRONMENT=development', async () => {
     // Scenario: `wrangler deploy --env dev` per errore. Non deve aprire l'accesso.
     const res = await app.request(
-      'https://meet-roulette-dev.example.workers.dev/api/v1/me',
+      'https://jobward-dev.example.workers.dev/api/v1/me',
       {},
       devEnv('x@example.com'),
     );

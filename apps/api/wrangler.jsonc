@@ -24,7 +24,7 @@
     {
       "binding": "DB",
       "database_name": "meet-roulette",
-      // Segnaposto: sostituire con l'ID reale (`wrangler d1 create meet-roulette`)
+      // Segnaposto: per un ambiente nuovo configurare nome e ID; per dati esistenti conservare l'ID (ADR-0014).
       // prima di un deploy. Non è un segreto, ma è specifico dell'account.
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "../../packages/database/migrations",
