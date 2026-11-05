@@ -16,7 +16,7 @@ Sempre dichiarato: sotto la casella di ricerca «Ambito: tutte le bacheche» opp
 
 ### Perché non FTS5
 
-D1 supporta FTS5, ma richiederebbe una tabella virtuale, trigger di sincronizzazione su `cards` e `application_details`, una migrazione di popolamento e una gestione dei tokenizer per l'italiano. Con tetti di 100 bacheche × 2.000 schede e filtro obbligatorio per `workspace_id` la scansione resta nell'ordine dei millisecondi ({{PERF}}). Si riconsidera se la misura su dati reali lo giustifica (vedi ADR-0011).
+D1 supporta FTS5, ma richiederebbe una tabella virtuale, trigger di sincronizzazione su `cards` e `application_details`, una migrazione di popolamento e una gestione dei tokenizer per l'italiano. Con tetti di 100 bacheche × 2.000 schede e filtro obbligatorio per `workspace_id` la scansione resta nell'ordine dei millisecondi (misura locale su 2.000 schede: 8–22 ms per richiesta, vedi il report dei test). Si riconsidera se la misura su dati reali lo giustifica (vedi ADR-0011).
 
 ## Filtri e combinazione
 

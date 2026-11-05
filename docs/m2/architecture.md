@@ -1,7 +1,7 @@
 # M2 — Architettura e piano
 
-> Documento di lavoro scritto **prima** dell'implementazione e aggiornato a fine milestone: ciò che segue descrive
-> le decisioni prese. Lo stato reale di ogni funzione è in [delivery.md](delivery.md).
+> Documento scritto **prima** dell'implementazione e aggiornato a fine milestone: ciò che segue descrive
+> le decisioni prese e come sono state realizzate. Lo stato reale di ogni funzione è in [delivery.md](delivery.md).
 
 ## 1. Punto di partenza (verificato)
 
@@ -105,9 +105,9 @@ scheda archiviata) sono condizionate nel SQL o rivalidate dal server e danno 409
 
 ### D-10 · Prestazioni
 
-Rotte `OpportunitiesPage`, tabella, impostazioni delle etichette e configuratore dei campi sono caricati con `React.lazy`. La homepage non carica nessuno dei moduli M2. Confronto dei bundle in `testing-report.md`.
+Kanban, Tabella/Opportunità, gestione etichette e configuratore dei campi sono caricati a richiesta (`lazy` di React Router / `React.lazy`). La homepage non carica nessuno dei moduli M2 (iniziale: 713 kB / 220 kB gzip contro 766 / 237 della baseline). Confronto completo in `testing-report.md`. Effetto collaterale corretto: la configurazione `jitless` di Zod vive ora nel package degli schemi (M2-08).
 
-## 4. Piano e checkpoint
+## 4. Piano e checkpoint (tutti completati: esito in [delivery.md](delivery.md))
 
 | Checkpoint | Contenuto                                                                               | Gate                                                       |
 | ---------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
