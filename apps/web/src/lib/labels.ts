@@ -41,6 +41,20 @@ export const STAGE_LABELS: Record<Stage, string> = {
   closed: 'Conclusa',
 };
 
+/** Tono del contrassegno per fase: lo stesso colore in Kanban, tabella e pannello (il testo c'è sempre). */
+export const STAGE_TONE = {
+  saved: 'neutral',
+  preparing: 'info',
+  applied: 'primary',
+  in_contact: 'warning',
+  interviewing: 'success',
+  offer: 'teal',
+  closed: 'danger',
+} as const satisfies Record<
+  Stage,
+  'neutral' | 'info' | 'primary' | 'warning' | 'success' | 'teal' | 'danger'
+>;
+
 export const OUTCOME_LABELS: Record<Outcome, string> = {
   pending: 'In attesa',
   accepted: 'Accettata',

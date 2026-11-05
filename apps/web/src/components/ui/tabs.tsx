@@ -13,7 +13,7 @@ export function TabsList({ className, ...props }: ComponentProps<typeof Primitiv
   return (
     <Primitive.List
       className={cn(
-        'flex shrink-0 snap-x gap-1 overflow-x-auto border-b border-border px-3 [scrollbar-width:thin] md:px-5',
+        'flex shrink-0 snap-x gap-4 overflow-x-auto border-b border-border px-3 [scrollbar-width:thin] md:px-5',
         className,
       )}
       {...props}
@@ -29,8 +29,8 @@ export function TabsTrigger({
   return (
     <Primitive.Trigger
       className={cn(
-        'relative inline-flex min-h-11 shrink-0 snap-start items-center gap-1.5 px-3 text-sm font-medium whitespace-nowrap text-muted-foreground hover:text-foreground',
-        'data-[state=active]:text-foreground data-[state=active]:after:absolute data-[state=active]:after:inset-x-2 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-primary',
+        'relative inline-flex min-h-11 shrink-0 snap-start items-center gap-1.5 px-3 text-sm font-semibold whitespace-nowrap text-muted-foreground hover:text-foreground',
+        'data-[state=active]:text-primary data-[state=active]:after:absolute data-[state=active]:after:inset-x-0 data-[state=active]:after:bottom-0 data-[state=active]:after:h-0.5 data-[state=active]:after:rounded-full data-[state=active]:after:bg-primary',
         className,
       )}
       {...props}

@@ -8,6 +8,7 @@ import { BRAND, documentTitle } from '@/lib/brand';
 import { cn } from '@/lib/cn';
 import type { RouteHandle } from './nav';
 import { Sidebar } from './sidebar';
+import { SidebarBulge } from './sidebar-bulge';
 import { Topbar } from './topbar';
 
 /**
@@ -68,11 +69,12 @@ export function AppShell() {
         <div className="relative flex h-dvh overflow-hidden">
           <aside
             className={cn(
-              'hidden shrink-0 border-r border-border bg-sidebar transition-[width] duration-150 md:block',
-              collapsed ? 'w-16' : 'w-64',
+              'relative z-30 hidden shrink-0 bg-sidebar transition-[width] duration-200 ease-in-out md:block',
+              collapsed ? 'w-[52px]' : 'w-[220px]',
             )}
           >
-            <Sidebar collapsed={collapsed} onToggleCollapsed={toggle} />
+            <Sidebar collapsed={collapsed} />
+            <SidebarBulge collapsed={collapsed} onToggle={toggle} />
           </aside>
 
           <Sheet
@@ -96,13 +98,15 @@ export function AppShell() {
               tabIndex={-1}
               className={cn(
                 'flex-1 outline-none',
-                fullBleed ? 'min-h-0 overflow-hidden' : 'overflow-y-auto px-4 py-6 sm:px-8',
+                fullBleed
+                  ? 'min-h-0 overflow-hidden'
+                  : 'overflow-y-auto px-4 pt-6 pb-12 sm:px-8 lg:px-11 lg:pt-8',
               )}
             >
               <div
                 className={cn(
                   'animate-[jobward-fade-in_0.15s_ease-out]',
-                  fullBleed ? 'h-full' : 'mx-auto max-w-6xl',
+                  fullBleed ? 'h-full' : 'mx-auto max-w-[80rem]',
                 )}
               >
                 <Outlet />

@@ -19,3 +19,4 @@ Una decisione si cambia con un nuovo ADR che sostituisce il precedente, non risc
 | [0012](0012-interview-tracking-and-workspace-modal.md) | Tracciamento dei colloqui e modale della candidatura                          | Accettato                         |
 | [0013](0013-rebranding-jobward.md)                     | Rebranding a Jobward e identificatori persistenti                             | Parzialmente superato da ADR-0014 |
 | [0014](0014-jobward-technical-rebranding.md)           | Rebranding tecnico Jobward e compatibilità dei dati                           | Accettato (M3-C1)                 |
+| [0015](0015-ui-restyle-indaco.md)                      | Restyle UI: palette indaco e forme del design Jobward                         | Accettato                         |

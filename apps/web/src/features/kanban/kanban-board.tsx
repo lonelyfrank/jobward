@@ -305,7 +305,7 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
           role="group"
           aria-label="Colonne della bacheca"
           data-testid="kanban"
-          className="relative flex h-full min-h-0 snap-x snap-mandatory items-start gap-4 overflow-x-auto px-4 pb-4 sm:snap-none sm:px-8"
+          className="relative flex h-full min-h-0 snap-x snap-mandatory items-start gap-5 overflow-x-auto px-4 pb-4 sm:snap-none sm:px-8 lg:px-11"
         >
           <SortableContext
             items={columns.map((c) => c.id)}
@@ -326,7 +326,7 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
             ))}
           </SortableContext>
 
-          <div className="w-[85vw] shrink-0 sm:w-72">
+          <div className="w-[85vw] shrink-0 sm:w-[18rem]">
             <Button
               variant="secondary"
               className="w-full justify-start"
@@ -347,7 +347,7 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
         <DragOverlay dropAnimation={null}>
           {activeCard ? <CardView card={activeCard} boardId={boardId} overlay /> : null}
           {activeColumn ? (
-            <div className="w-72 rounded-lg border border-border bg-surface-muted p-3 text-sm font-semibold shadow-md ring-2 ring-ring">
+            <div className="w-[18rem] rounded-xl border border-border bg-surface-muted p-3 text-sm font-semibold shadow-md ring-2 ring-ring">
               {activeColumn.name}
             </div>
           ) : null}

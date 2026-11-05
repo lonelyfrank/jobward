@@ -88,7 +88,7 @@ export function BoardPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="px-4 pt-5 pb-4 sm:px-8">
+      <header className="px-4 pt-6 pb-5 sm:px-8 lg:px-11">
         <Link
           to="/boards"
           className="inline-flex items-center gap-1 rounded-sm text-sm text-muted-foreground hover:text-foreground max-md:min-h-11 max-md:items-center"
@@ -105,7 +105,9 @@ export function BoardPage() {
                   className={cn('size-3 shrink-0 rounded-full', COLOR_BG[info.color])}
                 />
               ) : null}
-              <h1 className="truncate text-xl font-semibold tracking-tight">{info.name}</h1>
+              <h1 className="truncate text-3xl leading-tight font-extrabold tracking-tight">
+                {info.name}
+              </h1>
               <Button
                 variant="ghost"
                 size="icon"
@@ -128,14 +130,16 @@ export function BoardPage() {
               </Button>
             </div>
             {info.description ? (
-              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{info.description}</p>
+              <p className="mt-2.5 max-w-2xl text-[15px] text-muted-foreground">
+                {info.description}
+              </p>
             ) : null}
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <nav
               aria-label="Visualizzazione della bacheca"
-              className="flex rounded-md border border-border-strong p-0.5"
+              className="flex gap-1 rounded-md border border-border-strong bg-surface p-1"
             >
               {[
                 { to: `/boards/${boardId}`, label: 'Kanban', end: true },
@@ -147,8 +151,10 @@ export function BoardPage() {
                   end={view.end}
                   className={({ isActive }) =>
                     cn(
-                      'inline-flex h-8 items-center rounded px-3 text-sm font-medium max-md:min-h-11',
-                      isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-surface-muted',
+                      'inline-flex h-9 items-center rounded-lg px-4 text-sm font-semibold max-md:min-h-11',
+                      isActive
+                        ? 'bg-primary-soft text-primary-soft-foreground'
+                        : 'text-muted-foreground hover:bg-hover-soft hover:text-foreground',
                     )
                   }
                 >
@@ -160,7 +166,7 @@ export function BoardPage() {
               <div
                 role="group"
                 aria-label="Densità delle schede"
-                className="flex rounded-md border border-border-strong p-0.5"
+                className="flex gap-1 rounded-md border border-border-strong bg-surface p-1"
               >
                 {(
                   [
@@ -174,10 +180,10 @@ export function BoardPage() {
                     aria-pressed={density === value}
                     onClick={() => setDensity(value)}
                     className={cn(
-                      'inline-flex h-8 items-center rounded px-3 text-sm font-medium max-md:min-h-11',
+                      'inline-flex h-9 items-center rounded-lg px-4 text-sm font-semibold max-md:min-h-11',
                       density === value
-                        ? 'bg-primary text-primary-foreground'
-                        : 'hover:bg-surface-muted',
+                        ? 'bg-primary-soft text-primary-soft-foreground'
+                        : 'text-muted-foreground hover:bg-hover-soft hover:text-foreground',
                     )}
                   >
                     {label}

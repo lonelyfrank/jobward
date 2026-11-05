@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { COLOR_BORDER_TOP, isColorToken, STAGE_LABELS } from '@/lib/labels';
+import { COLOR_BG, isColorToken, STAGE_LABELS } from '@/lib/labels';
 import { cn } from '@/lib/cn';
 import { KanbanCard, type CardAction } from './kanban-card';
 import { QuickCreate } from './quick-create';
@@ -55,12 +55,11 @@ export function KanbanColumn({
       data-column-id={column.id}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        'flex max-h-full w-[85vw] shrink-0 snap-center flex-col rounded-lg border border-t-4 border-border bg-surface-muted sm:w-72 sm:snap-align-none',
-        isColorToken(column.color) ? COLOR_BORDER_TOP[column.color] : 'border-t-border-strong',
+        'flex max-h-full w-[85vw] shrink-0 snap-center flex-col rounded-xl bg-surface-muted pb-1 sm:w-[18rem] sm:snap-align-none',
         isDragging && 'opacity-40',
       )}
     >
-      <header className="flex items-center gap-1 px-2 pt-2 pb-1">
+      <header className="flex items-center gap-1 px-3 pt-3 pb-1.5">
         <button
           type="button"
           ref={setActivatorNodeRef}
@@ -72,16 +71,27 @@ export function KanbanColumn({
           <GripVertical aria-hidden="true" className="size-4" />
         </button>
         <div className="min-w-0 flex-1">
-          <h3 id={headingId} className="truncate text-sm font-semibold" title={column.name}>
-            {column.name}
-          </h3>
+          <div className="flex min-w-0 items-center gap-2">
+            {isColorToken(column.color) ? (
+              <span
+                aria-hidden="true"
+                className={cn('size-2.5 shrink-0 rounded-full', COLOR_BG[column.color])}
+              />
+            ) : null}
+            <h3 id={headingId} className="truncate text-[15px] font-bold" title={column.name}>
+              {column.name}
+            </h3>
+          </div>
           {column.category ? (
             <p className="truncate text-xs text-muted-foreground">
               {STAGE_LABELS[column.category]}
             </p>
           ) : null}
         </div>
-        <Badge aria-label={`${column.cardCount} ${column.cardCount === 1 ? 'scheda' : 'schede'}`}>
+        <Badge
+          aria-label={`${column.cardCount} ${column.cardCount === 1 ? 'scheda' : 'schede'}`}
+          className="h-6 min-w-6 justify-center bg-surface px-1.5 font-bold"
+        >
           {column.cardCount}
         </Badge>
         <DropdownMenu modal={false}>
@@ -116,7 +126,7 @@ export function KanbanColumn({
       <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
         <ul
           aria-label={`Schede in ${column.name}`}
-          className="min-h-12 flex-1 space-y-2 overflow-y-auto px-2 py-1"
+          className="min-h-12 flex-1 space-y-3 overflow-y-auto px-3 py-1"
         >
           {cards.map((card, index) => (
             <KanbanCard
@@ -135,7 +145,7 @@ export function KanbanColumn({
         <p className="px-4 pb-1 text-xs text-muted-foreground">Nessuna scheda in questa colonna.</p>
       ) : null}
 
-      <div className="p-2 pt-1">
+      <div className="px-3 pt-1 pb-2">
         <QuickCreate boardId={boardId} columnId={column.id} columnName={column.name} />
       </div>
     </section>

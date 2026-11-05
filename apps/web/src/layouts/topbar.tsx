@@ -33,8 +33,8 @@ function UserMenu() {
     // (axe: aria-hidden-focus) e blocca lo scroll iniettando uno <style> (incompatibile con una CSP stretta).
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Menu account" className="rounded-full">
-          <span className="grid size-7 place-items-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
+        <Button variant="ghost" size="icon" aria-label="Menu account" className="p-0">
+          <span className="grid size-full place-items-center rounded-md bg-primary-soft text-[15px] font-semibold text-primary-soft-foreground">
             {initial}
           </span>
         </Button>
@@ -77,7 +77,7 @@ export function Topbar({
     setTerm('');
   };
   return (
-    <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4">
+    <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-background px-4 sm:px-8 md:h-[86px] lg:px-11">
       <Button
         ref={menuButtonRef}
         variant="ghost"
@@ -89,15 +89,20 @@ export function Topbar({
         <MenuIcon aria-hidden="true" />
       </Button>
 
-      <span className="truncate text-sm font-medium" data-testid="topbar-title">
-        {title}
-      </span>
+      <nav aria-label="Percorso" className="min-w-0 truncate text-sm text-muted-foreground">
+        <span className="max-sm:hidden">
+          Workspace <span aria-hidden="true">/</span>{' '}
+        </span>
+        <span className="font-semibold text-foreground" data-testid="topbar-title">
+          {title}
+        </span>
+      </nav>
 
       {/* Ricerca globale: porta alla schermata Opportunità (tutte le bacheche) con il testo cercato. */}
       <form
         role="search"
         onSubmit={submitSearch}
-        className="ml-auto hidden max-w-xs flex-1 sm:block"
+        className="ml-auto hidden min-w-0 max-w-[18rem] flex-1 sm:block"
       >
         <label htmlFor="global-search" className="sr-only">
           Cerca in tutte le bacheche
@@ -105,7 +110,7 @@ export function Topbar({
         <div className="relative">
           <Search
             aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+            className="pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-muted-foreground"
           />
           <Input
             id="global-search"
@@ -114,21 +119,21 @@ export function Topbar({
             maxLength={100}
             autoComplete="off"
             placeholder="Cerca in tutte le bacheche"
-            className="pl-8"
+            className="h-[42px] pl-9"
             onChange={(e) => setTerm(e.target.value)}
           />
         </div>
       </form>
 
-      <div className="ml-auto flex items-center gap-1 sm:ml-0">
+      <div className="ml-auto flex shrink-0 items-center gap-3 sm:ml-0">
         <Button
-          variant="primary"
+          variant="secondary"
           size="sm"
           className="max-md:min-w-11"
           onClick={() => setCreating(true)}
         >
           <Plus aria-hidden="true" />
-          <span className="max-sm:sr-only">Nuova scheda</span>
+          <span className="max-lg:sr-only">Nuova scheda</span>
         </Button>
         <UserMenu />
       </div>

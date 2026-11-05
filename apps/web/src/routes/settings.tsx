@@ -34,7 +34,7 @@ export function SettingsPage() {
 
       <div className="max-w-2xl space-y-6">
         <Surface className="p-5">
-          <h2 className="font-semibold">Etichette</h2>
+          <h2 className="text-[17px] font-bold">Etichette</h2>
           <p className="mt-1 mb-4 text-sm text-muted-foreground">
             Parole chiave tue per ritrovare le opportunità, valide in tutte le bacheche. I campi
             personalizzati si configurano per bacheca, dal menu “Azioni bacheca”.
@@ -83,7 +83,7 @@ export function SettingsPage() {
         </Surface>
 
         <Surface className="p-5">
-          <h2 className="font-semibold">Workspace</h2>
+          <h2 className="text-[17px] font-bold">Workspace</h2>
           <dl className="mt-3 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
             <dt className="text-muted-foreground">Nome</dt>
             <dd>{workspace.name}</dd>
@@ -95,7 +95,7 @@ export function SettingsPage() {
         </Surface>
 
         <Surface className="p-5">
-          <h2 className="font-semibold">Account</h2>
+          <h2 className="text-[17px] font-bold">Account</h2>
           <dl className="mt-3 grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 text-sm">
             <dt className="text-muted-foreground">Email</dt>
             <dd className="break-all">{user.email}</dd>
@@ -103,7 +103,7 @@ export function SettingsPage() {
         </Surface>
 
         <Surface className="p-5">
-          <h2 className="font-semibold">In arrivo</h2>
+          <h2 className="text-[17px] font-bold">In arrivo</h2>
           <ul className="mt-3 space-y-2">
             {UPCOMING.map((item) => (
               <li key={item.label} className="flex flex-wrap items-center gap-2 text-sm">

@@ -37,7 +37,7 @@ export function Dialog({
       <Primitive.Portal>
         <Primitive.Overlay
           className={cn(
-            'fixed inset-0 z-40 bg-foreground/40',
+            'fixed inset-0 z-40 bg-foreground/45',
             // Il pannello laterale lascia intravedere la bacheca: velo più leggero da `md`.
             drawer && 'md:bg-foreground/20',
           )}
@@ -49,10 +49,10 @@ export function Dialog({
             'fixed z-50 flex flex-col bg-surface shadow-md outline-none',
             workspace
               ? // Modale ampia: schermo intero a telefono, centrata (max ~1000 px, 90dvh) da `md`.
-                'inset-0 h-dvh animate-[jobward-fade-in_0.12s_ease-out] md:inset-auto md:top-1/2 md:left-1/2 md:h-auto md:max-h-[90dvh] md:min-h-[min(36rem,90dvh)] md:w-[min(1000px,calc(100vw-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg md:border md:border-border'
+                'inset-0 h-dvh animate-[jobward-fade-in_0.12s_ease-out] md:inset-auto md:top-1/2 md:left-1/2 md:h-auto md:max-h-[90dvh] md:min-h-[min(36rem,90dvh)] md:w-[min(1000px,calc(100vw-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-xl md:border md:border-border'
               : drawer
                 ? 'inset-0 animate-[jobward-fade-in_0.12s_ease-out] md:left-auto md:w-[30rem] md:max-w-[92vw] md:animate-[jobward-slide-in-right_0.18s_ease-out] md:border-l md:border-border'
-                : 'top-1/2 left-1/2 max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 animate-[jobward-fade-in_0.12s_ease-out] rounded-lg border border-border',
+                : 'top-1/2 left-1/2 max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 animate-[jobward-fade-in_0.12s_ease-out] rounded-xl border border-border',
             className,
           )}
         >
@@ -67,9 +67,9 @@ export function Dialog({
             </>
           ) : (
             <>
-              <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+              <div className="flex items-start justify-between gap-3 border-b border-border px-6 py-5">
                 <div className="min-w-0">
-                  <Primitive.Title className="text-base font-semibold">{title}</Primitive.Title>
+                  <Primitive.Title className="text-lg font-bold">{title}</Primitive.Title>
                   {description ? (
                     <Primitive.Description className="mt-1 text-sm text-muted-foreground">
                       {description}
@@ -94,13 +94,13 @@ export function Dialog({
 /** Corpo scorrevole + piè di pagina con le azioni, per i moduli dentro un Dialog. */
 export function DialogBody({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('min-h-0 flex-1 overflow-y-auto px-5 py-4', className)}>{children}</div>
+    <div className={cn('min-h-0 flex-1 overflow-y-auto px-6 py-5', className)}>{children}</div>
   );
 }
 
 export function DialogFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border px-5 py-3">
+    <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border px-6 py-4">
       {children}
     </div>
   );

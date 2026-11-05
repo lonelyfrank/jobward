@@ -13,6 +13,7 @@ import {
   PRIORITY_LABELS,
   PRIORITY_TONE,
   STAGE_LABELS,
+  STAGE_TONE,
   WORK_MODE_LABELS,
 } from '@/lib/labels';
 import { useDensity } from './density';
@@ -60,24 +61,24 @@ export function CardView({
   return (
     <div
       className={cn(
-        'flex items-start gap-1 rounded-lg border border-border bg-surface p-2 shadow-sm',
+        'flex items-start gap-1 rounded-[14px] border border-border bg-surface p-3 shadow-sm',
         overlay && 'rotate-1 cursor-grabbing shadow-md ring-2 ring-ring',
       )}
     >
       {handle}
       <div className="min-w-0 flex-1 py-1">
         {overlay ? (
-          <span className="block text-sm font-medium break-words">{card.title}</span>
+          <span className="block text-[15px] font-semibold break-words">{card.title}</span>
         ) : (
           <Link
             to={`/boards/${boardId}/cards/${card.id}`}
-            className="block rounded-sm text-sm font-medium break-words hover:underline"
+            className="block rounded-sm text-[15px] font-semibold break-words hover:text-primary"
           >
             {card.title}
           </Link>
         )}
         {subtitle ? (
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
+          <p className="mt-1 truncate text-[13px] text-muted-foreground">{subtitle}</p>
         ) : null}
         {!compact && cardLabels.length > 0 ? (
           <ul aria-label="Etichette" className="mt-1.5 flex flex-wrap gap-1">
@@ -92,8 +93,10 @@ export function CardView({
           </ul>
         ) : null}
         {card.priority !== 'none' || card.stage || showOutcome || (!compact && card.sourceUrl) ? (
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            {card.stage ? <Badge tone="primary">{STAGE_LABELS[card.stage]}</Badge> : null}
+          <div className="mt-3 flex flex-wrap items-center gap-1.5">
+            {card.stage ? (
+              <Badge tone={STAGE_TONE[card.stage]}>{STAGE_LABELS[card.stage]}</Badge>
+            ) : null}
             {showOutcome && card.outcome ? (
               <Badge tone={card.outcome === 'accepted' ? 'primary' : 'neutral'}>
                 {OUTCOME_LABELS[card.outcome]}

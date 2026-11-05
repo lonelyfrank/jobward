@@ -8,9 +8,15 @@ export function LogoMark({ className }: { className?: string }) {
       viewBox="60 75 170 170"
       role="img"
       aria-label={BRAND.name}
-      className={cn('size-7 shrink-0 rounded bg-white', className)}
+      className={cn('size-7 shrink-0 rounded bg-white dark:bg-transparent', className)}
     >
-      <image href={BRAND.assets.logo} width="866" height="288" />
+      <image href={BRAND.assets.logo} width="866" height="288" className="dark:hidden" />
+      <image
+        href={BRAND.assets.logoOnDark}
+        width="865"
+        height="289"
+        className="hidden dark:block"
+      />
     </svg>
   );
 }
@@ -26,11 +32,11 @@ export function Wordmark({ className }: { className?: string }) {
         className="block h-auto w-full dark:hidden"
       />
       <img
-        src={BRAND.assets.logoOnWhite}
+        src={BRAND.assets.logoOnDark}
         alt={BRAND.name}
-        width="2172"
-        height="724"
-        className="hidden h-auto w-full rounded bg-white dark:block"
+        width="865"
+        height="289"
+        className="hidden h-auto w-full dark:block"
       />
     </span>
   );

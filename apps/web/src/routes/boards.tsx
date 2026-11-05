@@ -140,7 +140,7 @@ export function BoardsPage() {
         <div
           role="status"
           aria-label="Caricamento delle bacheche"
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
         >
           {Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} className="h-32" />
@@ -184,13 +184,16 @@ export function BoardsPage() {
         </EmptyState>
 
         <section aria-labelledby="templates-title" className="mt-8">
-          <h2 id="templates-title" className="text-sm font-semibold">
+          <h2
+            id="templates-title"
+            className="text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase"
+          >
             Template disponibili
           </h2>
-          <ul className="mt-3 grid gap-4 md:grid-cols-3">
+          <ul className="mt-3.5 grid gap-5 md:grid-cols-3">
             {BOARD_TEMPLATES.map((template) => (
               <li key={template.id}>
-                <Surface className="h-full p-4">
+                <Surface className="h-full border-dashed border-border-strong/50 p-5">
                   <h3 className="font-medium">{template.name}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">{template.description}</p>
                   {template.columns.length > 0 ? (
@@ -222,8 +225,12 @@ export function BoardsPage() {
   const renderGroup = (group: BoardListItem[], label: string | null) =>
     group.length === 0 ? null : (
       <section aria-label={label ?? 'Bacheche'}>
-        {label ? <h2 className="mb-3 text-sm font-semibold">{label}</h2> : null}
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {label ? (
+          <h2 className="mb-3.5 text-[11px] font-semibold tracking-[0.16em] text-muted-foreground uppercase">
+            {label}
+          </h2>
+        ) : null}
+        <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {group.map((board, index) => (
             <li key={board.id}>
               <BoardCard

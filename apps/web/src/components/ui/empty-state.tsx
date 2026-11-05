@@ -22,7 +22,7 @@ export function EmptyState({
   children?: ReactNode;
 }) {
   return (
-    <Surface className="flex flex-col items-center px-6 py-12 text-center">
+    <Surface className="flex flex-col items-center border-dashed border-border-strong/50 px-6 py-14 text-center">
       <span className="mb-4 grid size-12 place-items-center rounded-full bg-primary-soft text-primary-soft-foreground">
         <Icon aria-hidden="true" className="size-6" />
       </span>
@@ -31,7 +31,7 @@ export function EmptyState({
           In arrivo · {milestone}
         </Badge>
       ) : null}
-      <h2 className="text-base font-semibold">{title}</h2>
+      <h2 className="text-[17px] font-bold">{title}</h2>
       <p className="mt-1.5 max-w-md text-sm text-muted-foreground">{description}</p>
       {children ? <div className="mt-5 w-full max-w-md">{children}</div> : null}
     </Surface>

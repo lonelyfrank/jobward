@@ -16,7 +16,7 @@ export function DropdownMenuContent({ className, ...props }: ComponentProps<type
         // (altrimenti le voci in fondo restano fuori dallo schermo e non sono raggiungibili).
         collisionPadding={8}
         className={cn(
-          'z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-56 animate-[jobward-fade-in_0.12s_ease-out] overflow-y-auto rounded-lg border border-border bg-surface p-1 text-sm shadow-md',
+          'z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-56 animate-[jobward-fade-in_0.12s_ease-out] overflow-y-auto rounded-lg border border-border bg-surface p-1.5 text-sm shadow-[0_12px_32px_-8px_oklch(0.2_0.05_280/0.25)]',
           className,
         )}
         {...props}
@@ -26,7 +26,7 @@ export function DropdownMenuContent({ className, ...props }: ComponentProps<type
 }
 
 const itemClass =
-  'flex cursor-default items-center gap-2 rounded-md px-2.5 py-2 outline-none select-none data-[highlighted]:bg-surface-muted data-[disabled]:opacity-50 max-md:py-3';
+  'flex cursor-default items-center gap-2 rounded-md px-2.5 py-2 outline-none select-none data-[highlighted]:bg-primary-soft data-[highlighted]:text-primary-soft-foreground data-[disabled]:opacity-50 max-md:py-3';
 
 export function DropdownMenuLabel({ className, ...props }: ComponentProps<typeof Menu.Label>) {
   return (
