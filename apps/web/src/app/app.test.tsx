@@ -154,7 +154,7 @@ describe('shell e navigazione', () => {
     );
     // Etichette presenti per gli screen reader anche con la sidebar compressa.
     expect(screen.getByRole('link', { name: 'Bacheche' })).toBeInTheDocument();
-    expect(window.localStorage.getItem('mr-sidebar-collapsed')).toBe('1');
+    expect(window.localStorage.getItem('jobward-sidebar-collapsed')).toBe('1');
   });
 
   it('creazione rapida e ricerca globale sono operative: la ricerca porta a Opportunità con il testo', async () => {
@@ -301,7 +301,7 @@ describe('schermate base', () => {
     renderApp('/settings');
     await user.click(await screen.findByRole('radio', { name: /Scuro/ }));
     expect(document.documentElement).toHaveClass('dark');
-    expect(window.localStorage.getItem('mr-theme')).toBe('dark');
+    expect(window.localStorage.getItem('jobward-theme')).toBe('dark');
     expect(screen.getByText('La mia ricerca', { selector: 'dd' })).toBeInTheDocument();
     expect(screen.getByText('Europe/Rome')).toBeInTheDocument();
     expect(screen.getByText(USER.email, { selector: 'dd' })).toBeInTheDocument();

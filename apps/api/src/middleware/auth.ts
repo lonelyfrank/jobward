@@ -40,7 +40,7 @@ export function authenticate(deps: AuthDeps): MiddlewareHandler<AppEnv> {
     if (env.AUTH_MODE === 'dev') {
       const host = new URL(c.req.url).hostname;
       if (env.ENVIRONMENT !== 'development' || !LOOPBACK_HOSTS.has(host)) throw misconfigured();
-      email = (env.DEV_USER_EMAIL ?? 'dev@meet-roulette.local').toLowerCase();
+      email = (env.DEV_USER_EMAIL ?? 'dev@jobward.local').toLowerCase();
     } else if (env.AUTH_MODE === 'access') {
       const { ACCESS_TEAM_DOMAIN: teamDomain, ACCESS_AUD: audience } = env;
       // Le variabili possono essere assenti (undefined) oppure vuote/spazi: stessa risposta.

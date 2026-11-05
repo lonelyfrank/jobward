@@ -7,7 +7,7 @@ export function Skeleton({ className, ...props }: HTMLAttributes<HTMLDivElement>
     <div
       aria-hidden="true"
       className={cn(
-        'animate-[mr-pulse_1.6s_ease-in-out_infinite] rounded-md bg-surface-muted',
+        'animate-[jobward-pulse_1.6s_ease-in-out_infinite] rounded-md bg-surface-muted',
         className,
       )}
       {...props}

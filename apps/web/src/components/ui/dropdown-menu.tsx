@@ -16,7 +16,7 @@ export function DropdownMenuContent({ className, ...props }: ComponentProps<type
         // (altrimenti le voci in fondo restano fuori dallo schermo e non sono raggiungibili).
         collisionPadding={8}
         className={cn(
-          'z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-56 animate-[mr-fade-in_0.12s_ease-out] overflow-y-auto rounded-lg border border-border bg-surface p-1 text-sm shadow-md',
+          'z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-56 animate-[jobward-fade-in_0.12s_ease-out] overflow-y-auto rounded-lg border border-border bg-surface p-1 text-sm shadow-md',
           className,
         )}
         {...props}

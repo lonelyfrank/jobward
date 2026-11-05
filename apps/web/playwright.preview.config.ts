@@ -6,6 +6,7 @@ import { defineConfig, devices } from '@playwright/test';
  * reali, fallback SPA, instradamento /api/*. Richiede `pnpm --filter @jobward/web build`.
  */
 const PORT = Number(process.env['PREVIEW_PORT'] ?? 8797);
+const INSPECTOR_PORT = Number(process.env['PREVIEW_INSPECTOR_PORT'] ?? 9242);
 const API = 'pnpm --filter @jobward/api exec wrangler';
 const STATE = '../../.e2e-state-preview';
 
@@ -28,7 +29,7 @@ export default defineConfig({
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
     cwd: '../..',
-    command: `rm -rf .e2e-state-preview && ${API} d1 migrations apply DB --local --env preview --persist-to ${STATE} && ${API} dev --env preview --port ${PORT} --persist-to ${STATE}`,
+    command: `rm -rf .e2e-state-preview && ${API} d1 migrations apply DB --local --env preview --persist-to ${STATE} && ${API} dev --env preview --port ${PORT} --inspector-port ${INSPECTOR_PORT} --persist-to ${STATE}`,
     url: `http://localhost:${PORT}/api/health`,
     reuseExistingServer: false,
     timeout: 120_000,

@@ -1,11 +1,11 @@
 import { THEME_PREFERENCES, type ThemePreference } from '@jobward/shared';
 import { useEffect, useSyncExternalStore } from 'react';
-import { readStorage, writeStorage } from './storage';
+import { readStorageWithLegacy, writeStorage } from './storage';
 
-const KEY = 'mr-theme';
+const KEY = 'jobward-theme';
 
 export function getStoredTheme(): ThemePreference {
-  const stored = readStorage(KEY);
+  const stored = readStorageWithLegacy(KEY, 'mr-theme');
   return THEME_PREFERENCES.find((p) => p === stored) ?? 'system';
 }
 

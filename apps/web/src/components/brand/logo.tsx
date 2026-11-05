@@ -1,29 +1,37 @@
 import { BRAND } from '@/lib/brand';
 import { cn } from '@/lib/cn';
 
-/**
- * Marchio SEGNAPOSTO (ereditato dal nome precedente): non è il logo di Jobward. È l'unico punto da
- * sostituire, insieme a `public/favicon.svg`, quando la brand identity sarà disponibile.
- * Decorativo (il nome è sempre accanto).
- */
+/** Ritaglio di visualizzazione del simbolo originale, senza ridisegno né modifica del PNG. */
 export function LogoMark({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 32 32" aria-hidden="true" className={cn('size-7', className)}>
-      <rect width="32" height="32" rx="8" className="fill-primary" />
-      <g transform="rotate(-90 16 16)" fill="none" className="stroke-primary-foreground">
-        <circle cx="16" cy="16" r="9" strokeWidth="6" strokeDasharray="7.07 7.07" />
-        <circle cx="16" cy="16" r="13.5" strokeWidth="1.5" />
-      </g>
-      <circle cx="16" cy="16" r="2.4" className="fill-primary-foreground" />
+    <svg
+      viewBox="60 75 170 170"
+      role="img"
+      aria-label={BRAND.name}
+      className={cn('size-7 shrink-0', className)}
+    >
+      <image href={BRAND.assets.logo} width="866" height="288" />
     </svg>
   );
 }
 
 export function Wordmark({ className }: { className?: string }) {
   return (
-    <span className={cn('flex items-center gap-2.5 font-semibold tracking-tight', className)}>
-      <LogoMark />
-      <span>{BRAND.name}</span>
+    <span className={cn('block w-40 max-w-full shrink-0', className)}>
+      <img
+        src={BRAND.assets.logo}
+        alt={BRAND.name}
+        width="866"
+        height="288"
+        className="block h-auto w-full dark:hidden"
+      />
+      <img
+        src={BRAND.assets.logoOnWhite}
+        alt={BRAND.name}
+        width="2172"
+        height="724"
+        className="hidden h-auto w-full rounded bg-white dark:block"
+      />
     </span>
   );
 }

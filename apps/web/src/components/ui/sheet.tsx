@@ -31,7 +31,7 @@ export function Sheet({
             event.preventDefault();
             returnFocusRef.current.focus();
           }}
-          className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] animate-[mr-slide-in-left_0.18s_ease-out] flex-col border-r border-border bg-sidebar shadow-md md:hidden"
+          className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] animate-[jobward-slide-in-left_0.18s_ease-out] flex-col border-r border-border bg-sidebar shadow-md md:hidden"
         >
           <Dialog.Title className="sr-only">{title}</Dialog.Title>
           {children}

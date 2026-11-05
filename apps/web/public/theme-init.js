@@ -1,6 +1,10 @@
 (function () {
   try {
-    var pref = localStorage.getItem('mr-theme');
+    var pref = localStorage.getItem('jobward-theme');
+    if (pref === null) {
+      pref = localStorage.getItem('mr-theme');
+      if (pref !== null) localStorage.setItem('jobward-theme', pref);
+    }
     var dark =
       pref === 'dark' ||
       ((pref === null || pref === 'system') &&

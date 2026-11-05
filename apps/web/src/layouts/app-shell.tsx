@@ -101,7 +101,7 @@ export function AppShell() {
             >
               <div
                 className={cn(
-                  'animate-[mr-fade-in_0.15s_ease-out]',
+                  'animate-[jobward-fade-in_0.15s_ease-out]',
                   fullBleed ? 'h-full' : 'mx-auto max-w-6xl',
                 )}
               >

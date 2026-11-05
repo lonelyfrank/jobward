@@ -1,15 +1,12 @@
-/**
- * Identità testuale del prodotto: unico punto da cui l'interfaccia legge il nome.
- *
- * Il marchio grafico (logo, favicon) NON è definito qui: vive in `components/brand/logo.tsx` e in
- * `public/favicon.svg`, ed è un segnaposto da sostituire quando la brand identity di Jobward sarà
- * pronta. Gli identificatori tecnici persistenti (pacchetti `@jobward/*`, nomi Worker e D1,
- * identità di sviluppo) mantengono il nome storico: vedi ADR-0013.
- */
+import logo from '../../../../jobward.png';
+import logoOnWhite from '../../../../jobward-white.png';
+
+/** Identità visibile centralizzata. Gli asset originali del proprietario restano integri. */
 export const BRAND = {
   name: 'Jobward',
   /** Descrizione per i metadati e per l'introduzione. */
   description: 'il tuo spazio per organizzare la ricerca del lavoro.',
+  assets: { logo, logoOnWhite },
 } as const;
 
 /** Titolo del documento per una vista: «Bacheche · Jobward». */

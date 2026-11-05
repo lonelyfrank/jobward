@@ -1,10 +1,12 @@
 import { useCallback, useState } from 'react';
-import { readStorage, writeStorage } from '@/lib/storage';
+import { readStorageWithLegacy, writeStorage } from '@/lib/storage';
 
-const KEY = 'mr-sidebar-collapsed';
+const KEY = 'jobward-sidebar-collapsed';
 
 export function useSidebarCollapsed() {
-  const [collapsed, setCollapsed] = useState(() => readStorage(KEY) === '1');
+  const [collapsed, setCollapsed] = useState(
+    () => readStorageWithLegacy(KEY, 'mr-sidebar-collapsed') === '1',
+  );
   const toggle = useCallback(() => {
     setCollapsed((current) => {
       writeStorage(KEY, current ? '0' : '1');

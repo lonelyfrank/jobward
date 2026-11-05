@@ -9,7 +9,7 @@ import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
 const source = path.join(root, 'packages/database/migrations');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mr-upgrade-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jobward-upgrade-'));
 const migrations = path.join(tmp, 'migrations');
 const state = path.join(tmp, 'state');
 fs.mkdirSync(migrations);
@@ -26,12 +26,12 @@ if (upgrade.length === 0) throw new Error('Nessuna migrazione successiva a M1 da
 fs.writeFileSync(
   path.join(tmp, 'wrangler.jsonc'),
   JSON.stringify({
-    name: 'mr-upgrade-test',
+    name: 'jobward-upgrade-test',
     compatibility_date: '2026-01-01',
     d1_databases: [
       {
         binding: 'DB',
-        database_name: 'mr-upgrade',
+        database_name: 'jobward-upgrade',
         database_id: 'local-upgrade',
         migrations_dir: migrations,
       },

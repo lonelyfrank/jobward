@@ -5,7 +5,7 @@ import { getStoredTheme, useTheme } from './theme';
 describe('tema', () => {
   it('usa "system" quando non c’è nulla di salvato o il valore è invalido', () => {
     expect(getStoredTheme()).toBe('system');
-    window.localStorage.setItem('mr-theme', 'neon');
+    window.localStorage.setItem('jobward-theme', 'neon');
     expect(getStoredTheme()).toBe('system');
   });
 
@@ -13,7 +13,7 @@ describe('tema', () => {
     const { result } = renderHook(() => useTheme());
     act(() => result.current.setPreference('dark'));
     expect(document.documentElement).toHaveClass('dark');
-    expect(window.localStorage.getItem('mr-theme')).toBe('dark');
+    expect(window.localStorage.getItem('jobward-theme')).toBe('dark');
     expect(getStoredTheme()).toBe('dark');
 
     act(() => result.current.setPreference('light'));

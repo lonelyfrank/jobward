@@ -8,7 +8,7 @@ import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
 const dbPkg = path.join(root, 'packages/database');
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'mr-migrations-'));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'jobward-migrations-'));
 fs.cpSync(path.join(dbPkg, 'migrations'), path.join(tmp, 'migrations'), { recursive: true });
 const config = path.join(tmp, 'drizzle.config.mjs');
 // drizzle-kit risolve schema e out RELATIVAMENTE alla cartella del package (antepone "./").
