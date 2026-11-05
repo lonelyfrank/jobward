@@ -3,7 +3,7 @@ import { Link2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Badge } from '@/components/ui/badge';
-import { PRIORITY_LABELS } from '@/lib/labels';
+import { OUTCOME_LABELS, PRIORITY_LABELS, STAGE_LABELS, WORK_MODE_LABELS } from '@/lib/labels';
 import { cn } from '@/lib/cn';
 
 const PRIORITY_TONE = {
@@ -28,6 +28,14 @@ export function CardView({
   menu?: ReactNode;
   overlay?: boolean;
 }) {
+  // Una riga sola, in ordine di importanza: azienda, sede, modalità (solo ciò che c'è).
+  const subtitle = [
+    card.company,
+    card.location,
+    card.workMode ? WORK_MODE_LABELS[card.workMode] : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
   return (
     <div
       className={cn(
@@ -47,11 +55,17 @@ export function CardView({
             {card.title}
           </Link>
         )}
-        {card.company ? (
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">{card.company}</p>
+        {subtitle ? (
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
         ) : null}
-        {card.priority !== 'none' || card.sourceUrl ? (
+        {card.priority !== 'none' || card.sourceUrl || card.stage || card.outcome ? (
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+            {card.stage ? <Badge tone="primary">{STAGE_LABELS[card.stage]}</Badge> : null}
+            {card.outcome && card.outcome !== 'pending' ? (
+              <Badge tone={card.outcome === 'accepted' ? 'primary' : 'neutral'}>
+                {OUTCOME_LABELS[card.outcome]}
+              </Badge>
+            ) : null}
             {card.priority !== 'none' ? (
               <Badge tone={PRIORITY_TONE[card.priority]}>
                 Priorità {PRIORITY_LABELS[card.priority].toLowerCase()}

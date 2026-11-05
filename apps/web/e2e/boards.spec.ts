@@ -5,6 +5,7 @@ import {
   createBoard,
   ensureWorkspace,
   expectNoA11yViolations,
+  openSection,
   titlesIn,
 } from './helpers';
 
@@ -188,6 +189,7 @@ test('7. pannello di dettaglio: si apre sulla bacheca, modifica i dati, mostra l
   await panel.getByLabel('Titolo').fill('Barista part-time serale');
   await panel.getByLabel('Azienda').fill('Caffè Roma');
   await panel.getByLabel('Priorità').selectOption('high');
+  await openSection(panel, 'Opportunità');
   await panel.getByLabel('Note').fill('Turni dalle 18 alle 24.');
   await panel.getByLabel('Indirizzo dell’annuncio').fill('non un url');
   await panel.getByRole('button', { name: 'Salva' }).click();
@@ -213,6 +215,7 @@ test('7. pannello di dettaglio: si apre sulla bacheca, modifica i dati, mostra l
   await page.reload();
   await expect(column(page, 'Salvate').getByText('Caffè Roma')).toBeVisible();
   await cardLink(page, 'Barista part-time serale').click();
+  // Ora la sezione contiene dati: si apre da sola.
   await expect(page.getByRole('dialog').getByLabel('Note')).toHaveValue('Turni dalle 18 alle 24.');
 });
 

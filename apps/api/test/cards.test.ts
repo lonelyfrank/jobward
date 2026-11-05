@@ -59,7 +59,7 @@ describe('creazione rapida', () => {
     });
   });
 
-  it('valida: titolo vuoto, priorità, URL non http, campi di M2 non ancora disponibili', async () => {
+  it('valida: titolo vuoto, priorità, URL non http, importo senza valuta, chiavi sconosciute', async () => {
     const { api } = await newUser('k-validate@example.com');
     const { columnIds } = await createMinimalBoard(api);
     const columnId = columnIds[0];
@@ -69,7 +69,8 @@ describe('creazione rapida', () => {
       { columnId, title: 'x', priority: 'critical' },
       { columnId, title: 'x', details: { sourceUrl: 'javascript:alert(1)' } },
       { columnId, title: 'x', details: { sourceUrl: 'data:text/html,<b>x' } },
-      { columnId, title: 'x', details: { salaryMin: 10 } }, // campo di M2: rifiutato, non ignorato
+      { columnId, title: 'x', details: { salaryMin: 10 } }, // importo senza valuta
+      { columnId, title: 'x', details: { sconosciuto: 1 } }, // chiave ignota: rifiutata, non ignorata
       { columnId, title: 'x'.repeat(201) },
     ];
     for (const body of bad) {

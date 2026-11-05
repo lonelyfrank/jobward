@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   applicationDetailsInput,
+  cardDetailsInput,
+  salaryIssues,
   createBoardInput,
   createCardInput,
   createColumnInput,
@@ -82,6 +84,65 @@ describe('applicationDetailsInput', () => {
   it('richiede un codice valuta ISO a tre lettere maiuscole', () => {
     expect(applicationDetailsInput.safeParse({ currency: 'EUR' }).success).toBe(true);
     expect(applicationDetailsInput.safeParse({ currency: 'euro' }).success).toBe(false);
+  });
+});
+
+describe('dettagli professionali (M2.1)', () => {
+  it('updateCardInput: assente ≠ null; la stringa vuota di un testo equivale a null', () => {
+    const parsed = updateCardInput.parse({ company: '   ', location: ' Roma ', workMode: null });
+    expect(parsed).toEqual({ company: null, location: 'Roma', workMode: null });
+    expect('jobTitle' in parsed).toBe(false);
+  });
+
+  it('updateCardInput: tutti i campi professionali sono modificabili, il titolo no a null', () => {
+    expect(updateCardInput.safeParse({ title: null }).success).toBe(false);
+    const all = updateCardInput.safeParse({
+      jobTitle: 'Dev',
+      location: 'Torino',
+      workMode: 'hybrid',
+      contractType: 'permanent',
+      salaryMin: 30000,
+      salaryMax: 40000,
+      currency: 'EUR',
+      salaryPeriod: 'year',
+      salaryBasis: 'gross',
+      source: 'LinkedIn',
+      publishedOn: '2026-10-01',
+      appliedOn: '2026-10-02',
+      stage: 'applied',
+      outcome: 'pending',
+    });
+    expect(all.success).toBe(true);
+  });
+
+  it('updateCardInput: nel solo payload si controlla l’intervallo; la valuta spetta al servizio', () => {
+    expect(updateCardInput.safeParse({ salaryMin: 10 }).success).toBe(true);
+    expect(updateCardInput.safeParse({ salaryMin: 20, salaryMax: 10 }).success).toBe(false);
+    expect(updateCardInput.safeParse({ salaryMin: 1.5 }).success).toBe(false);
+    expect(updateCardInput.safeParse({ salaryMin: -1 }).success).toBe(false);
+    expect(updateCardInput.safeParse({ salaryMax: 3_000_000_000 }).success).toBe(false);
+  });
+
+  it('salaryIssues: intervallo e valuta su uno stato completo', () => {
+    expect(salaryIssues({})).toEqual([]);
+    expect(salaryIssues({ salaryMin: 1, currency: 'EUR' })).toEqual([]);
+    expect(salaryIssues({ salaryMin: 1 }).map((i) => i.path)).toEqual(['currency']);
+    expect(
+      salaryIssues({ salaryMin: 5, salaryMax: 1, currency: 'EUR' }).map((i) => i.path),
+    ).toEqual(['salaryMax']);
+    expect(salaryIssues({ currency: 'EUR' })).toEqual([]);
+    // 0 è un importo valido (non assente).
+    expect(salaryIssues({ salaryMin: 0 }).map((i) => i.path)).toEqual(['currency']);
+  });
+
+  it('lordo/netto: solo valori noti; null = non specificato', () => {
+    expect(updateCardInput.parse({ salaryBasis: null }).salaryBasis).toBeNull();
+    expect(updateCardInput.safeParse({ salaryBasis: 'gross' }).success).toBe(true);
+    expect(updateCardInput.safeParse({ salaryBasis: 'lordo' }).success).toBe(false);
+  });
+
+  it('cardDetailsInput è lo stesso schema di applicationDetailsInput (nessun duplicato)', () => {
+    expect(cardDetailsInput).toBe(applicationDetailsInput);
   });
 });
 
@@ -266,14 +327,14 @@ describe('contratti M1 (bacheche, colonne, schede)', () => {
     expect(updateCardInput.safeParse({ archivedAt: 1 }).success).toBe(false);
   });
 
-  it('createCardInput: i dettagli di M1 sono azienda e URL; i campi di M2 sono rifiutati, non ignorati', () => {
+  it('createCardInput: i payload di M1 restano validi; in creazione un importo richiede la valuta', () => {
+    const base = { title: 'x', columnId: 'c' };
+    expect(createCardInput.safeParse({ ...base, details: { company: 'ACME' } }).success).toBe(true);
+    expect(createCardInput.safeParse({ ...base, details: { salaryMin: 1 } }).success).toBe(false);
     expect(
-      createCardInput.safeParse({ title: 'x', columnId: 'c', details: { company: 'ACME' } })
-        .success,
+      createCardInput.safeParse({ ...base, details: { salaryMin: 1, currency: 'EUR' } }).success,
     ).toBe(true);
-    expect(
-      createCardInput.safeParse({ title: 'x', columnId: 'c', details: { salaryMin: 1 } }).success,
-    ).toBe(false);
+    expect(createCardInput.safeParse({ ...base, details: { sconosciuto: 1 } }).success).toBe(false);
   });
 
   it('moveInput / moveCardInput: ancora esplicita (null = in cima), nessun indice', () => {

@@ -1,5 +1,5 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /**
  * Attende la fine delle animazioni FINITE (entrata di pagina, pannelli, menu). Axe calcola il
@@ -109,4 +109,10 @@ export async function dragWithMouse(
   await page.mouse.move(a.x + a.width / 2 + 12, a.y + a.height / 2 + 12, { steps: 4 });
   await page.mouse.move(b.x + b.width / 2, targetY, { steps: 14 });
   await page.mouse.up();
+}
+
+/** Apre una sezione comprimibile del pannello di dettaglio (le sezioni vuote partono chiuse). */
+export async function openSection(panel: Locator, name: string) {
+  const toggle = panel.getByRole('button', { name, exact: false }).first();
+  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
 }

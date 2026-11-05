@@ -1,3 +1,4 @@
+import { card as fixtureCard } from '@/test/fixtures';
 import type { BoardDetailResponse, Card, Column } from '@meet-roulette/schemas';
 import { describe, expect, it } from 'vitest';
 import {
@@ -22,20 +23,8 @@ const column = (id: string, position: number, over: Partial<Column> = {}): Colum
   updatedAt: 1,
   ...over,
 });
-const card = (id: string, columnId: string, position: number): Card => ({
-  id,
-  boardId: 'b',
-  columnId,
-  title: id,
-  description: null,
-  priority: 'none',
-  position,
-  company: null,
-  sourceUrl: null,
-  createdAt: 1,
-  updatedAt: 1,
-  archivedAt: null,
-});
+const card = (id: string, columnId: string, position: number): Card =>
+  fixtureCard(id, id, columnId, position, { boardId: 'b', createdAt: 1, updatedAt: 1 });
 const data = (): BoardDetailResponse => ({
   board: {
     id: 'b',

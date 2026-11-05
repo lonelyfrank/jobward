@@ -27,6 +27,12 @@ export const STAGES = [
 ] as const;
 export type Stage = (typeof STAGES)[number];
 
+/**
+ * Fasi che implicano una candidatura già inviata. Usate dalle statistiche: "Conclusa" da sola non
+ * basta (si può chiudere una scheda senza aver mai inviato nulla) e la colonna Kanban non conta.
+ */
+export const SUBMITTED_STAGES = ['applied', 'in_contact', 'interviewing', 'offer'] as const;
+
 /** Esito della candidatura. Distinto dalla fase: una candidatura `closed` ha un esito. */
 export const OUTCOMES = [
   'pending',
@@ -55,6 +61,13 @@ export type ContractType = (typeof CONTRACT_TYPES)[number];
 
 export const SALARY_PERIODS = ['hour', 'day', 'week', 'month', 'year'] as const;
 export type SalaryPeriod = (typeof SALARY_PERIODS)[number];
+
+/**
+ * Natura dell'importo. Nel database `NULL` significa "non specificato": l'interfaccia non
+ * mostra mai una retribuzione come lorda o netta se l'utente non l'ha indicato (M2).
+ */
+export const SALARY_BASES = ['gross', 'net'] as const;
+export type SalaryBasis = (typeof SALARY_BASES)[number];
 
 export const CUSTOM_FIELD_TYPES = [
   'text',
@@ -102,6 +115,18 @@ export const LIMITS = {
   columnsPerBoardMax: 30,
   /** Schede (anche archiviate) per bacheca: la bacheca le carica tutte insieme (ADR-0008). */
   cardsPerBoardMax: 2_000,
+  /** Importo retributivo massimo (unità intere della valuta): entro l'intero a 32 bit. */
+  salaryAmountMax: 2_000_000_000,
+  /** Etichette per workspace e per scheda; campi personalizzati per bacheca (applicati in modo atomico). */
+  labelsPerWorkspaceMax: 100,
+  labelsPerCardMax: 20,
+  customFieldsPerBoardMax: 30,
+  customFieldOptionsMax: 100,
+  /** Ricerca: lunghezza del testo, numero di parole e dimensione di pagina. */
+  searchTextMax: 100,
+  searchTermsMax: 6,
+  pageSizeDefault: 25,
+  pageSizeMax: 50,
   /** Dimensione massima del body JSON accettato dall'API, in byte. */
   requestBodyMaxBytes: 64 * 1024,
 } as const;

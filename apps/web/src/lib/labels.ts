@@ -1,4 +1,12 @@
-import type { Priority, Stage } from '@meet-roulette/shared';
+import type {
+  ContractType,
+  Outcome,
+  Priority,
+  SalaryBasis,
+  SalaryPeriod,
+  Stage,
+  WorkMode,
+} from '@meet-roulette/shared';
 import type { ColorToken } from '@meet-roulette/schemas';
 
 /** Testi dell'interfaccia per i vocabolari controllati (i valori restano neutri nel dominio). */
@@ -19,6 +27,43 @@ export const STAGE_LABELS: Record<Stage, string> = {
   offer: 'Offerta',
   closed: 'Conclusa',
 };
+
+export const OUTCOME_LABELS: Record<Outcome, string> = {
+  pending: 'In attesa',
+  accepted: 'Accettata',
+  rejected: 'Rifiutata',
+  withdrawn: 'Ritirata',
+  no_response: 'Nessuna risposta',
+  offer_declined: 'Offerta rifiutata',
+};
+
+export const WORK_MODE_LABELS: Record<WorkMode, string> = {
+  onsite: 'In presenza',
+  hybrid: 'Ibrido',
+  remote: 'Da remoto',
+};
+
+export const CONTRACT_LABELS: Record<ContractType, string> = {
+  permanent: 'Tempo indeterminato',
+  fixed_term: 'Tempo determinato',
+  part_time: 'Part-time',
+  freelance: 'Libera professione',
+  internship: 'Tirocinio',
+  apprenticeship: 'Apprendistato',
+  temporary: 'Somministrazione',
+  other: 'Altro',
+};
+
+export const PERIOD_LABELS: Record<SalaryPeriod, string> = {
+  hour: 'all’ora',
+  day: 'al giorno',
+  week: 'a settimana',
+  month: 'al mese',
+  year: 'all’anno',
+};
+
+/** `null` (non specificato) non ha un'etichetta: l'interfaccia non deve mai dedurre lordo o netto. */
+export const BASIS_LABELS: Record<SalaryBasis, string> = { gross: 'lordo', net: 'netto' };
 
 export const COLOR_LABELS: Record<ColorToken, string> = {
   slate: 'Grigio',

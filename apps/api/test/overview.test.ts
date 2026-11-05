@@ -128,4 +128,67 @@ describe('GET /api/v1/overview', () => {
     expect(res.body.counts.openTasks).toBe(0);
     expect(res.body.upcomingTasks).toEqual([]);
   });
+
+  describe('statistiche semantiche (M2, docs/m2/architecture.md D-4)', () => {
+    const counts = async (email: string, workspaceId: string) =>
+      (await call<any>(app, devEnv(email), `/api/v1/overview?workspaceId=${workspaceId}`)).body
+        .counts as { opportunities: number; applicationsSubmitted: number; interviews: number };
+
+    it('inviata = data di candidatura OPPURE fase che la implica; "Conclusa" da sola e la sola colonna non contano', async () => {
+      const email = 'ov-semantic@example.com';
+      const { workspaceId } = await seedWorkspace(email);
+      const { boardId, columnId } = await seedBoardWithColumn(workspaceId);
+      const card = (title: string, o: Parameters<typeof seedCard>[3] = {}) =>
+        seedCard(workspaceId, boardId, columnId, { title, ...o });
+      await card('nessun dato');
+      await card('solo data', { appliedOn: '2026-11-01' });
+      await card('solo fase inviata', { stage: 'applied' });
+      await card('data e fase', { appliedOn: '2026-11-01', stage: 'applied' }); // una sola volta
+      await card('salvata', { stage: 'saved' });
+      await card('conclusa senza invio', { stage: 'closed' });
+      await card('conclusa con data', { stage: 'closed', appliedOn: '2026-10-01' });
+      await card('archiviata inviata', { stage: 'applied', archivedAt: Date.now() });
+
+      const c = await counts(email, workspaceId);
+      expect(c.opportunities).toBe(7);
+      expect(c.applicationsSubmitted).toBe(4); // solo data, fase inviata, data e fase, conclusa con data
+    });
+
+    it('in colloquio = fase Colloquio e candidatura non conclusa (esito assente o "in attesa")', async () => {
+      const email = 'ov-interview@example.com';
+      const { workspaceId } = await seedWorkspace(email);
+      const { boardId, columnId } = await seedBoardWithColumn(workspaceId);
+      const card = (title: string, o: Parameters<typeof seedCard>[3]) =>
+        seedCard(workspaceId, boardId, columnId, { title, ...o });
+      await card('senza esito', { stage: 'interviewing' });
+      await card('in attesa', { stage: 'interviewing', outcome: 'pending' });
+      await card('rifiutata dopo il colloquio', { stage: 'interviewing', outcome: 'rejected' });
+      await card('ritirata', { stage: 'interviewing', outcome: 'withdrawn' });
+      await card('altra fase', { stage: 'offer' });
+
+      expect((await counts(email, workspaceId)).interviews).toBe(2);
+    });
+
+    it('il nome o la categoria della colonna non producono colloqui', async () => {
+      const { api, workspaceId, email } = await newUser('ov-column@example.com');
+      const { columnIds } = await createMinimalBoard(api);
+      await api.patch(`/columns/${columnIds[0]}`, { name: 'Colloqui', category: 'interviewing' });
+      await addCard(api, columnIds[0]!, 'In una colonna "Colloqui"');
+      const c = await counts(email, workspaceId);
+      expect(c.opportunities).toBe(1);
+      expect(c.interviews).toBe(0);
+      expect(c.applicationsSubmitted).toBe(0);
+    });
+
+    it('spostare una scheda non cambia i contatori; cambiare la fase sì', async () => {
+      const { api, workspaceId, email } = await newUser('ov-flow@example.com');
+      const { columnIds } = await createMinimalBoard(api);
+      const card = await addCard(api, columnIds[0]!, 'A');
+      await api.patch(`/cards/${card.id}`, { stage: 'interviewing' });
+      await api.post(`/cards/${card.id}/move`, { columnId: columnIds[1], afterCardId: null });
+      expect((await counts(email, workspaceId)).interviews).toBe(1);
+      await api.patch(`/cards/${card.id}`, { outcome: 'accepted' });
+      expect((await counts(email, workspaceId)).interviews).toBe(0);
+    });
+  });
 });

@@ -12,6 +12,7 @@ import { useNotify } from '@/components/ui/notices';
 import { invalidateSummaries, keys, scoped } from '@/features/boards/api';
 import { useWorkspace } from '@/features/workspace/context';
 import { apiRequest, ApiRequestError } from '@/lib/api';
+import { STAGE_LABELS } from '@/lib/labels';
 import {
   appendCard,
   applyCardMove,
@@ -63,6 +64,7 @@ function settleWhenIdle(
 export function useMoveCard(boardId: string) {
   const cache = useBoardCache(boardId);
   const notify = useNotify();
+  const updateCard = useUpdateCard(boardId);
   const mutationKey = ['move-card', cache.workspaceId, boardId] as const;
 
   return useMutation({
@@ -79,6 +81,38 @@ export function useMoveCard(boardId: string) {
       const next = previous ? applyCardMove(previous, move) : null;
       if (next) cache.set(next);
       return { previous };
+    },
+    onSuccess: ({ card }, move, context) => {
+      // Suggerimento di fase (M2, D-3): INDIPENDENTE dallo spostamento, già concluso. Solo dopo un
+      // cambio di colonna, solo se la colonna di arrivo dichiara una fase diversa da quella della
+      // scheda, una volta per raffica di spostamenti, senza conferme modali. Fase ed esito non
+      // vengono mai modificati dallo spostamento in sé.
+      const target = cache.get()?.columns.find((c) => c.id === move.columnId);
+      const fromColumnId = context?.previous?.cards.find((c) => c.id === move.cardId)?.columnId;
+      const category = target?.category ?? null;
+      if (
+        category &&
+        fromColumnId !== move.columnId &&
+        card.stage !== category &&
+        cache.queryClient.isMutating({ mutationKey }) === 1
+      ) {
+        notify(
+          'success',
+          `La colonna “${target?.name}” corrisponde alla fase “${STAGE_LABELS[category]}”.`,
+          {
+            label: 'Imposta fase',
+            onClick: () =>
+              updateCard.mutate(
+                { cardId: card.id, input: { stage: category } },
+                {
+                  onSuccess: () =>
+                    notify('success', `Fase impostata su “${STAGE_LABELS[category]}”.`),
+                  onError: () => notify('error', 'Non siamo riusciti a impostare la fase.'),
+                },
+              ),
+          },
+        );
+      }
     },
     onError: (error, _move, context) => {
       if (context?.previous) cache.set(context.previous);

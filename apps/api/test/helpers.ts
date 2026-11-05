@@ -124,6 +124,7 @@ export async function seedCard(
     archivedAt?: number | null;
     appliedOn?: string;
     stage?: (typeof schema.applicationDetails.$inferInsert)['stage'];
+    outcome?: (typeof schema.applicationDetails.$inferInsert)['outcome'];
   } = {},
 ) {
   const d = db();
@@ -140,12 +141,13 @@ export async function seedCard(
     updatedAt: now,
     archivedAt: opts.archivedAt ?? null,
   });
-  if (opts.appliedOn || opts.stage) {
+  if (opts.appliedOn || opts.stage || opts.outcome) {
     await d.insert(schema.applicationDetails).values({
       cardId: id,
       workspaceId,
       appliedOn: opts.appliedOn ?? null,
       stage: opts.stage ?? null,
+      outcome: opts.outcome ?? null,
       createdAt: now,
       updatedAt: now,
     });

@@ -7,34 +7,17 @@ import type {
   MoveCardInput,
   UpdateCardInput,
 } from '@meet-roulette/schemas';
+import { salaryIssues } from '@meet-roulette/schemas';
 import { LIMITS, POSITION_GAP } from '@meet-roulette/shared';
 import { and, asc, desc, eq, isNotNull, isNull } from 'drizzle-orm';
 import { ApiError, conflict, notFound } from '../lib/errors';
 import { getBoard } from './boards';
+import { DETAIL_COLUMNS, DETAIL_KEYS_LIST, selectCards, toCard } from './card-rows';
 import { decidePlacement, isConstraintError, readSiblings, rebalanceStatement } from './ordering';
 
-const { cards, applicationDetails, activityEvents, boardColumns } = schema;
+const { cards, activityEvents, boardColumns } = schema;
 
-const cardSelect = {
-  id: cards.id,
-  boardId: cards.boardId,
-  columnId: cards.columnId,
-  title: cards.title,
-  description: cards.description,
-  priority: cards.priority,
-  position: cards.position,
-  company: applicationDetails.company,
-  sourceUrl: applicationDetails.sourceUrl,
-  createdAt: cards.createdAt,
-  updatedAt: cards.updatedAt,
-  archivedAt: cards.archivedAt,
-};
-
-const withDetails = (db: Database) =>
-  db
-    .select(cardSelect)
-    .from(cards)
-    .leftJoin(applicationDetails, eq(applicationDetails.cardId, cards.id));
+const withDetails = selectCards;
 
 /** Schede attive di una bacheca, in ordine di colonna e posizione. */
 export async function listActiveCards(
@@ -42,11 +25,12 @@ export async function listActiveCards(
   workspaceId: string,
   boardId: string,
 ): Promise<Card[]> {
-  return withDetails(db)
+  const rows = await withDetails(db)
     .where(
       and(eq(cards.boardId, boardId), eq(cards.workspaceId, workspaceId), isNull(cards.archivedAt)),
     )
     .orderBy(asc(cards.columnId), asc(cards.position), asc(cards.id));
+  return rows.map(toCard);
 }
 
 export async function listArchivedCards(
@@ -55,7 +39,7 @@ export async function listArchivedCards(
   boardId: string,
 ): Promise<Card[]> {
   await getBoard(db, workspaceId, boardId);
-  return withDetails(db)
+  const rows = await withDetails(db)
     .where(
       and(
         eq(cards.boardId, boardId),
@@ -64,6 +48,7 @@ export async function listArchivedCards(
       ),
     )
     .orderBy(desc(cards.archivedAt), asc(cards.id));
+  return rows.map(toCard);
 }
 
 /** Scheda del workspace o 404 (stessa risposta per inesistente e di un altro workspace). */
@@ -72,7 +57,7 @@ export async function getCard(db: Database, workspaceId: string, cardId: string)
     .where(and(eq(cards.id, cardId), eq(cards.workspaceId, workspaceId)))
     .get();
   if (!card) throw notFound('Scheda');
-  return card;
+  return toCard(card);
 }
 
 const HISTORY_LIMIT = 50;
@@ -178,8 +163,10 @@ export async function createCard(
   if (!column) throw notFound('Colonna');
 
   const id = newId();
-  const company = input.details?.company ?? null;
-  const sourceUrl = input.details?.sourceUrl ?? null;
+  const details = input.details ?? {};
+  assertSalaryState(details);
+  // Colonne e valori dei soli dettagli indicati (non nulli): se non c'è nulla, nessuna riga 1:1.
+  const present = DETAIL_KEYS_LIST.filter((key) => details[key] != null);
 
   const statements = [
     d1
@@ -202,15 +189,15 @@ export async function createCard(
         now,
         LIMITS.cardsPerBoardMax,
       ),
-    ...(company !== null || sourceUrl !== null
+    ...(present.length > 0
       ? [
           d1
             .prepare(
-              `INSERT INTO application_details (card_id, workspace_id, company, source_url, created_at, updated_at)
-               SELECT ?1, ?2, ?3, ?4, ?5, ?5
+              `INSERT INTO application_details (card_id, workspace_id, ${present.map((k) => DETAIL_COLUMNS[k]).join(', ')}, created_at, updated_at)
+               SELECT ?1, ?2, ${present.map((_, i) => `?${i + 4}`).join(', ')}, ?3, ?3
                WHERE EXISTS (SELECT 1 FROM cards WHERE id = ?1 AND workspace_id = ?2)`,
             )
-            .bind(id, workspaceId, company, sourceUrl, now),
+            .bind(id, workspaceId, now, ...present.map((k) => details[k])),
         ]
       : []),
     eventStatement(d1, {
@@ -246,6 +233,16 @@ function assertEditable(card: Card) {
   }
 }
 
+/** Coerenza della retribuzione sullo stato RISULTANTE (vedi `salaryIssues`): 400 con i campi in errore. */
+function assertSalaryState(state: Parameters<typeof salaryIssues>[0]) {
+  const issues = salaryIssues(state);
+  if (issues.length > 0) {
+    throw new ApiError(400, 'validation_error', 'Dati non validi', issues);
+  }
+}
+
+const SALARY_KEYS = ['salaryMin', 'salaryMax', 'currency'] as const;
+
 export async function updateCard(
   d1: D1Database,
   db: Database,
@@ -257,6 +254,15 @@ export async function updateCard(
 ): Promise<Card> {
   const current = await getCard(db, workspaceId, cardId);
   assertEditable(current);
+
+  // Le regole che coinvolgono più campi si valutano sullo stato risultante, non sul solo payload.
+  if (SALARY_KEYS.some((key) => input[key] !== undefined)) {
+    assertSalaryState({
+      salaryMin: input.salaryMin !== undefined ? input.salaryMin : current.salaryMin,
+      salaryMax: input.salaryMax !== undefined ? input.salaryMax : current.salaryMax,
+      currency: input.currency !== undefined ? input.currency : current.currency,
+    });
+  }
 
   const sets: string[] = [];
   const values: unknown[] = [];
@@ -278,42 +284,84 @@ export async function updateCard(
       .bind(...values, cardId, workspaceId),
   ];
 
-  // Dettagli di candidatura (M1: azienda e URL): upsert che tocca SOLO i campi indicati.
-  const detailSets: string[] = [];
-  if (input.company !== undefined) detailSets.push('company = excluded.company');
-  if (input.sourceUrl !== undefined) detailSets.push('source_url = excluded.source_url');
-  if (detailSets.length > 0) {
+  // Dettagli professionali: upsert che tocca SOLO i campi indicati (assente = invariato).
+  const touched = DETAIL_KEYS_LIST.filter((key) => input[key] !== undefined);
+  if (touched.length > 0) {
+    const columns = touched.map((key) => DETAIL_COLUMNS[key]);
     statements.push(
       d1
         .prepare(
-          `INSERT INTO application_details (card_id, workspace_id, company, source_url, created_at, updated_at)
-           SELECT ?1, ?2, ?3, ?4, ?5, ?5
+          `INSERT INTO application_details (card_id, workspace_id, ${columns.join(', ')}, created_at, updated_at)
+           SELECT ?1, ?2, ${touched.map((_, i) => `?${i + 4}`).join(', ')}, ?3, ?3
            WHERE EXISTS (SELECT 1 FROM cards WHERE id = ?1 AND workspace_id = ?2 AND archived_at IS NULL)
-           ON CONFLICT (card_id) DO UPDATE SET ${detailSets.join(', ')}, updated_at = excluded.updated_at`,
+           ON CONFLICT (card_id) DO UPDATE SET ${columns.map((c) => `${c} = excluded.${c}`).join(', ')}, updated_at = excluded.updated_at`,
         )
-        .bind(cardId, workspaceId, input.company ?? null, input.sourceUrl ?? null, now),
+        .bind(cardId, workspaceId, now, ...touched.map((key) => input[key] ?? null)),
     );
   }
 
+  const base = { workspaceId, boardId: current.boardId, cardId, actorUserId: userId, now };
   if (input.priority !== undefined && input.priority !== current.priority) {
     statements.push(
       eventStatement(d1, {
-        workspaceId,
-        boardId: current.boardId,
-        cardId,
-        actorUserId: userId,
+        ...base,
         type: 'priority_changed',
         metadata: { from: current.priority, to: input.priority },
-        now,
         guard: 'k.priority = ?9 AND k.archived_at IS NULL',
         guardBinds: [input.priority],
       }),
     );
   }
+  // Eventi di dominio: solo se il valore CAMBIA, e solo se la scrittura dei dettagli è avvenuta
+  // (la guardia confronta la riga con il valore appena scritto e con l'istante della modifica).
+  const detailGuard = (column: string) =>
+    `EXISTS (SELECT 1 FROM application_details d WHERE d.card_id = k.id AND d.updated_at = ?8 AND d.${column} IS ?9)`;
+  if (input.stage !== undefined && input.stage !== current.stage) {
+    statements.push(
+      eventStatement(d1, {
+        ...base,
+        type: 'stage_changed',
+        metadata: { from: current.stage, to: input.stage },
+        guard: detailGuard('stage'),
+        guardBinds: [input.stage],
+      }),
+    );
+  }
+  if (input.appliedOn != null && current.appliedOn === null) {
+    statements.push(
+      eventStatement(d1, {
+        ...base,
+        type: 'application_submitted',
+        metadata: { appliedOn: input.appliedOn },
+        guard: detailGuard('applied_on'),
+        guardBinds: [input.appliedOn],
+      }),
+    );
+  }
+  if (input.outcome != null && input.outcome !== 'pending' && input.outcome !== current.outcome) {
+    statements.push(
+      eventStatement(d1, {
+        ...base,
+        type: 'application_closed',
+        metadata: { outcome: input.outcome },
+        guard: detailGuard('outcome'),
+        guardBinds: [input.outcome],
+      }),
+    );
+  }
   statements.push(touchBoard(d1, workspaceId, current.boardId, now));
 
-  const [update] = await d1.batch(statements);
-  if (!update || update.meta.changes !== 1) {
+  let results: D1Result[];
+  try {
+    results = await d1.batch(statements);
+  } catch (error) {
+    // Ultima difesa: un CHECK del database (es. intervallo retributivo) violato da una scrittura concorrente.
+    if (isConstraintError(error)) {
+      throw conflict('I dati sono cambiati nel frattempo: aggiorna la pagina e riprova');
+    }
+    throw error;
+  }
+  if (!results[0] || results[0].meta.changes !== 1) {
     throw conflict('La scheda è stata modificata o archiviata nel frattempo: aggiorna la pagina');
   }
   return getCard(db, workspaceId, cardId);

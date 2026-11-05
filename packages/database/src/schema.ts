@@ -5,6 +5,7 @@ import {
   MEMBER_ROLES,
   OUTCOMES,
   PRIORITIES,
+  SALARY_BASES,
   SALARY_PERIODS,
   STAGES,
   WORK_MODES,
@@ -196,6 +197,8 @@ export const cards = sqliteTable(
     index('cards_column_position_idx').on(t.columnId, t.position),
     index('cards_workspace_archived_idx').on(t.workspaceId, t.archivedAt),
     index('cards_board_idx').on(t.boardId),
+    // Ordinamento predefinito di ricerca e tabella ("ultima modifica"), per workspace (0003).
+    index('cards_workspace_updated_idx').on(t.workspaceId, t.updatedAt),
     uniqueIndex('cards_id_workspace_unique').on(t.id, t.workspaceId),
     check('cards_priority_valid', inList(t.priority, PRIORITIES)),
   ],
@@ -219,6 +222,8 @@ export const applicationDetails = sqliteTable(
     salaryMax: integer('salary_max'),
     currency: text('currency'),
     salaryPeriod: text('salary_period', { enum: SALARY_PERIODS }),
+    /** Lordo o netto. NULL = non specificato (aggiunta in 0003): non va mai dedotto. */
+    salaryBasis: text('salary_basis', { enum: SALARY_BASES }),
     source: text('source'),
     sourceUrl: text('source_url'),
     publishedOn: text('published_on'),
@@ -255,6 +260,10 @@ export const applicationDetails = sqliteTable(
       sql`${t.outcome} is null or ${inList(t.outcome, OUTCOMES)}`,
     ),
     check(
+      'application_details_basis_valid',
+      sql`${t.salaryBasis} is null or ${inList(t.salaryBasis, SALARY_BASES)}`,
+    ),
+    check(
       'application_details_salary_range',
       sql`${t.salaryMin} is null or ${t.salaryMax} is null or ${t.salaryMin} <= ${t.salaryMax}`,
     ),
@@ -289,6 +298,8 @@ export const customFieldDefinitions = sqliteTable(
       foreignColumns: [boards.id, boards.workspaceId],
     }).onDelete('cascade'),
     index('custom_field_definitions_board_idx').on(t.boardId, t.position),
+    // Nome univoco nella bacheca, senza distinzione di maiuscole (0003; la tabella era inutilizzata).
+    uniqueIndex('custom_field_definitions_board_name_unique').on(t.boardId, sql`lower(${t.name})`),
     uniqueIndex('custom_field_definitions_id_workspace_unique').on(t.id, t.workspaceId),
     check('custom_field_definitions_type_valid', inList(t.type, CUSTOM_FIELD_TYPES)),
   ],

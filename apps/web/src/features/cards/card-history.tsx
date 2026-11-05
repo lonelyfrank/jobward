@@ -1,13 +1,33 @@
 import type { ActivityEvent } from '@meet-roulette/schemas';
-import { PRIORITIES, type Priority } from '@meet-roulette/shared';
-import { formatDateTime } from '@/lib/format';
-import { PRIORITY_LABELS } from '@/lib/labels';
+import {
+  OUTCOMES,
+  PRIORITIES,
+  STAGES,
+  type Outcome,
+  type Priority,
+  type Stage,
+} from '@meet-roulette/shared';
+import { formatCalendarDate, formatDateTime } from '@/lib/format';
+import { OUTCOME_LABELS, PRIORITY_LABELS, STAGE_LABELS } from '@/lib/labels';
 
 const asString = (value: unknown): string | null => (typeof value === 'string' ? value : null);
 const priority = (value: unknown): string => {
   const text = asString(value);
   return text && (PRIORITIES as readonly string[]).includes(text)
     ? PRIORITY_LABELS[text as Priority].toLowerCase()
+    : '—';
+};
+
+const stage = (value: unknown): string => {
+  const text = asString(value);
+  return text && (STAGES as readonly string[]).includes(text)
+    ? `“${STAGE_LABELS[text as Stage]}”`
+    : 'nessuna fase';
+};
+const outcome = (value: unknown): string => {
+  const text = asString(value);
+  return text && (OUTCOMES as readonly string[]).includes(text)
+    ? `“${OUTCOME_LABELS[text as Outcome]}”`
     : '—';
 };
 
@@ -30,6 +50,16 @@ export function describeEvent(event: ActivityEvent): string {
     }
     case 'priority_changed':
       return `Priorità cambiata da ${priority(m['from'])} a ${priority(m['to'])}`;
+    case 'stage_changed':
+      return m['from']
+        ? `Fase cambiata da ${stage(m['from'])} a ${stage(m['to'])}`
+        : `Fase impostata su ${stage(m['to'])}`;
+    case 'application_submitted': {
+      const date = formatCalendarDate(asString(m['appliedOn']));
+      return date ? `Candidatura registrata (${date})` : 'Candidatura registrata';
+    }
+    case 'application_closed':
+      return `Esito registrato: ${outcome(m['outcome'])}`;
     case 'card_archived':
       return 'Scheda archiviata';
     case 'card_restored':

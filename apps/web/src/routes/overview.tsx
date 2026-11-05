@@ -133,13 +133,13 @@ export function OverviewPage() {
           icon={Send}
           label="Candidature inviate"
           value={counts.applicationsSubmitted}
-          hint="Dalla prossima milestone (M2)"
+          hint="Con data di candidatura o fase successiva"
         />
         <StatCard
           icon={MessagesSquare}
           label="Colloqui"
           value={counts.interviews}
-          hint="Dalla prossima milestone (M2)"
+          hint="Fase “Colloquio”, senza esito definitivo"
         />
         <StatCard
           icon={ListChecks}

@@ -8,6 +8,8 @@ export class ApiRequestError extends Error {
     readonly code: ApiErrorCode | 'network_error' | 'invalid_response',
     message: string,
     readonly requestId?: string,
+    /** Errori di validazione per campo, se il server li ha forniti. */
+    readonly issues?: { path: string; message: string }[],
   ) {
     super(message);
     this.name = 'ApiRequestError';
@@ -23,6 +25,7 @@ async function readError(res: Response): Promise<ApiRequestError> {
         body.error.code,
         body.error.message,
         body.error.requestId,
+        body.error.issues,
       );
     }
   } catch {
@@ -39,7 +42,12 @@ async function readError(res: Response): Promise<ApiRequestError> {
 export async function apiRequest<T>(
   path: string,
   schema: ZodType<T>,
-  init: { method?: 'GET' | 'POST' | 'PATCH' | 'DELETE'; json?: unknown } = {},
+  init: {
+    method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+    json?: unknown;
+    /** Permette di annullare la richiesta (es. ricerca superata da una più recente). */
+    signal?: AbortSignal;
+  } = {},
 ): Promise<T> {
   let res: Response;
   try {
@@ -48,8 +56,11 @@ export async function apiRequest<T>(
       credentials: 'same-origin',
       headers: init.json !== undefined ? { 'content-type': 'application/json' } : undefined,
       body: init.json !== undefined ? JSON.stringify(init.json) : undefined,
+      signal: init.signal ?? null,
     });
-  } catch {
+  } catch (error) {
+    // Una richiesta annullata non è un errore di rete: chi l'ha annullata la ignora.
+    if (error instanceof DOMException && error.name === 'AbortError') throw error;
     throw new ApiRequestError(0, 'network_error', 'Impossibile contattare il server');
   }
 

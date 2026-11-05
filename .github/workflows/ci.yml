@@ -45,6 +45,8 @@ jobs:
       - run: pnpm check:contrast
       - run: pnpm check:config
       - run: pnpm db:check
+      # Un database di M1 popolato viene aggiornato all'ultima migrazione senza perdere dati.
+      - run: pnpm db:upgrade-test
       - run: pnpm test
       - run: pnpm build
 
