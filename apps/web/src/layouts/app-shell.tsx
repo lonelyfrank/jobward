@@ -4,6 +4,7 @@ import { NoticeProvider } from '@/components/ui/notices';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Sheet } from '@/components/ui/sheet';
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed';
+import { BRAND, documentTitle } from '@/lib/brand';
 import { cn } from '@/lib/cn';
 import type { RouteHandle } from './nav';
 import { Sidebar } from './sidebar';
@@ -21,14 +22,14 @@ export function AppShell() {
   // Il titolo è quello della rotta più profonda che ne dichiara uno (il pannello di dettaglio
   // è una sotto-rotta senza titolo proprio: la vista resta "Bacheca").
   const handles = matches.flatMap((m) => (m.handle ? [m.handle as RouteHandle] : []));
-  const title = handles.at(-1)?.title ?? 'Meet Roulette';
+  const title = handles.at(-1)?.title ?? BRAND.name;
   const fullBleed = handles.some((h) => h.fullBleed);
   const mainRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const previousPath = useRef(location.pathname);
 
   useEffect(() => {
-    document.title = `${title} · Meet Roulette`;
+    document.title = documentTitle(title);
   }, [title]);
 
   // Il drawer è nascosto da CSS da `md` in su, ma Radix resterebbe in modalità modale

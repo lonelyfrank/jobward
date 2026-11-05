@@ -120,7 +120,7 @@ describe('shell e navigazione', () => {
       await user.click(within(nav).getByRole('link', { name: link }));
       expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
       expect(screen.getByTestId('topbar-title')).toHaveTextContent(heading);
-      expect(document.title).toBe(`${heading} · Meet Roulette`);
+      expect(document.title).toBe(`${heading} · Jobward`);
       expect(screen.getByRole('main')).toHaveFocus();
     }
   });

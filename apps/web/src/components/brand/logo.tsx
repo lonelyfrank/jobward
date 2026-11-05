@@ -1,7 +1,10 @@
+import { BRAND } from '@/lib/brand';
 import { cn } from '@/lib/cn';
 
 /**
- * Marchio: una ruota a spicchi alternati. Decorativo (il nome è sempre accanto).
+ * Marchio SEGNAPOSTO (ereditato dal nome precedente): non è il logo di Jobward. È l'unico punto da
+ * sostituire, insieme a `public/favicon.svg`, quando la brand identity sarà disponibile.
+ * Decorativo (il nome è sempre accanto).
  */
 export function LogoMark({ className }: { className?: string }) {
   return (
@@ -20,7 +23,7 @@ export function Wordmark({ className }: { className?: string }) {
   return (
     <span className={cn('flex items-center gap-2.5 font-semibold tracking-tight', className)}>
       <LogoMark />
-      <span>Meet Roulette</span>
+      <span>{BRAND.name}</span>
     </span>
   );
 }

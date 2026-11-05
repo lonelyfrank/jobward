@@ -1,8 +1,10 @@
-# Meet Roulette
+# Jobward
+
+> **Nota sul nome.** Il progetto si chiamava _Meet Roulette_ ed è stato rinominato **Jobward**. Il nome visibile è già Jobward; gli identificatori tecnici (pacchetti `@meet-roulette/*`, nomi di Worker e database D1, identità di sviluppo) mantengono il nome storico per non perdere dati né rompere gli ambienti: strategia in [ADR-0013](docs/architecture/decisions/0013-rebranding-jobward.md).
 
 **Il workspace del candidato per organizzare la ricerca del lavoro.**
 
-Meet Roulette aiuta chi cerca lavoro a raccogliere le opportunità, organizzarle in bacheche con colonne
+Jobward aiuta chi cerca lavoro a raccogliere le opportunità, organizzarle in bacheche con colonne
 personalizzabili, tenere traccia di candidature, colloqui e contatti, e capire a che punto è la propria ricerca.
 È uno strumento **per il candidato**: non pubblica offerte, non è un social network professionale, non è un
 ATS per recruiter e non invia candidature al posto tuo. Funziona per qualsiasi settore.

@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { LogoMark } from '@/components/brand/logo';
+import { BRAND } from '@/lib/brand';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input, Select } from '@/components/ui/input';
@@ -68,7 +69,7 @@ export function Onboarding() {
       <div className="w-full max-w-xl">
         <div className="mb-6 flex items-center gap-3">
           <LogoMark className="size-9" />
-          <span className="text-lg font-semibold tracking-tight">Meet Roulette</span>
+          <span className="text-lg font-semibold tracking-tight">{BRAND.name}</span>
         </div>
 
         <Surface className="p-6 sm:p-8">
@@ -127,7 +128,7 @@ export function Onboarding() {
           </form>
         </Surface>
 
-        <ul className="mt-6 grid gap-3 sm:grid-cols-3" aria-label="Come funziona Meet Roulette">
+        <ul className="mt-6 grid gap-3 sm:grid-cols-3" aria-label={`Come funziona ${BRAND.name}`}>
           {concepts.map(({ icon: Icon, title, text }) => (
             <li key={title} className="text-sm">
               <Icon aria-hidden="true" className="mb-1.5 size-4 text-primary" />

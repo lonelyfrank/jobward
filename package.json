@@ -2,7 +2,7 @@
   "name": "meet-roulette",
   "version": "0.0.0",
   "private": true,
-  "description": "Meet Roulette — il workspace del candidato per organizzare la ricerca del lavoro.",
+  "description": "Jobward — il workspace del candidato per organizzare la ricerca del lavoro.",
   "type": "module",
   "packageManager": "pnpm@12.15.0",
   "engines": {

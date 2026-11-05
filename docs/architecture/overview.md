@@ -1,6 +1,6 @@
 # Architettura — panoramica
 
-Meet Roulette è un **modular monolith** su Cloudflare: un solo Worker serve sia l'API (`/api/*`) sia il
+Jobward (già «Meet Roulette»; gli identificatori tecnici mantengono il nome storico, vedi [ADR-0013](decisions/0013-rebranding-jobward.md)) è un **modular monolith** su Cloudflare: un solo Worker serve sia l'API (`/api/*`) sia il
 frontend statico, e un solo database D1 contiene i dati. Non ci sono microservizi, code o sistemi distribuiti:
 nessuna esigenza attuale li giustifica.
 
