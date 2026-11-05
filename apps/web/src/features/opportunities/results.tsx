@@ -236,7 +236,7 @@ export function ResultsList({
           >
             <Link
               to={ctx.detailHref(item)}
-              className="block min-h-6 rounded-sm text-sm font-medium break-words hover:underline"
+              className="-my-1 flex min-h-11 items-center rounded-sm text-sm font-medium break-words hover:underline"
             >
               {item.title}
             </Link>
