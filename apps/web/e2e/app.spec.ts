@@ -56,7 +56,7 @@ test('naviga tra tutte le schermate e ciascuna dichiara cosa non è ancora dispo
   // Un URL diretto (SPA fallback) deve funzionare anche dopo un refresh.
   await page.goto('/boards');
   await expect(page.getByRole('heading', { level: 1, name: 'Bacheche' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Nuova bacheca' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Nuova bacheca' })).toBeEnabled();
 });
 
 test('accessibilità WCAG 2.2 AA (automatica) su ogni schermata, tema chiaro e scuro', async ({

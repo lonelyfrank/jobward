@@ -24,3 +24,73 @@ export async function ensureWorkspace(page: Page, name = 'Ricerca E2E') {
     await expect(shell).toBeVisible();
   }
 }
+
+/** Helper per il Kanban (M1). */
+export const column = (page: Page, name: string) =>
+  page.getByRole('region', { name, exact: true }).and(page.locator('[data-column-id]'));
+
+export const cardLink = (page: Page, title: string) =>
+  page.getByRole('link', { name: title, exact: true });
+
+/** L'intera scheda (elemento della lista): è il bersaglio corretto per trascinare e rilasciare. */
+export const cardItem = (page: Page, title: string) =>
+  page.locator('[data-card-id]').filter({ has: cardLink(page, title) });
+
+/** Titoli delle schede di una colonna, nell'ordine mostrato. */
+export async function titlesIn(page: Page, name: string) {
+  return page
+    .getByRole('list', { name: `Schede in ${name}`, exact: true })
+    .getByRole('link')
+    .allTextContents();
+}
+
+/** Crea una bacheca dalla galleria e ne apre la vista. */
+export async function createBoard(
+  page: Page,
+  name: string,
+  template: 'Job Search Standard' | 'Minimal' | 'Personalizzata' = 'Minimal',
+) {
+  await page.goto('/boards');
+  await page
+    .getByRole('button', { name: /Nuova bacheca|Crea la tua prima bacheca/ })
+    .first()
+    .click();
+  const dialog = page.getByRole('dialog', { name: 'Nuova bacheca' });
+  await dialog.getByLabel('Nome', { exact: true }).fill(name);
+  await dialog.getByRole('radio', { name: new RegExp(template) }).check({ force: true });
+  await dialog.getByRole('button', { name: 'Crea bacheca' }).click();
+  await expect(page.getByRole('heading', { level: 1, name })).toBeVisible();
+}
+
+/** Aggiunge una scheda con la creazione rapida di una colonna. */
+export async function quickAdd(page: Page, columnName: string, title: string) {
+  const col = column(page, columnName);
+  const input = col.getByLabel(`Titolo della nuova scheda in ${columnName}`);
+  if (!(await input.isVisible()))
+    await col.getByRole('button', { name: /Aggiungi scheda/ }).click();
+  await input.fill(title);
+  await input.press('Enter');
+  await expect(col.getByRole('link', { name: title, exact: true })).toBeVisible();
+}
+
+/** Trascina con il mouse da un elemento a un altro (movimenti intermedi: dnd-kit li richiede). */
+export async function dragWithMouse(
+  page: Page,
+  from: ReturnType<Page['locator']>,
+  to: ReturnType<Page['locator']>,
+  options: { toPosition?: 'top' | 'center' | 'bottom' } = {},
+) {
+  const a = (await from.boundingBox())!;
+  const b = (await to.boundingBox())!;
+  const targetY =
+    options.toPosition === 'top'
+      ? b.y + 4
+      : options.toPosition === 'bottom'
+        ? b.y + b.height - 4
+        : b.y + b.height / 2;
+  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(a.x + a.width / 2 + 12, a.y + a.height / 2 + 12, { steps: 4 });
+  await page.mouse.move(b.x + b.width / 2, targetY, { steps: 14 });
+  await page.mouse.up();
+}
