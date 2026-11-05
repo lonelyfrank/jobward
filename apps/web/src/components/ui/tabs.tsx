@@ -41,6 +41,14 @@ export function TabsTrigger({
 }
 
 export function TabsContent({ className, ...props }: ComponentProps<typeof Primitive.Content>) {
-  // `forceMount`: Radix mantiene il pannello e imposta `hidden` quando non è selezionato.
-  return <Primitive.Content forceMount className={cn('outline-none', className)} {...props} />;
+  // `forceMount` mantiene montato il pannello (le bozze non si perdono) ma Radix, così, NON lo
+  // nasconde: lo si nasconde qui (display:none) per toglierlo dalla vista e dall'albero di
+  // accessibilità. Trovato dagli E2E: senza, i lettori di schermo leggerebbero tutte le schede.
+  return (
+    <Primitive.Content
+      forceMount
+      className={cn('outline-none data-[state=inactive]:hidden', className)}
+      {...props}
+    />
+  );
 }

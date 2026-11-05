@@ -7,7 +7,9 @@ import {
   type Priority,
   type Stage,
 } from '@meet-roulette/shared';
+import { formatInterviewDate } from '@/features/interviews/time';
 import { formatCalendarDate, formatDateTime } from '@/lib/format';
+import { INTERVIEW_RESULT_LABELS } from '@/lib/labels';
 import { OUTCOME_LABELS, PRIORITY_LABELS, STAGE_LABELS } from '@/lib/labels';
 
 const asString = (value: unknown): string | null => (typeof value === 'string' ? value : null);
@@ -31,8 +33,10 @@ const outcome = (value: unknown): string => {
     : '—';
 };
 
+const round = (value: unknown): string => (typeof value === 'number' ? `Round ${value}` : 'Round');
+
 /** Frase leggibile per un evento. I metadati sono dati strutturati minimi (ADR-0004). */
-export function describeEvent(event: ActivityEvent): string {
+export function describeEvent(event: ActivityEvent, timeZone = 'UTC'): string {
   const m = event.metadata;
   switch (event.type) {
     case 'card_created': {
@@ -60,6 +64,40 @@ export function describeEvent(event: ActivityEvent): string {
     }
     case 'application_closed':
       return `Esito registrato: ${outcome(m['outcome'])}`;
+    case 'interview_created':
+    case 'interview_next_round_created': {
+      const n = round(m['sequence']);
+      const when =
+        typeof m['scheduledAt'] === 'number'
+          ? ` per ${formatInterviewDate(m['scheduledAt'], null, timeZone, { short: true })}`
+          : '';
+      return event.type === 'interview_next_round_created'
+        ? `Fase successiva aggiunta: ${n}${when}`
+        : `Colloquio aggiunto: ${n}${when}`;
+    }
+    case 'interview_rescheduled': {
+      const n = round(m['sequence']);
+      const to =
+        typeof m['to'] === 'number'
+          ? formatInterviewDate(m['to'], null, timeZone, { short: true })
+          : null;
+      if (to === null) return `${n}: data rimossa, da programmare`;
+      return typeof m['from'] === 'number'
+        ? `${n} riprogrammato per ${to}`
+        : `${n} programmato per ${to}`;
+    }
+    case 'interview_completed': {
+      const r = asString(m['result']);
+      const label =
+        r && r in INTERVIEW_RESULT_LABELS
+          ? `, esito ${INTERVIEW_RESULT_LABELS[r as keyof typeof INTERVIEW_RESULT_LABELS].toLowerCase()}`
+          : '';
+      return `${round(m['sequence'])} completato${label}`;
+    }
+    case 'interview_cancelled':
+      return `${round(m['sequence'])} annullato`;
+    case 'interview_feedback_recorded':
+      return `Feedback registrato per ${round(m['sequence'])}`;
     case 'card_archived':
       return 'Scheda archiviata';
     case 'card_restored':
@@ -82,7 +120,7 @@ export function CardHistory({ events, timeZone }: { events: ActivityEvent[]; tim
             aria-hidden="true"
             className="absolute top-1.5 -left-[1.3rem] size-2 rounded-full bg-border-strong"
           />
-          <p>{describeEvent(event)}</p>
+          <p>{describeEvent(event, timeZone)}</p>
           <time
             className="text-xs text-muted-foreground"
             dateTime={new Date(event.occurredAt).toISOString()}

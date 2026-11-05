@@ -291,6 +291,58 @@ test.describe('app reale sotto la CSP di produzione', () => {
     expect(await watch.collect()).toEqual([]);
   });
 
+  test('M2.5: modale ampia, schede, colloqui, guardia delle modifiche e card Kanban sotto la CSP reale', async ({
+    page,
+  }) => {
+    const watch = await watchViolations(page);
+    await page.setViewportSize({ width: 1360, height: 800 });
+    await page.goto('/boards');
+    await page.getByRole('main').getByRole('link', { name: 'Anteprima Kanban' }).click();
+    await page.getByRole('link', { name: 'Uno', exact: true }).click();
+    const panel = page.getByRole('dialog', { name: 'Uno' });
+    const box = (await panel.boundingBox())!;
+    expect(box.width).toBeLessThanOrEqual(1000.5);
+
+    await panel.getByRole('tab', { name: 'Colloqui' }).click();
+    await expect(page).toHaveURL(/#colloqui$/);
+    await panel.getByRole('button', { name: 'Aggiungi colloquio' }).click();
+    const form = panel
+      .locator('form')
+      .filter({ has: page.getByRole('heading', { name: 'Nuovo colloquio' }) });
+    await form.getByLabel('Data e ora').fill('2027-05-04T10:00');
+    await form.getByRole('button', { name: 'Aggiungi colloquio' }).click();
+    await expect(panel.getByRole('article', { name: /^Round 1:/ })).toContainText('Programmato');
+
+    // Guardia delle modifiche non salvate (AlertDialog annidato) e chiusura.
+    await panel.getByRole('tab', { name: 'Panoramica' }).click();
+    await panel.getByLabel('Azienda o ente').fill('Bozza');
+    await page.keyboard.press('Escape');
+    await expect(
+      page.getByRole('alertdialog', { name: 'Hai modifiche non salvate' }),
+    ).toBeVisible();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Esci senza salvare' }).click();
+    await expect(panel).toBeHidden();
+
+    // La card mostra il prossimo colloquio; densità compatta (preferenza locale).
+    const card = page
+      .locator('[data-card-id]')
+      .filter({ has: page.getByRole('link', { name: 'Uno', exact: true }) });
+    await expect(card.getByText(/4 mag/)).toBeVisible();
+    await page
+      .getByRole('group', { name: 'Densità delle schede' })
+      .getByRole('button', { name: 'Compatta' })
+      .click();
+    await expect(card.getByText(/4 mag/)).toBeVisible();
+
+    // Telefono: schermo intero.
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.getByRole('link', { name: 'Uno', exact: true }).click();
+    const mobile = (await page.getByRole('dialog', { name: 'Uno' }).boundingBox())!;
+    expect(mobile.width).toBeGreaterThanOrEqual(388);
+
+    expect(await watch.collect()).toEqual([]);
+  });
+
   test('le risposte API del Worker non hanno CORS e rifiutano richieste cross-site', async ({
     request,
     baseURL,
