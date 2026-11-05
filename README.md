@@ -16,30 +16,35 @@ ATS per recruiter e non invia candidature al posto tuo. Funziona per qualsiasi s
 
 ## Stato effettivo del progetto
 
-**Milestone corrente: M0 — Foundation & Initial Workspace**, consolidata da **M0.H — Hardening** (branch `m0h-hardening`, in attesa di revisione).
+**Milestone corrente: M1 — Boards & Cards** (branch `m1-boards-cards`, in attesa di revisione), sopra **M0** (foundation) e **M0.H** (hardening, già integrata).
+
+M1 rende l'app **utilizzabile**: si creano bacheche da template, si personalizzano le colonne, si registrano opportunità con il solo titolo, si modificano e si spostano (trascinamento con mouse, tastiera e touch, oppure da menu), si archiviano e si ripristinano, e tutto persiste: [`docs/m1/delivery.md`](docs/m1/delivery.md).
 
 M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend e deployabilità, e corretto i difetti trovati (isolamento tra workspace nel database, header e cache degli asset, accessibilità del drawer e del menu, e altri): [`docs/m0h/delivery.md`](docs/m0h/delivery.md). **Non è "production ready"**: Cloudflare Access reale e la CI su GitHub non sono ancora stati provati.
 
-| Area                                                           | Stato                                                       |
-| -------------------------------------------------------------- | ----------------------------------------------------------- |
-| Monorepo, tooling, CI                                          | ✅ Implementato                                             |
-| Schema database completo + migrazioni                          | ✅ Implementato e testato su D1                             |
-| API: health, `me`, workspace (lista/creazione), overview       | ✅ Implementate, protette, testate                          |
-| Accesso privato del proprietario (Cloudflare Access)           | ✅ Implementato e testato; **da configurare** per il deploy |
-| App shell, design system, tema chiaro/scuro, responsive        | ✅ Implementato                                             |
-| Onboarding (creazione workspace)                               | ✅ Funzionante                                              |
-| Overview con dati reali (a zero finché non ci sono schede)     | ✅ Funzionante                                              |
-| Impostazioni (tema, info workspace/account)                    | ✅ Funzionanti                                              |
-| **Bacheche, colonne, schede, Kanban, drag & drop**             | ⏳ **M1** — non ancora disponibili                          |
-| Campi professionali, etichette, filtri, ricerca, vista tabella | ⏳ M2                                                       |
-| Attività, scadenze, cronologia                                 | ⏳ M3                                                       |
-| Insights, esportazione dati, deploy privato                    | ⏳ M4                                                       |
+| Area                                                                                           | Stato                                                       |
+| ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Monorepo, tooling, CI                                                                          | ✅ Implementato                                             |
+| Schema database completo + migrazioni                                                          | ✅ Implementato e testato su D1                             |
+| API: health, `me`, workspace (lista/creazione), overview                                       | ✅ Implementate, protette, testate                          |
+| Accesso privato del proprietario (Cloudflare Access)                                           | ✅ Implementato e testato; **da configurare** per il deploy |
+| App shell, design system, tema chiaro/scuro, responsive                                        | ✅ Implementato                                             |
+| Onboarding (creazione workspace)                                                               | ✅ Funzionante                                              |
+| Overview con dati reali (a zero finché non ci sono schede)                                     | ✅ Funzionante                                              |
+| Impostazioni (tema, info workspace/account)                                                    | ✅ Funzionanti                                              |
+| **Bacheche** (template, preferite, ordine, eliminazione con conferma)                          | ✅ **M1** — funzionanti                                     |
+| **Colonne** (crea, rinomina, colore, fase, ordine, eliminazione controllata)                   | ✅ **M1** — funzionanti                                     |
+| **Schede** (creazione rapida, dettaglio, priorità, azienda, URL, cronologia, archivio)         | ✅ **M1** — funzionanti                                     |
+| **Kanban interattivo** (trascinamento, tastiera, touch, menu, rollback)                        | ✅ **M1** — funzionante                                     |
+| Campi professionali (stipendio, sede, fase, esito…), etichette, filtri, ricerca, vista tabella | ⏳ M2                                                       |
+| Attività, scadenze, cronologia                                                                 | ⏳ M3                                                       |
+| Insights, esportazione dati, deploy privato                                                    | ⏳ M4                                                       |
 
-Le funzioni non ancora disponibili sono mostrate come tali nell'interfaccia (badge _"In arrivo · Mx"_ e
+Le funzioni non ancora disponibili (M2–M4) sono mostrate come tali nell'interfaccia (badge _"In arrivo · Mx"_ e
 controlli disabilitati): nessuna di esse simula un comportamento. Non esistono dati dimostrativi: l'app
 parte vuota e ogni numero deriva dal database.
 
-Dettagli: [`docs/roadmap/m0-delivery.md`](docs/roadmap/m0-delivery.md) · [`docs/m0h/delivery.md`](docs/m0h/delivery.md).
+Dettagli: [`docs/m1/delivery.md`](docs/m1/delivery.md) · [`docs/m0h/delivery.md`](docs/m0h/delivery.md) · [`docs/roadmap/m0-delivery.md`](docs/roadmap/m0-delivery.md).
 
 ## Stack
 
@@ -51,7 +56,7 @@ Dettagli: [`docs/roadmap/m0-delivery.md`](docs/roadmap/m0-delivery.md) · [`docs
 | Qualità  | Vitest, React Testing Library, `@cloudflare/vitest-plugin` (test nel runtime Workers), Playwright + axe, ESLint (type-aware + jsx-a11y), Prettier, GitHub Actions |
 
 Le versioni e i vincoli di compatibilità sono motivati in [`pnpm-workspace.yaml`](pnpm-workspace.yaml) e in
-[ADR-0002](docs/architecture/decisions/0002-stack-and-versions.md). dnd-kit e R2 non sono installati: arrivano con M1.
+[ADR-0002](docs/architecture/decisions/0002-stack-and-versions.md). `@dnd-kit/core` + `@dnd-kit/sortable` sono usati dal Kanban (M1, [ADR-0008](docs/architecture/decisions/0008-kanban-ordering-and-board-loading.md)); R2 non è installato.
 
 ## Requisiti per lo sviluppo locale
 
@@ -161,4 +166,5 @@ meet-roulette/
 - Prodotto: [visione](docs/product/vision.md) · [requisiti](docs/product/requirements.md) · [modello di dominio](docs/product/domain-model.md) · [user stories](docs/product/user-stories.md)
 - UX: [architettura dell'informazione](docs/ux/information-architecture.md) · [design system](docs/ux/design-system.md) · [schermate](docs/ux/screens.md)
 - Roadmap: [milestone](docs/roadmap/milestones.md) · [consegna M0](docs/roadmap/m0-delivery.md) · [backlog](docs/roadmap/backlog.md)
+- M1: [consegna](docs/m1/delivery.md) · [architettura](docs/m1/architecture.md) · [contratti API](docs/m1/api-contracts.md) · [interazioni](docs/m1/board-interactions.md) · [ordinamento](docs/m1/kanban-ordering.md) · [accessibilità](docs/m1/accessibility.md) · [test](docs/m1/testing-report.md) · [problemi](docs/m1/issue-register.md)
 - Hardening M0.H: [consegna](docs/m0h/delivery.md) · [registro dei problemi](docs/m0h/issue-register.md) · [baseline](docs/m0h/audit-baseline.md) · [sicurezza](docs/m0h/security-audit.md) · [database](docs/m0h/database-audit.md) · [frontend](docs/m0h/frontend-audit.md) · [test](docs/m0h/testing-report.md) · [readiness Cloudflare](docs/m0h/cloudflare-readiness.md)
