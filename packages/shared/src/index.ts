@@ -4,4 +4,7 @@ export * from './templates';
 export * from './ordering';
 export * from './interviews';
 export * from './pipeline';
+export * from './pipeline-transitions';
+export * from './pipeline-consistency';
 export * from './timeline';
+export * from './quick-actions';
