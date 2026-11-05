@@ -33,6 +33,11 @@ export const opportunityRoutes = new Hono<AppEnv>()
         })),
       );
     }
-    const result = await searchOpportunities(c.env.DB, c.get('workspaceId'), parsed.data);
+    const result = await searchOpportunities(
+      c.env.DB,
+      c.get('db'),
+      c.get('workspaceId'),
+      parsed.data,
+    );
     return c.json(opportunitiesResponse.parse(result));
   });

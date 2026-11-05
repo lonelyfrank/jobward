@@ -12,6 +12,8 @@ import { LIMITS, POSITION_GAP } from '@meet-roulette/shared';
 import { and, asc, desc, eq, isNotNull, isNull } from 'drizzle-orm';
 import { ApiError, conflict, notFound } from '../lib/errors';
 import { getBoard } from './boards';
+import { eventStatement, touchBoard } from './events';
+import { summariesForBoard, summariesForCards, withSummaries } from './interview-summaries';
 import { DETAIL_COLUMNS, DETAIL_KEYS_LIST, selectCards, toCard } from './card-rows';
 import { decidePlacement, isConstraintError, readSiblings, rebalanceStatement } from './ordering';
 
@@ -30,7 +32,7 @@ export async function listActiveCards(
       and(eq(cards.boardId, boardId), eq(cards.workspaceId, workspaceId), isNull(cards.archivedAt)),
     )
     .orderBy(asc(cards.columnId), asc(cards.position), asc(cards.id));
-  return rows.map(toCard);
+  return withSummaries(rows.map(toCard), await summariesForBoard(db, workspaceId, boardId));
 }
 
 export async function listArchivedCards(
@@ -48,7 +50,7 @@ export async function listArchivedCards(
       ),
     )
     .orderBy(desc(cards.archivedAt), asc(cards.id));
-  return rows.map(toCard);
+  return withSummaries(rows.map(toCard), await summariesForBoard(db, workspaceId, boardId));
 }
 
 /** Scheda del workspace o 404 (stessa risposta per inesistente e di un altro workspace). */
@@ -57,7 +59,11 @@ export async function getCard(db: Database, workspaceId: string, cardId: string)
     .where(and(eq(cards.id, cardId), eq(cards.workspaceId, workspaceId)))
     .get();
   if (!card) throw notFound('Scheda');
-  return toCard(card);
+  const [withSummary] = withSummaries(
+    [toCard(card)],
+    await summariesForCards(db, workspaceId, [card.id]),
+  );
+  return withSummary as Card;
 }
 
 const HISTORY_LIMIT = 50;
@@ -96,47 +102,6 @@ function parseMetadata(raw: string): Record<string, unknown> {
     return {};
   }
 }
-
-/** Istruzione che registra un evento solo se `existsSql` (sulla scheda) è ancora vera. */
-function eventStatement(
-  d1: D1Database,
-  args: {
-    workspaceId: string;
-    boardId: string;
-    cardId: string;
-    actorUserId: string;
-    type: string;
-    metadata: Record<string, unknown>;
-    now: number;
-    /** Condizione SQL su `cards` (alias `k`) che deve valere perché l'evento sia registrato. */
-    guard: string;
-    guardBinds: unknown[];
-  },
-) {
-  const binds = [
-    newId(),
-    args.workspaceId,
-    args.boardId,
-    args.cardId,
-    args.actorUserId,
-    args.type,
-    JSON.stringify(args.metadata),
-    args.now,
-    ...args.guardBinds,
-  ];
-  return d1
-    .prepare(
-      `INSERT INTO activity_events (id, workspace_id, board_id, card_id, actor_user_id, type, metadata, occurred_at)
-       SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8
-       WHERE EXISTS (SELECT 1 FROM cards k WHERE k.id = ?4 AND k.workspace_id = ?2 AND ${args.guard})`,
-    )
-    .bind(...binds);
-}
-
-const touchBoard = (d1: D1Database, workspaceId: string, boardId: string, now: number) =>
-  d1
-    .prepare(`UPDATE boards SET updated_at = ?1 WHERE id = ?2 AND workspace_id = ?3`)
-    .bind(now, boardId, workspaceId);
 
 // ---------------------------------------------------------------------------
 // Creazione

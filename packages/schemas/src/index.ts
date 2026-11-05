@@ -4,6 +4,7 @@ export * from './workspace';
 export * from './board';
 export * from './card';
 export * from './custom-field';
+export * from './interview';
 export * from './label';
 export * from './opportunity';
 export * from './task';

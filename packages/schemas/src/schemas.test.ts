@@ -20,6 +20,11 @@ import {
   validateCustomFieldValue,
   type CustomFieldDefinitionInput,
   type CustomFieldValue,
+  summarizeInterviews,
+  createInterviewInput,
+  updateInterviewInput,
+  completeInterviewInput,
+  type InterviewSummaryRow,
 } from './index';
 
 describe('createCardInput', () => {
@@ -348,5 +353,90 @@ describe('contratti M1 (bacheche, colonne, schede)', () => {
   it('deleteColumnInput: destinazione facoltativa, nient’altro', () => {
     expect(deleteColumnInput.parse({}).moveCardsToColumnId).toBeNull();
     expect(deleteColumnInput.safeParse({ force: true }).success).toBe(false);
+  });
+});
+
+describe('colloqui (M2.5)', () => {
+  const row = (over: Partial<InterviewSummaryRow>): InterviewSummaryRow => ({
+    id: 'i',
+    sequence: 1,
+    title: 'R1',
+    type: 'other',
+    status: 'to_schedule',
+    scheduledAt: null,
+    timezone: null,
+    modality: null,
+    hasFeedback: false,
+    ...over,
+  });
+  const NOW = 1_800_000_000_000;
+
+  it('nessun colloquio: riepilogo vuoto, nessuna azione inventata', () => {
+    expect(summarizeInterviews([], NOW)).toEqual({
+      total: 0,
+      completed: 0,
+      next: null,
+      action: null,
+    });
+  });
+
+  it('il prossimo è il primo programmato non trascorso; annullati e passati non lo sono', () => {
+    const s = summarizeInterviews(
+      [
+        row({ id: 'past', sequence: 1, status: 'scheduled', scheduledAt: NOW - 1000 }),
+        row({ id: 'cancelled', sequence: 2, status: 'cancelled', scheduledAt: NOW + 1000 }),
+        row({ id: 'far', sequence: 3, status: 'scheduled', scheduledAt: NOW + 9000 }),
+        row({ id: 'near', sequence: 4, status: 'scheduled', scheduledAt: NOW + 2000 }),
+      ],
+      NOW,
+    );
+    expect(s.next?.id).toBe('near');
+    expect(s.total).toBe(3); // gli annullati non contano
+  });
+
+  it('un colloquio che inizia adesso è ancora «prossimo»', () => {
+    expect(
+      summarizeInterviews([row({ status: 'scheduled', scheduledAt: NOW })], NOW).next,
+    ).not.toBeNull();
+  });
+
+  it('priorità della prossima azione: da aggiornare > feedback mancante > da programmare', () => {
+    const toSchedule = row({ id: 's', sequence: 3 });
+    const feedback = row({ id: 'f', sequence: 2, status: 'completed' });
+    const overdue = row({ id: 'o', sequence: 1, status: 'scheduled', scheduledAt: NOW - 5 });
+    expect(summarizeInterviews([toSchedule], NOW).action?.kind).toBe('schedule');
+    expect(summarizeInterviews([toSchedule, feedback], NOW).action).toMatchObject({
+      kind: 'record_feedback',
+      interviewId: 'f',
+    });
+    expect(summarizeInterviews([toSchedule, feedback, overdue], NOW).action).toMatchObject({
+      kind: 'overdue',
+      interviewId: 'o',
+    });
+    // Con feedback o esito registrati non c'è nulla da fare.
+    expect(
+      summarizeInterviews([row({ status: 'completed', hasFeedback: true })], NOW).action,
+    ).toBeNull();
+    // Un annullato non genera azioni.
+    expect(summarizeInterviews([row({ status: 'cancelled' })], NOW).action).toBeNull();
+  });
+
+  it("contratti strict: stato, numero d'ordine ed esito non si impostano alla creazione", () => {
+    expect(createInterviewInput.parse({}).type).toBe('other');
+    for (const bad of [
+      { status: 'completed' },
+      { sequence: 3 },
+      { result: 'positive' },
+      { id: 'x' },
+    ]) {
+      expect(createInterviewInput.safeParse(bad).success, JSON.stringify(bad)).toBe(false);
+    }
+    expect(updateInterviewInput.safeParse({}).success).toBe(false);
+    expect(updateInterviewInput.parse({ preparationNotes: '  ' }).preparationNotes).toBeNull();
+    expect(updateInterviewInput.safeParse({ status: 'completed' }).success).toBe(false);
+    expect(
+      completeInterviewInput.safeParse({ result: 'positive', feedbackNotes: 'ok' }).success,
+    ).toBe(true);
+    expect(completeInterviewInput.safeParse({ result: 'ottimo' }).success).toBe(false);
   });
 });

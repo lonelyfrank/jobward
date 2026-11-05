@@ -5,7 +5,9 @@ import type {
 } from '@meet-roulette/schemas';
 import { DEFAULT_SORT_DIR } from '@meet-roulette/schemas';
 import { CONTRACT_TYPES, OUTCOMES, PRIORITIES, STAGES, WORK_MODES } from '@meet-roulette/shared';
+import type { Database } from '@meet-roulette/database';
 import { toCard } from './card-rows';
+import { summariesForCards, withSummaries } from './interview-summaries';
 
 /**
  * Ricerca server-side sulle opportunità del workspace (M2.3).
@@ -58,6 +60,7 @@ interface Row {
 
 export async function searchOpportunities(
   d1: D1Database,
+  db: Database,
   workspaceId: string,
   query: OpportunitiesQuery,
 ): Promise<OpportunitiesResponse> {
@@ -159,10 +162,16 @@ export async function searchOpportunities(
   ]);
 
   const total = Number((count?.results[0] as Row | undefined)?.['total'] ?? 0);
+  const cards = ((items?.results ?? []) as unknown as { id: string; labelIds: string }[]).map(
+    (row) => toCard(row),
+  );
+  const summaries = await summariesForCards(
+    db,
+    workspaceId,
+    cards.map((card) => card.id),
+  );
   return {
-    items: ((items?.results ?? []) as (Row & { labelIds: string })[]).map((row) =>
-      toCard(row),
-    ) as unknown as OpportunitiesResponse['items'],
+    items: withSummaries(cards, summaries) as unknown as OpportunitiesResponse['items'],
     total,
     page: query.page,
     pageSize: query.pageSize,

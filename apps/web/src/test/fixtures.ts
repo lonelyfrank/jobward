@@ -65,6 +65,7 @@ export const card = (
   stage: null,
   outcome: null,
   labelIds: [],
+  interviewSummary: { total: 0, completed: 0, next: null, action: null },
   createdAt: 1_700_000_000_000,
   updatedAt: 1_700_000_000_000,
   archivedAt: null,

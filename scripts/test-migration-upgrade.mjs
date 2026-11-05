@@ -20,7 +20,7 @@ const files = fs
   .sort();
 const last = files.at(-1);
 const baseline = files.filter((f) => f < '0003'); // il database "di M1"
-const upgrade = files.filter((f) => f >= '0003');
+const upgrade = files.filter((f) => f >= '0003'); // M2 (0003) e M2.5 (0004) in sequenza
 if (upgrade.length === 0) throw new Error('Nessuna migrazione successiva a M1 da provare');
 
 fs.writeFileSync(
@@ -98,7 +98,7 @@ try {
       ('k1','w1','Acme','https://example.com/1','applied','2026-10-01',1000,2000,'EUR',${now},${now}),
       ('k2','w1','Beta',NULL,NULL,NULL,NULL,NULL,NULL,${now},${now}),
       ('kx','w2','Segreta','https://example.com/s',NULL,NULL,NULL,NULL,NULL,${now},${now});
-    INSERT INTO activity_events (id,workspace_id,board_id,card_id,actor_user_id,type,metadata,occurred_at) VALUES ('e1','w1','b1','k1','u1','card_created','{}',${now});
+    INSERT INTO activity_events (id,workspace_id,board_id,card_id,actor_user_id,type,metadata,occurred_at) VALUES ('e1','w1','b1','k1','u1','card_created','{}',${now}),('e2','w1','b1','k1','u1','card_moved','{"toColumnName":"Colloquio"}',${now + 1}),('e3','w1','b1','k2',NULL,'priority_changed','{"from":"none","to":"high"}',${now + 2}),('e4','w2','b3','kx','u2','card_created','{}',${now + 3});
     INSERT INTO labels (id,workspace_id,name,color,created_at) VALUES ('l1','w1','Interessante','green',${now});
   `);
   const before = {
@@ -107,7 +107,7 @@ try {
     details: query(
       'SELECT card_id, company, source_url, stage, applied_on, salary_min, salary_max, currency FROM application_details ORDER BY card_id',
     ),
-    events: query('SELECT count(*) n FROM activity_events')[0].n,
+    events: query('SELECT * FROM activity_events ORDER BY id'),
   };
   console.log(
     `   ${before.cards} schede (${before.archived} archiviate), ${before.details.length} righe di dettagli`,
@@ -123,7 +123,7 @@ try {
     details: query(
       'SELECT card_id, company, source_url, stage, applied_on, salary_min, salary_max, currency FROM application_details ORDER BY card_id',
     ),
-    events: query('SELECT count(*) n FROM activity_events')[0].n,
+    events: query('SELECT * FROM activity_events ORDER BY id'),
   };
   expect(
     after.cards === before.cards && after.archived === before.archived,
@@ -133,7 +133,22 @@ try {
     JSON.stringify(after.details) === JSON.stringify(before.details),
     'dettagli di M1 identici, campo per campo',
   );
-  expect(after.events === before.events, 'cronologia intatta');
+  expect(
+    after.events.length === 4 && JSON.stringify(after.events) === JSON.stringify(before.events),
+    `cronologia identica riga per riga (${after.events.length} eventi, ricostruzione di activity_events)`,
+  );
+  expect(
+    query(
+      "SELECT count(*) n FROM sqlite_master WHERE type='trigger' AND tbl_name='activity_events'",
+    )[0].n === 2,
+    'trigger di isolamento di activity_events ricreati (insert e update)',
+  );
+  expect(
+    query(
+      "SELECT count(*) n FROM sqlite_master WHERE name IN ('activity_events_workspace_time_idx','activity_events_card_time_idx')",
+    )[0].n === 2,
+    'indici di activity_events ricreati',
+  );
   expect(
     query('SELECT count(*) n FROM application_details WHERE salary_basis IS NOT NULL')[0].n === 0,
     'lordo/netto = non specificato (NULL) per tutte le righe esistenti',
@@ -205,6 +220,72 @@ try {
       `INSERT INTO custom_field_values (card_id,field_id,workspace_id,value,updated_at) VALUES ('k1','f1','w1','"x"',1)`,
     ),
     'valore di un campo della stessa bacheca: accettato',
+  );
+  console.log('4. M2.5: colloqui e cronologia');
+  expect(
+    !rejects(
+      "INSERT INTO activity_events (id,workspace_id,board_id,card_id,actor_user_id,type,metadata,occurred_at) VALUES ('e5','w1','b1','k1','u1','interview_created','{}',1)",
+    ),
+    'ammette i nuovi tipi di evento',
+  );
+  expect(
+    rejects(
+      "INSERT INTO activity_events (id,workspace_id,board_id,card_id,actor_user_id,type,metadata,occurred_at) VALUES ('e6','w1','b1','k1','u1','inventato','{}',1)",
+    ),
+    'rifiuta un tipo di evento sconosciuto',
+  );
+  expect(
+    rejects(
+      "INSERT INTO activity_events (id,workspace_id,board_id,card_id,actor_user_id,type,metadata,occurred_at) VALUES ('e7','w1','b3','kx',NULL,'card_created','{}',1)",
+    ),
+    'evento che punta a risorse di un altro workspace: rifiutato dal trigger ricreato',
+  );
+  expect(
+    !rejects(
+      "INSERT INTO interviews (id,workspace_id,card_id,sequence,title,type,status,interviewers,created_at,updated_at) VALUES ('i1','w1','k1',1,'Round 1','screening','to_schedule','[]',1,1)",
+    ),
+    'colloquio valido su una scheda archiviabile',
+  );
+  expect(
+    rejects(
+      "INSERT INTO interviews (id,workspace_id,card_id,sequence,title,status,interviewers,created_at,updated_at) VALUES ('i2','w1','k1',1,'Doppione','to_schedule','[]',1,1)",
+    ),
+    'sequence duplicata sulla stessa scheda: rifiutata',
+  );
+  expect(
+    rejects(
+      "INSERT INTO interviews (id,workspace_id,card_id,sequence,title,status,interviewers,created_at,updated_at) VALUES ('i3','w2','k1',2,'Altro workspace','to_schedule','[]',1,1)",
+    ),
+    'colloquio su una scheda di un altro workspace: rifiutato dalla chiave composita',
+  );
+  expect(
+    rejects(
+      "INSERT INTO interviews (id,workspace_id,card_id,sequence,title,status,interviewers,created_at,updated_at) VALUES ('i4','w1','k1',3,'Senza data','scheduled','[]',1,1)",
+    ),
+    "stato 'programmato' senza data: rifiutato",
+  );
+  expect(
+    rejects(
+      "INSERT INTO interviews (id,workspace_id,card_id,sequence,title,status,result,interviewers,created_at,updated_at) VALUES ('i5','w1','k1',4,'Esito prematuro','scheduled','positive','[]',1,1)",
+    ),
+    'esito su un colloquio non completato: rifiutato',
+  );
+  expect(
+    rejects(
+      "INSERT INTO interviews (id,workspace_id,card_id,sequence,title,status,interviewers,created_at,updated_at) VALUES ('i6','w1','k1',5,'Completato senza data','completed','[]',1,1)",
+    ),
+    'completato senza completed_at: rifiutato',
+  );
+  expect(
+    !rejects(
+      "INSERT INTO interviews (id,workspace_id,card_id,sequence,title,status,result,completed_at,interviewers,created_at,updated_at) VALUES ('i7','w1','k1',6,'Concluso','completed','neutral',5,'[]',1,1)",
+    ),
+    'colloquio completato con esito: accettato',
+  );
+  run("DELETE FROM cards WHERE id='k1'");
+  expect(
+    query("SELECT count(*) n FROM interviews WHERE card_id='k1'")[0].n === 0,
+    "eliminando la scheda i suoi colloqui seguono (cascata); l'archiviazione invece non li tocca",
   );
   console.log(`\nAggiornamento ${baseline.at(-1)} → ${last}: OK`);
 } finally {

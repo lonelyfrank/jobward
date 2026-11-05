@@ -19,6 +19,7 @@ describe('schema D1 (migrazioni reali)', () => {
       'cards',
       'custom_field_definitions',
       'custom_field_values',
+      'interviews',
       'labels',
       'tasks',
       'users',

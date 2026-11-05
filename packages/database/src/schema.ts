@@ -2,6 +2,10 @@ import {
   ACTIVITY_EVENT_TYPES,
   CONTRACT_TYPES,
   CUSTOM_FIELD_TYPES,
+  INTERVIEW_MODALITIES,
+  INTERVIEW_RESULTS,
+  INTERVIEW_STATUSES,
+  INTERVIEW_TYPES,
   MEMBER_ROLES,
   OUTCOMES,
   PRIORITIES,
@@ -373,6 +377,87 @@ export const cardLabels = sqliteTable(
       foreignColumns: [labels.id, labels.workspaceId],
     }).onDelete('cascade'),
     index('card_labels_label_idx').on(t.labelId),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Colloqui (M2.5)
+// ---------------------------------------------------------------------------
+
+/**
+ * Un round di selezione di una candidatura. Entità dedicata (non un campo personalizzato).
+ * - `sequence` è stabile (1, 2, 3…) e univoco per scheda; non si riusa perché i round non si eliminano
+ *   (si annullano) e sopravvivono all'archiviazione della scheda.
+ * - STATO organizzativo (`status`) ed ESITO (`result`) sono separati: l'esito esiste solo se completato.
+ * - `scheduled_at` è un istante UTC (ms); `timezone` è il fuso IANA in cui l'utente lo ha inserito.
+ * - Chiave composita (scheda, workspace): un round non può puntare a una scheda di un altro workspace.
+ */
+export const interviews = sqliteTable(
+  'interviews',
+  {
+    id: id(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    cardId: text('card_id').notNull(),
+    sequence: integer('sequence').notNull(),
+    title: text('title').notNull(),
+    type: text('type', { enum: INTERVIEW_TYPES }).notNull().default('other'),
+    status: text('status', { enum: INTERVIEW_STATUSES }).notNull().default('to_schedule'),
+    scheduledAt: integer('scheduled_at'),
+    timezone: text('timezone'),
+    durationMinutes: integer('duration_minutes'),
+    modality: text('modality', { enum: INTERVIEW_MODALITIES }),
+    location: text('location'),
+    meetingUrl: text('meeting_url'),
+    /** Elenco JSON di nomi (≤ 10): dato leggero, non un'entità. */
+    interviewers: text('interviewers').notNull().default('[]'),
+    preparationNotes: text('preparation_notes'),
+    feedbackNotes: text('feedback_notes'),
+    result: text('result', { enum: INTERVIEW_RESULTS }),
+    completedAt: integer('completed_at'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    foreignKey({
+      name: 'interviews_card_fk',
+      columns: [t.cardId, t.workspaceId],
+      foreignColumns: [cards.id, cards.workspaceId],
+    }).onDelete('cascade'),
+    uniqueIndex('interviews_card_sequence_unique').on(t.cardId, t.sequence),
+    uniqueIndex('interviews_id_workspace_unique').on(t.id, t.workspaceId),
+    // Prossimo colloquio / azioni in sospeso per workspace.
+    index('interviews_workspace_status_idx').on(t.workspaceId, t.status, t.scheduledAt),
+    check('interviews_sequence_positive', sql`${t.sequence} >= 1`),
+    check('interviews_type_valid', inList(t.type, INTERVIEW_TYPES)),
+    check('interviews_status_valid', inList(t.status, INTERVIEW_STATUSES)),
+    check(
+      'interviews_modality_valid',
+      sql`${t.modality} is null or ${inList(t.modality, INTERVIEW_MODALITIES)}`,
+    ),
+    check(
+      'interviews_result_valid',
+      sql`${t.result} is null or ${inList(t.result, INTERVIEW_RESULTS)}`,
+    ),
+    check(
+      'interviews_duration_valid',
+      sql`${t.durationMinutes} is null or ${t.durationMinutes} between 1 and 1440`,
+    ),
+    // L'esito appartiene a un colloquio concluso; un colloquio "programmato" ha una data;
+    // la data di completamento c'è se e solo se è completato.
+    check(
+      'interviews_result_needs_completed',
+      sql`${t.result} is null or ${t.status} = 'completed'`,
+    ),
+    check(
+      'interviews_scheduled_has_date',
+      sql`${t.status} <> 'scheduled' or ${t.scheduledAt} is not null`,
+    ),
+    check(
+      'interviews_completed_at_matches',
+      sql`(${t.status} = 'completed') = (${t.completedAt} is not null)`,
+    ),
   ],
 );
 
