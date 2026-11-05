@@ -51,7 +51,7 @@ Inventario: 206 occorrenze fuori da `docs/`; **185** sono lo scope `@meet-roulet
 - **Rinominato** (commit M3.0): `<title>`, meta description, `<noscript>`, titolo del tab, wordmark, onboarding, `package.json` (descrizione), README, visione, panoramica di architettura, unit test del titolo. Il nome sta in **un solo posto**: `apps/web/src/lib/brand.ts`.
 - **Non rinominato, per scelta** (motivi e strategia in [ADR-0013](../architecture/decisions/0013-rebranding-jobward.md)): scope dei pacchetti, nome dei Worker, `database_name` D1, `DEV_USER_EMAIL`, repository.
 - **Manifest dell'applicazione:** **non esiste** (nessun `manifest.webmanifest`, nessuna PWA); non è stato creato: sarebbe una funzione nuova, non un rebranding.
-- **Logo:** nessun nuovo logo. `LogoMark`/`favicon.svg` restano il marchio ereditato (una ruota), marcato come segnaposto nel codice. **Debito di brand:** l'icona richiama ancora il vecchio nome.
+- **Logo:** il proprietario ha fornito `jobward.png` (trasparente, 866 × 288) e `jobward-white.png` (fondo bianco, 2172 × 724), entrambi già inclusi in `13a0713`. `LogoMark`/`favicon.svg` restano il marchio ereditato (una ruota), marcato come segnaposto nel codice. **Debito di brand:** integrare gli asset forniti; la variante su fondo bianco non è una variante per il tema scuro. Vedi [piano §1.3](plan.md#13-indicazione-ux-e-loghi-disponibili).
 - **Documenti storici** (consegne e registri M0–M2.5) lasciati invariati: sono cronaca datata.
 
 ## 6. Problemi e rischi trovati
@@ -63,7 +63,7 @@ Inventario: 206 occorrenze fuori da `docs/`; **185** sono lo scope `@meet-roulet
 | M3-03 | P3      | La logica di transizione dei colloqui è dentro i servizi con SQL: non testabile in isolamento né riusabile da una Local Edition.                                                                                                                                      |
 | M3-04 | P3      | Marchio grafico ancora legato al vecchio nome (vedi §5).                                                                                                                                                                                                              |
 | M3-05 | Info    | Un processo `wrangler dev` (PID 1258785, avviato 3 h fa dalla vecchia cartella `/home/frank/meet-roulette`, oggi inesistente) è rimasto in esecuzione. Non è stato toccato; può confliggere con le porte degli E2E.                                                   |
-| R-01  | Rischio | `0004` (ricostruzione di `activity_events`) non è mai stata applicata a un D1 remoto. Ogni nuovo tipo di evento richiede un'altra ricostruzione (il `CHECK` sull'elenco dei tipi non è modificabile): v. piano, D5.                                                   |
+| R-01  | Rischio | `0004` (ricostruzione di `activity_events`) non è mai stata applicata a un D1 remoto. Ogni nuovo tipo di evento richiede un'altra ricostruzione (il `CHECK` sull'elenco dei tipi non è modificabile): v. piano, D4.                                                   |
 | R-02  | Rischio | Un solo browser (Chromium), nessun screen reader reale, nessuna CI eseguita su M2.5 (limiti già dichiarati in M2.5).                                                                                                                                                  |
 
 Nessun P0/P1 trovato nel codice esistente.
@@ -88,3 +88,13 @@ Eseguita su `d931ff6` con albero pulito (modifiche M3.0 messe da parte), 2026-11
 | Anteprima di produzione (`pnpm test:preview`)                                                         | ✅ 11/11                                            |
 
 Coincide con i numeri dichiarati in `docs/m25`. Nessun blocco nella baseline. Un primo `pnpm check` (exit 0) si era sovrapposto alle mie modifiche ed è stato scartato come baseline.
+
+## 10. Autorizzazione e verifica di chiusura M3.0
+
+Il 2026-11-05 il proprietario ha approvato D1–D3 e approvato D4–D5 con condizioni sulla conservazione dei dati, verifica dell'upgrade M2.5, idempotenza backend, concorrenza e atomicità. D6 è rinviata. Il [piano aggiornato](plan.md) registra queste condizioni e l'indicazione UX: Panoramica operativa, modulo esistente in Dettagli e azioni nelle sezioni pertinenti.
+
+Alla ripresa risultavano già presenti il commit M3.0 `13a0713` e i due loghi; working tree pulito e nessuno stash (`refs/stash` assente). Non è stato quindi possibile né necessario riapplicare `m3.0-wip`. I log `clean-check.log`, `clean-e2e.log`, `clean-preview.log` della precedente esecuzione confermano rispettivamente `CHECK_EXIT=0`, `E2E_EXIT=0` (117 passati) e `PREVIEW_EXIT=0` (11 passati). Questo distingue la baseline effettiva dalle verifiche successive sul rebranding.
+
+La verifica dei processi sul sistema host conferma ancora `wrangler dev` PID 1258785 (comando con porta 8788) e il relativo `workerd` con inspector in ascolto su 9229. Le porte dedicate E2E 5199/8799 e preview 8797 erano libere; non è stato terminato alcun processo preesistente. L'eventuale collisione dell'inspector resta da gestire usando una porta dedicata quando si avviano nuove suite.
+
+Gli esiti della verifica di chiusura sono riportati nella [relazione M3.0](report.md). Le fasi M3.1–M3.5 restano pianificate e non avviate.
