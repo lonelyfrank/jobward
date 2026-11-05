@@ -6,6 +6,7 @@ import {
   ensureWorkspace,
   expectNoA11yViolations,
   openSection,
+  openTab,
   quickAdd,
   smallTouchTargets,
 } from './helpers';
@@ -57,7 +58,9 @@ test('1. una scheda si crea con il solo titolo; i dettagli sono opzionali e le s
 
   const panel = panelOf(page, 'Infermiere di reparto');
   await expect(panel.getByLabel('Titolo')).toHaveValue('Infermiere di reparto');
-  // Panoramica aperta; Opportunità e Candidatura chiuse perché vuote.
+  // Panoramica (con il riepilogo) subito visibile; in «Dettagli» Opportunità e Candidatura sono chiuse perché vuote.
+  await expect(panel.getByRole('region', { name: 'Riepilogo' })).toBeVisible();
+  await openTab(panel, 'Dettagli');
   await expect(panel.getByRole('button', { name: /Opportunità/ })).toHaveAttribute(
     'aria-expanded',
     'false',
@@ -67,6 +70,7 @@ test('1. una scheda si crea con il solo titolo; i dettagli sono opzionali e le s
     'false',
   );
   await expect(panel.getByLabel('Sede')).toBeHidden();
+  await openTab(panel, 'Panoramica');
   await expect(panel.getByLabel('Fase')).toHaveValue('');
   await expect(panel.getByLabel('Esito')).toHaveValue('');
   await expectNoA11yViolations(page, 'pannello 2.0 (sezioni chiuse)');
@@ -94,13 +98,15 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   await openSection(panel, 'Candidatura');
   await panel.getByLabel('Data di pubblicazione').fill('2026-10-20');
   await panel.getByLabel('Data di candidatura').fill('2026-10-25');
+  await expectNoA11yViolations(page, 'modale — Dettagli con tutte le sezioni aperte');
+  await openTab(panel, 'Panoramica');
   await panel.getByLabel('Fase').selectOption('applied');
   await panel.getByLabel('Esito').selectOption('pending');
-  await expectNoA11yViolations(page, 'pannello 2.0 (tutte le sezioni aperte)');
 
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
   await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
+  await openTab(panel, 'Cronologia');
   await expect(panel.getByText('Candidatura registrata (25 ott 2026)')).toBeVisible();
   await expect(panel.getByText('Fase impostata su “Inviata”')).toBeVisible();
 
@@ -254,6 +260,7 @@ test('8. Overview: "in colloquio" esclude le candidature concluse; "inviate" usa
   await expect(panel.getByLabel('Fase')).toHaveValue('interviewing');
   await panel.getByLabel('Esito').selectOption('rejected');
   await panel.getByRole('button', { name: 'Salva' }).click();
+  await openTab(panel, 'Cronologia');
   await expect(panel.getByText('Esito registrato: “Rifiutata”')).toBeVisible();
   await page.keyboard.press('Escape');
 

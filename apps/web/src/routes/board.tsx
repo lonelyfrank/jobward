@@ -1,6 +1,6 @@
 import { ArrowLeft, Archive, EllipsisVertical, Star } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router';
+import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
@@ -15,6 +15,7 @@ import { Surface } from '@/components/ui/surface';
 import { useBoardDetail, useDeleteBoard, useUpdateBoard } from '@/features/boards/api';
 import { BoardDialog } from '@/features/boards/board-dialog';
 import { ArchivedDialog } from '@/features/cards/archived-dialog';
+import { setDensity, useDensity } from '@/features/kanban/density';
 import { userMessage } from '@/features/kanban/mutations';
 import { cn } from '@/lib/cn';
 
@@ -28,6 +29,8 @@ import { COLOR_BG, isColorToken } from '@/lib/labels';
 export function BoardPage() {
   const { boardId = '' } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const density = useDensity();
   const notify = useNotify();
   const board = useBoardDetail(boardId);
   const update = useUpdateBoard();
@@ -153,6 +156,35 @@ export function BoardPage() {
                 </NavLink>
               ))}
             </nav>
+            {!location.pathname.endsWith('/table') ? (
+              <div
+                role="group"
+                aria-label="Densità delle schede"
+                className="flex rounded-md border border-border-strong p-0.5"
+              >
+                {(
+                  [
+                    ['compact', 'Compatta'],
+                    ['informative', 'Informativa'],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={density === value}
+                    onClick={() => setDensity(value)}
+                    className={cn(
+                      'inline-flex h-8 items-center rounded px-3 text-sm font-medium max-md:min-h-11',
+                      density === value
+                        ? 'bg-primary text-primary-foreground'
+                        : 'hover:bg-surface-muted',
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <Button variant="secondary" onClick={() => setShowArchived(true)}>
               <Archive aria-hidden="true" />
               Archiviate

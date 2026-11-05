@@ -223,6 +223,7 @@ test.describe('app reale sotto la CSP di produzione', () => {
     const panel = page.getByRole('dialog', { name: 'Uno' });
 
     // Dettagli professionali (sezioni comprimibili) e fase/esito.
+    await panel.getByRole('tab', { name: 'Dettagli' }).click();
     await panel.getByRole('button', { name: /Opportunità/ }).click();
     await panel.getByLabel('Sede').fill('Brescia');
     await panel.getByLabel('Modalità di lavoro').selectOption('hybrid');

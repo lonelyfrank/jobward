@@ -13,6 +13,7 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel,
+  cancelLabel = 'Annulla',
   pending = false,
   error,
   onConfirm,
@@ -22,6 +23,7 @@ export function ConfirmDialog({
   title: string;
   description: ReactNode;
   confirmLabel: string;
+  cancelLabel?: string;
   pending?: boolean;
   error?: string | null;
   onConfirm: () => void;
@@ -43,7 +45,7 @@ export function ConfirmDialog({
           <div className="mt-5 flex flex-wrap justify-end gap-2">
             <AlertDialog.Cancel asChild>
               <Button variant="secondary" disabled={pending}>
-                Annulla
+                {cancelLabel}
               </Button>
             </AlertDialog.Cancel>
             {/* Non è un AlertDialog.Action: quello chiuderebbe il dialogo prima dell'esito. */}

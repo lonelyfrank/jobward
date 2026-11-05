@@ -6,6 +6,7 @@ import {
   ensureWorkspace,
   expectNoA11yViolations,
   openSection,
+  openTab,
   titlesIn,
 } from './helpers';
 
@@ -181,8 +182,10 @@ test('7. pannello di dettaglio: si apre sulla bacheca, modifica i dati, mostra l
   await expect(page).toHaveURL(/\/cards\/[0-9a-f-]{36}$/);
   // La bacheca resta visibile dietro il pannello (per le tecnologie assistive è nascosta: modale).
   await expect(page.locator('[data-column-id]').first()).toBeVisible();
+  await expectNoA11yViolations(page, 'modale della candidatura (Panoramica)');
+  await openTab(panel, 'Cronologia');
   await expect(panel.getByText('Scheda creata in “Salvate”')).toBeVisible();
-  await expectNoA11yViolations(page, 'pannello di dettaglio');
+  await openTab(panel, 'Panoramica');
 
   // "Salva" è disattivato finché non c'è una modifica.
   await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
@@ -197,7 +200,9 @@ test('7. pannello di dettaglio: si apre sulla bacheca, modifica i dati, mostra l
 
   await panel.getByLabel('Indirizzo dell’annuncio').fill('https://example.com/annunci/42');
   await panel.getByRole('button', { name: 'Salva' }).click();
+  await openTab(panel, 'Cronologia');
   await expect(panel.getByText('Priorità cambiata da nessuna a alta')).toBeVisible();
+  await openTab(panel, 'Dettagli');
   await expect(panel.getByRole('link', { name: /Apri l’annuncio/ })).toHaveAttribute(
     'href',
     'https://example.com/annunci/42',
@@ -241,6 +246,7 @@ test('sposta dal selettore Colonna del pannello; la cronologia registra lo spost
   await cardLink(page, 'Magazziniere').click();
   const panel = page.getByRole('dialog', { name: 'Magazziniere' });
   await panel.getByLabel('Colonna').selectOption({ label: 'Inviate' });
+  await openTab(panel, 'Cronologia');
   await expect(panel.getByText('Spostata da “Salvate” a “Inviate”')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect.poll(() => titlesIn(page, 'Inviate')).toEqual(['Magazziniere']);

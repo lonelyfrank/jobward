@@ -111,12 +111,29 @@ export async function dragWithMouse(
   await page.mouse.up();
 }
 
+/** Seleziona una scheda della modale della candidatura (Panoramica, Colloqui, Dettagli, Cronologia). */
+export async function openTab(panel: Locator, name: string) {
+  const tab = panel.getByRole('tab', { name, exact: false }).first();
+  await expect(async () => {
+    if ((await tab.getAttribute('aria-selected')) !== 'true') await tab.click();
+    await expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: 1000 });
+  }).toPass({ timeout: 10_000 });
+}
+
+const SECTION_TAB: Record<string, string> = {
+  Opportunità: 'Dettagli',
+  Candidatura: 'Dettagli',
+  'Campi personalizzati': 'Dettagli',
+};
+
 /**
- * Apre una sezione comprimibile del pannello di dettaglio (le sezioni vuote partono chiuse).
- * Alcune si aprono da sole quando arrivano i dati: si riprova finché è aperta, così un clic
- * non può chiudere ciò che nel frattempo si è aperto.
+ * Apre una sezione comprimibile della scheda «Dettagli» (le sezioni vuote partono chiuse; passa
+ * prima alla scheda giusta). Alcune si aprono da sole quando arrivano i dati: si riprova finché è
+ * aperta, così un clic non può chiudere ciò che nel frattempo si è aperto.
  */
 export async function openSection(panel: Locator, name: string) {
+  const tab = SECTION_TAB[name];
+  if (tab) await openTab(panel, tab);
   const toggle = panel.getByRole('button', { name, exact: false }).first();
   await expect(async () => {
     if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();

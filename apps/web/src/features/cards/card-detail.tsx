@@ -9,10 +9,14 @@ import {
   STAGES,
   WORK_MODES,
   type Priority,
+  type Stage,
 } from '@meet-roulette/shared';
+import { ExternalLink, Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
-import { DialogBody, DialogFooter } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
+import { DialogBody, DialogCloseButton, DialogFooter } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Field } from '@/components/ui/field';
 import { Input, Select } from '@/components/ui/input';
 import { useNotify } from '@/components/ui/notices';
@@ -29,6 +33,7 @@ import {
   OUTCOME_LABELS,
   PERIOD_LABELS,
   PRIORITY_LABELS,
+  PRIORITY_TONE,
   STAGE_LABELS,
   WORK_MODE_LABELS,
 } from '@/lib/labels';
@@ -46,8 +51,12 @@ import {
   type CardDraft,
   type DraftErrors,
 } from './card-form';
+import { InterviewsTab } from '@/features/interviews/interviews-tab';
 import { CardHistory } from './card-history';
+import { useDirtyReporter } from './dirty-guard';
 import { DetailSection } from './detail-section';
+import { SmartSummary } from './smart-summary';
+import { CARD_TABS, type CardTab } from './workspace-tabs';
 
 const filled = (...values: string[]) => values.filter((v) => v.trim() !== '').length;
 const plural = (n: number) => (n === 1 ? '1 campo compilato' : `${n} campi compilati`);
@@ -64,6 +73,8 @@ export function CardDetailForm({
   columns,
   lastCardIdOf,
   timeZone,
+  tab,
+  onTabChange,
   onArchived,
 }: {
   boardId: string;
@@ -73,6 +84,8 @@ export function CardDetailForm({
   /** Ultima scheda di una colonna: serve a spostare "in fondo" dal selettore Colonna. */
   lastCardIdOf: (columnId: string) => string | null;
   timeZone: string;
+  tab: CardTab;
+  onTabChange: (tab: CardTab) => void;
   onArchived: () => void;
 }) {
   const notify = useNotify();
@@ -92,6 +105,22 @@ export function CardDetailForm({
   const putValue = usePutFieldValue(card.id);
   const [fieldDrafts, setFieldDrafts] = useState<Record<string, FieldDraft>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [createSignal, setCreateSignal] = useState(0);
+
+  // Se la scheda cambia da fuori (aggiornamento rapido della fase, altro dispositivo) i campi che
+  // l'utente NON ha toccato seguono il valore salvato; quelli in modifica restano com'erano.
+  const snapshot = draftFromCard(card);
+  const [base, setBase] = useState<CardDraft>(snapshot);
+  if (JSON.stringify(base) !== JSON.stringify(snapshot)) {
+    setDraft((d) => {
+      const next = { ...d };
+      for (const key of Object.keys(snapshot) as (keyof CardDraft)[]) {
+        if (d[key] === base[key]) (next as Record<string, unknown>)[key] = snapshot[key];
+      }
+      return next;
+    });
+    setBase(snapshot);
+  }
 
   const set = <K extends keyof CardDraft>(key: K, value: CardDraft[K]) => {
     setDraft((d) => ({ ...d, [key]: value }));
@@ -110,6 +139,23 @@ export function CardDetailForm({
     return [{ entry, result }];
   });
   const dirty = cardDirty || fieldPlan.length > 0;
+  useDirtyReporter('card-form', dirty);
+  const formTab = tab === 'overview' || tab === 'details';
+
+  /** Aggiornamento esplicito e immediato della fase (non passa dal «Salva» del modulo). */
+  const setStageNow = (stage: Stage) =>
+    update.mutate(
+      { cardId: card.id, input: { stage } },
+      {
+        onSuccess: () => notify('success', `Fase impostata su “${STAGE_LABELS[stage]}”.`),
+        onError: (e) =>
+          notify('error', userMessage(e, 'Non siamo riusciti ad aggiornare la fase.')),
+      },
+    );
+  const requestInterview = () => {
+    onTabChange('interviews');
+    setCreateSignal((n) => n + 1);
+  };
 
   const column = columns.find((c) => c.id === card.columnId);
   const suggestedStage =
@@ -273,7 +319,92 @@ export function CardDetailForm({
     values.map((value) => ({ value, label: labels[value] }));
 
   return (
-    <form noValidate onSubmit={(e) => void submit(e)} className="flex min-h-0 flex-1 flex-col">
+    <Tabs
+      value={tab}
+      onValueChange={(value) => onTabChange(value as CardTab)}
+      className="flex min-h-0 flex-1 flex-col"
+    >
+      <header className="flex shrink-0 items-start gap-3 border-b border-border px-4 py-3 md:px-5">
+        <div className="min-w-0 flex-1">
+          {/* Il nome accessibile della finestra è il titolo sr-only del Dialog: qui solo presentazione. */}
+          <p aria-hidden="true" className="text-lg leading-snug font-semibold break-words">
+            {card.title}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {[card.company, card.jobTitle].filter(Boolean).join(' · ') || 'Azienda non indicata'}
+          </p>
+          <ul
+            aria-label="Stato della candidatura"
+            className="mt-2 flex flex-wrap items-center gap-1.5"
+          >
+            <li>
+              <Badge tone={card.stage ? 'primary' : 'neutral'}>
+                {card.stage ? STAGE_LABELS[card.stage] : 'Fase non indicata'}
+              </Badge>
+            </li>
+            {card.outcome ? (
+              <li>
+                <Badge>{OUTCOME_LABELS[card.outcome]}</Badge>
+              </li>
+            ) : null}
+            {card.priority !== 'none' ? (
+              <li>
+                <Badge tone={PRIORITY_TONE[card.priority]}>
+                  Priorità {PRIORITY_LABELS[card.priority].toLowerCase()}
+                </Badge>
+              </li>
+            ) : null}
+            {column ? (
+              <li>
+                <Badge>Colonna: {column.name}</Badge>
+              </li>
+            ) : null}
+            {archived ? (
+              <li>
+                <Badge tone="warning">Archiviata</Badge>
+              </li>
+            ) : null}
+          </ul>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          {card.sourceUrl ? (
+            <Button asChild variant="ghost" size="sm" className="max-md:hidden">
+              <a href={card.sourceUrl} target="_blank" rel="noopener noreferrer">
+                <ExternalLink aria-hidden="true" />
+                Apri annuncio<span className="sr-only"> (si apre in una nuova scheda)</span>
+              </a>
+            </Button>
+          ) : null}
+          {!archived ? (
+            <Button
+              variant="secondary"
+              size="sm"
+              className="max-sm:min-w-11"
+              onClick={requestInterview}
+            >
+              <Plus aria-hidden="true" />
+              <span className="max-sm:sr-only">Colloquio</span>
+            </Button>
+          ) : null}
+          <DialogCloseButton />
+        </div>
+      </header>
+
+      <TabsList aria-label="Sezioni della candidatura">
+        {CARD_TABS.map((entry) => (
+          <TabsTrigger key={entry.id} value={entry.id}>
+            {entry.label}
+            {entry.id === 'interviews' && card.interviewSummary.total > 0 ? (
+              <span className="rounded-full bg-surface-muted px-1.5 text-xs">
+                <span className="sr-only"> (</span>
+                {card.interviewSummary.total}
+                <span className="sr-only">)</span>
+              </span>
+            ) : null}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+
       <DialogBody className="space-y-4">
         {archived ? (
           <div
@@ -284,188 +415,233 @@ export function CardDetailForm({
           </div>
         ) : null}
 
-        <DetailSection
-          title="Panoramica"
-          defaultOpen
-          hasError={hasError(['title', 'company', 'priority', 'stage', 'outcome'])}
-        >
-          <Field id="card-title" label="Titolo" error={errors.title}>
-            <Input
-              id="card-title"
-              value={draft.title}
-              maxLength={LIMITS.titleMax}
+        <form id="card-form" noValidate onSubmit={(e) => void submit(e)} className="space-y-4">
+          <TabsContent value="overview" className="space-y-4">
+            <SmartSummary
+              card={card}
+              timeZone={timeZone}
               disabled={archived}
-              aria-invalid={errors.title ? true : undefined}
-              aria-describedby={errors.title ? 'card-title-error' : undefined}
-              onChange={(e) => set('title', e.target.value)}
+              stagePending={update.isPending}
+              onSetStage={setStageNow}
+              onOpenInterviews={() => onTabChange('interviews')}
+              onAddInterview={requestInterview}
             />
-          </Field>
-          {text('company', 'Azienda o ente')}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="card-column" label="Colonna">
-              <Select
-                id="card-column"
-                value={card.columnId}
-                disabled={archived || move.isPending}
-                onChange={(e) => changeColumn(e.target.value)}
-              >
-                {columns.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            <Field id="card-priority" label="Priorità">
-              <Select
-                id="card-priority"
-                value={draft.priority}
+            <div className="space-y-4 rounded-lg border border-border p-4">
+              <h3 className="text-sm font-semibold">Dati principali</h3>
+              <Field id="card-title" label="Titolo" error={errors.title}>
+                <Input
+                  id="card-title"
+                  value={draft.title}
+                  maxLength={LIMITS.titleMax}
+                  disabled={archived}
+                  aria-invalid={errors.title ? true : undefined}
+                  aria-describedby={errors.title ? 'card-title-error' : undefined}
+                  onChange={(e) => set('title', e.target.value)}
+                />
+              </Field>
+              {text('company', 'Azienda o ente')}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Field id="card-column" label="Colonna">
+                  <Select
+                    id="card-column"
+                    value={card.columnId}
+                    disabled={archived || move.isPending}
+                    onChange={(e) => changeColumn(e.target.value)}
+                  >
+                    {columns.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                <Field id="card-priority" label="Priorità">
+                  <Select
+                    id="card-priority"
+                    value={draft.priority}
+                    disabled={archived}
+                    onChange={(e) => set('priority', e.target.value as Priority)}
+                  >
+                    {PRIORITIES.map((p) => (
+                      <option key={p} value={p}>
+                        {PRIORITY_LABELS[p]}
+                      </option>
+                    ))}
+                  </Select>
+                </Field>
+                {choice('stage', 'Fase', labelled(STAGES, STAGE_LABELS), 'Non indicata')}
+                {choice('outcome', 'Esito', labelled(OUTCOMES, OUTCOME_LABELS), 'Non indicato')}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                La colonna organizza la bacheca; fase ed esito descrivono la candidatura. Spostare
+                la scheda non li cambia.
+              </p>
+              <LabelPicker
+                cardId={card.id}
+                boardId={boardId}
+                labelIds={card.labelIds}
                 disabled={archived}
-                onChange={(e) => set('priority', e.target.value as Priority)}
-              >
-                {PRIORITIES.map((p) => (
-                  <option key={p} value={p}>
-                    {PRIORITY_LABELS[p]}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-            {choice('stage', 'Fase', labelled(STAGES, STAGE_LABELS), 'Non indicata')}
-            {choice('outcome', 'Esito', labelled(OUTCOMES, OUTCOME_LABELS), 'Non indicato')}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            La colonna organizza la bacheca; fase ed esito descrivono la candidatura. Spostare la
-            scheda non li cambia.
-          </p>
-          <LabelPicker
-            cardId={card.id}
-            boardId={boardId}
-            labelIds={card.labelIds}
-            disabled={archived}
-          />
-          {suggestedStage && !archived ? (
-            <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-              La colonna “{column?.name}” corrisponde alla fase “{STAGE_LABELS[suggestedStage]}”.
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                onClick={() => set('stage', suggestedStage)}
-              >
-                Usa questa fase
-              </Button>
-            </p>
-          ) : null}
-        </DetailSection>
-
-        <DetailSection
-          title="Opportunità"
-          summary={opportunityCount ? plural(opportunityCount) : 'Nessun dettaglio'}
-          defaultOpen={opportunityCount > 0}
-          hasError={hasError(opportunityKeys)}
-        >
-          {text('jobTitle', 'Posizione lavorativa', {
-            hint: 'Il ruolo come scritto nell’annuncio.',
-          })}
-          <div className="grid gap-4 sm:grid-cols-2">
-            {text('location', 'Sede')}
-            {choice('workMode', 'Modalità di lavoro', labelled(WORK_MODES, WORK_MODE_LABELS))}
-          </div>
-          {choice('contractType', 'Tipo di contratto', labelled(CONTRACT_TYPES, CONTRACT_LABELS))}
-
-          <fieldset className="space-y-3 rounded-md border border-border p-3">
-            <legend className="px-1 text-sm font-medium">Retribuzione</legend>
-            <div className="grid gap-4 sm:grid-cols-2">
-              {text('salaryMin', 'Minima', { max: 12, inputMode: 'numeric', placeholder: '1800' })}
-              {text('salaryMax', 'Massima', { max: 12, inputMode: 'numeric', placeholder: '2200' })}
+              />
+              {suggestedStage && !archived ? (
+                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                  La colonna “{column?.name}” corrisponde alla fase “{STAGE_LABELS[suggestedStage]}
+                  ”.
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => set('stage', suggestedStage)}
+                  >
+                    Usa questa fase
+                  </Button>
+                </p>
+              ) : null}
             </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {text('currency', 'Valuta', { max: 3, placeholder: 'EUR' })}
-              {choice(
-                'salaryPeriod',
-                'Periodicità',
-                labelled(SALARY_PERIODS, PERIOD_LABELS),
-                'Non indicata',
-              )}
-              {choice(
-                'salaryBasis',
-                'Lordo o netto',
-                labelled(SALARY_BASES, BASIS_LABELS),
-                'Non specificato',
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Importi interi, nella valuta indicata (nessuna conversione). Se non scegli lordo o
-              netto, l’importo non sarà presentato come né l’uno né l’altro.
-            </p>
-          </fieldset>
+          </TabsContent>
 
-          {text('source', 'Fonte', {
-            hint: 'Dove hai trovato l’annuncio (sito, contatto, passaparola).',
-          })}
-          {text('sourceUrl', 'Indirizzo dell’annuncio', {
-            max: LIMITS.urlMax,
-            type: 'url',
-            inputMode: 'url',
-            placeholder: 'https://',
-            hint: 'Link all’offerta originale (http o https).',
-          })}
-          {card.sourceUrl && draft.sourceUrl === (card.sourceUrl ?? '') ? (
-            <p className="-mt-2 text-sm">
-              <a
-                href={card.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-medium text-primary underline underline-offset-2"
-              >
-                Apri l’annuncio<span className="sr-only"> (si apre in una nuova scheda)</span>
-              </a>
-            </p>
-          ) : null}
-          <Field id="card-description" label="Note" error={errors.description}>
-            <Textarea
-              id="card-description"
-              value={draft.description}
-              maxLength={LIMITS.descriptionMax}
+          <TabsContent value="details" className="space-y-4">
+            <DetailSection
+              title="Opportunità"
+              summary={opportunityCount ? plural(opportunityCount) : 'Nessun dettaglio'}
+              defaultOpen={opportunityCount > 0}
+              hasError={hasError(opportunityKeys)}
+            >
+              {text('jobTitle', 'Posizione lavorativa', {
+                hint: 'Il ruolo come scritto nell’annuncio.',
+              })}
+              <div className="grid gap-4 sm:grid-cols-2">
+                {text('location', 'Sede')}
+                {choice('workMode', 'Modalità di lavoro', labelled(WORK_MODES, WORK_MODE_LABELS))}
+              </div>
+              {choice(
+                'contractType',
+                'Tipo di contratto',
+                labelled(CONTRACT_TYPES, CONTRACT_LABELS),
+              )}
+
+              <fieldset className="space-y-3 rounded-md border border-border p-3">
+                <legend className="px-1 text-sm font-medium">Retribuzione</legend>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {text('salaryMin', 'Minima', {
+                    max: 12,
+                    inputMode: 'numeric',
+                    placeholder: '1800',
+                  })}
+                  {text('salaryMax', 'Massima', {
+                    max: 12,
+                    inputMode: 'numeric',
+                    placeholder: '2200',
+                  })}
+                </div>
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {text('currency', 'Valuta', { max: 3, placeholder: 'EUR' })}
+                  {choice(
+                    'salaryPeriod',
+                    'Periodicità',
+                    labelled(SALARY_PERIODS, PERIOD_LABELS),
+                    'Non indicata',
+                  )}
+                  {choice(
+                    'salaryBasis',
+                    'Lordo o netto',
+                    labelled(SALARY_BASES, BASIS_LABELS),
+                    'Non specificato',
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Importi interi, nella valuta indicata (nessuna conversione). Se non scegli lordo o
+                  netto, l’importo non sarà presentato come né l’uno né l’altro.
+                </p>
+              </fieldset>
+
+              {text('source', 'Fonte', {
+                hint: 'Dove hai trovato l’annuncio (sito, contatto, passaparola).',
+              })}
+              {text('sourceUrl', 'Indirizzo dell’annuncio', {
+                max: LIMITS.urlMax,
+                type: 'url',
+                inputMode: 'url',
+                placeholder: 'https://',
+                hint: 'Link all’offerta originale (http o https).',
+              })}
+              {card.sourceUrl && draft.sourceUrl === (card.sourceUrl ?? '') ? (
+                <p className="-mt-2 text-sm">
+                  <a
+                    href={card.sourceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-medium text-primary underline underline-offset-2"
+                  >
+                    Apri l’annuncio<span className="sr-only"> (si apre in una nuova scheda)</span>
+                  </a>
+                </p>
+              ) : null}
+              <Field id="card-description" label="Note" error={errors.description}>
+                <Textarea
+                  id="card-description"
+                  value={draft.description}
+                  maxLength={LIMITS.descriptionMax}
+                  disabled={archived}
+                  className="min-h-28"
+                  onChange={(e) => set('description', e.target.value)}
+                />
+              </Field>
+            </DetailSection>
+
+            <DetailSection
+              title="Candidatura"
+              summary={applicationCount ? plural(applicationCount) : 'Nessuna data'}
+              defaultOpen={applicationCount > 0}
+              hasError={hasError(applicationKeys)}
+            >
+              <div className="grid gap-4 sm:grid-cols-2">
+                {text('publishedOn', 'Data di pubblicazione', { type: 'date' })}
+                {text('appliedOn', 'Data di candidatura', {
+                  type: 'date',
+                  hint: 'Quando hai inviato la candidatura.',
+                })}
+              </div>
+            </DetailSection>
+
+            <CardFieldsSection
+              fields={customFields.data}
+              drafts={fieldDrafts}
+              errors={fieldErrors}
+              loading={customFields.isPending}
+              failed={customFields.isError}
               disabled={archived}
-              className="min-h-28"
-              onChange={(e) => set('description', e.target.value)}
+              onRetry={() => void customFields.refetch()}
+              onChange={(fieldId, value) => {
+                setFieldDrafts((d) => ({ ...d, [fieldId]: value }));
+                setFieldErrors((e) => {
+                  if (!e[fieldId]) return e;
+                  const { [fieldId]: _removed, ...rest } = e;
+                  return rest;
+                });
+              }}
             />
-          </Field>
-        </DetailSection>
+          </TabsContent>
+        </form>
 
-        <DetailSection
-          title="Candidatura"
-          summary={applicationCount ? plural(applicationCount) : 'Nessuna data'}
-          defaultOpen={applicationCount > 0}
-          hasError={hasError(applicationKeys)}
-        >
-          <div className="grid gap-4 sm:grid-cols-2">
-            {text('publishedOn', 'Data di pubblicazione', { type: 'date' })}
-            {text('appliedOn', 'Data di candidatura', {
-              type: 'date',
-              hint: 'Quando hai inviato la candidatura.',
-            })}
-          </div>
-        </DetailSection>
+        <TabsContent value="interviews">
+          <InterviewsTab
+            card={card}
+            archived={archived}
+            createSignal={createSignal}
+            stagePending={update.isPending}
+            onSetStage={() => setStageNow('interviewing')}
+          />
+        </TabsContent>
 
-        <CardFieldsSection
-          fields={customFields.data}
-          drafts={fieldDrafts}
-          errors={fieldErrors}
-          loading={customFields.isPending}
-          failed={customFields.isError}
-          disabled={archived}
-          onRetry={() => void customFields.refetch()}
-          onChange={(fieldId, value) => {
-            setFieldDrafts((d) => ({ ...d, [fieldId]: value }));
-            setFieldErrors((e) => {
-              if (!e[fieldId]) return e;
-              const { [fieldId]: _removed, ...rest } = e;
-              return rest;
-            });
-          }}
-        />
+        <TabsContent value="history" className="space-y-4">
+          <CardHistory events={history} timeZone={timeZone} />
+          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <dt>Creata</dt>
+            <dd>{formatDateTime(card.createdAt, timeZone)}</dd>
+            <dt>Aggiornata</dt>
+            <dd>{formatDateTime(card.updatedAt, timeZone)}</dd>
+          </dl>
+        </TabsContent>
 
         {formError ? (
           <p
@@ -475,16 +651,6 @@ export function CardDetailForm({
             {formError}
           </p>
         ) : null}
-
-        <DetailSection title="Cronologia" defaultOpen summary={`${history.length} eventi`}>
-          <CardHistory events={history} timeZone={timeZone} />
-          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <dt>Creata</dt>
-            <dd>{formatDateTime(card.createdAt, timeZone)}</dd>
-            <dt>Aggiornata</dt>
-            <dd>{formatDateTime(card.updatedAt, timeZone)}</dd>
-          </dl>
-        </DetailSection>
       </DialogBody>
 
       <DialogFooter>
@@ -527,15 +693,24 @@ export function CardDetailForm({
             <span role="status" className="text-xs text-muted-foreground">
               {saving ? 'Salvataggio…' : dirty ? 'Modifiche non salvate' : ''}
             </span>
-            <Button type="button" variant="secondary" disabled={!dirty || saving} onClick={revert}>
-              Annulla modifiche
-            </Button>
-            <Button type="submit" disabled={!dirty || saving}>
-              {saving ? 'Salvataggio…' : 'Salva'}
-            </Button>
+            {formTab || dirty ? (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={!dirty || saving}
+                  onClick={revert}
+                >
+                  Annulla modifiche
+                </Button>
+                <Button type="submit" form="card-form" disabled={!dirty || saving}>
+                  {saving ? 'Salvataggio…' : 'Salva'}
+                </Button>
+              </>
+            ) : null}
           </>
         )}
       </DialogFooter>
-    </form>
+    </Tabs>
   );
 }

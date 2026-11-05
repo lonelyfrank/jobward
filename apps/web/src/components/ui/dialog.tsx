@@ -25,12 +25,13 @@ export function Dialog({
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
-  variant?: 'center' | 'drawer';
+  variant?: 'center' | 'drawer' | 'workspace';
   children: ReactNode;
   onCloseAutoFocus?: (event: Event) => void;
   className?: string;
 }) {
   const drawer = variant === 'drawer';
+  const workspace = variant === 'workspace';
   return (
     <Primitive.Root open={open} onOpenChange={onOpenChange}>
       <Primitive.Portal>
@@ -46,27 +47,43 @@ export function Dialog({
           onCloseAutoFocus={onCloseAutoFocus}
           className={cn(
             'fixed z-50 flex flex-col bg-surface shadow-md outline-none',
-            drawer
-              ? 'inset-0 animate-[mr-fade-in_0.12s_ease-out] md:left-auto md:w-[30rem] md:max-w-[92vw] md:animate-[mr-slide-in-right_0.18s_ease-out] md:border-l md:border-border'
-              : 'top-1/2 left-1/2 max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 animate-[mr-fade-in_0.12s_ease-out] rounded-lg border border-border',
+            workspace
+              ? // Modale ampia: schermo intero a telefono, centrata (max ~1000 px, 90dvh) da `md`.
+                'inset-0 h-dvh animate-[mr-fade-in_0.12s_ease-out] md:inset-auto md:top-1/2 md:left-1/2 md:h-auto md:max-h-[90dvh] md:min-h-[min(36rem,90dvh)] md:w-[min(1000px,calc(100vw-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-lg md:border md:border-border'
+              : drawer
+                ? 'inset-0 animate-[mr-fade-in_0.12s_ease-out] md:left-auto md:w-[30rem] md:max-w-[92vw] md:animate-[mr-slide-in-right_0.18s_ease-out] md:border-l md:border-border'
+                : 'top-1/2 left-1/2 max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 animate-[mr-fade-in_0.12s_ease-out] rounded-lg border border-border',
             className,
           )}
         >
-          <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
-            <div className="min-w-0">
-              <Primitive.Title className="text-base font-semibold">{title}</Primitive.Title>
+          {workspace ? (
+            // Il contenuto fornisce un'intestazione propria (titolo, stato, azioni); qui resta il nome
+            // accessibile della finestra.
+            <>
+              <Primitive.Title className="sr-only">{title}</Primitive.Title>
               {description ? (
-                <Primitive.Description className="mt-1 text-sm text-muted-foreground">
-                  {description}
-                </Primitive.Description>
+                <Primitive.Description className="sr-only">{description}</Primitive.Description>
               ) : null}
-            </div>
-            <Primitive.Close asChild>
-              <Button variant="ghost" size="icon" aria-label="Chiudi" className="-mt-1 -mr-2">
-                <X aria-hidden="true" />
-              </Button>
-            </Primitive.Close>
-          </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-start justify-between gap-3 border-b border-border px-5 py-4">
+                <div className="min-w-0">
+                  <Primitive.Title className="text-base font-semibold">{title}</Primitive.Title>
+                  {description ? (
+                    <Primitive.Description className="mt-1 text-sm text-muted-foreground">
+                      {description}
+                    </Primitive.Description>
+                  ) : null}
+                </div>
+                <Primitive.Close asChild>
+                  <Button variant="ghost" size="icon" aria-label="Chiudi" className="-mt-1 -mr-2">
+                    <X aria-hidden="true" />
+                  </Button>
+                </Primitive.Close>
+              </div>
+            </>
+          )}
           {children}
         </Primitive.Content>
       </Primitive.Portal>
@@ -86,5 +103,16 @@ export function DialogFooter({ children }: { children: ReactNode }) {
     <div className="flex flex-wrap items-center justify-end gap-2 border-t border-border px-5 py-3">
       {children}
     </div>
+  );
+}
+
+/** Pulsante di chiusura per le intestazioni personalizzate (variante `workspace`). */
+export function DialogCloseButton({ className }: { className?: string }) {
+  return (
+    <Primitive.Close asChild>
+      <Button variant="ghost" size="icon" aria-label="Chiudi" className={className}>
+        <X aria-hidden="true" />
+      </Button>
+    </Primitive.Close>
   );
 }

@@ -1,5 +1,9 @@
 import type {
   ContractType,
+  InterviewModality,
+  InterviewResult,
+  InterviewStatus,
+  InterviewType,
   Outcome,
   Priority,
   SalaryBasis,
@@ -111,3 +115,33 @@ export const COLOR_BORDER_TOP: Record<ColorToken, string> = {
 export function isColorToken(value: string | null | undefined): value is ColorToken {
   return value != null && value in COLOR_BG;
 }
+
+export const INTERVIEW_TYPE_LABELS: Record<InterviewType, string> = {
+  screening: 'Primo contatto / screening',
+  technical: 'Tecnico o prova pratica',
+  behavioral: 'Conoscitivo / motivazionale',
+  panel: 'Commissione o più persone',
+  final: 'Finale',
+  other: 'Altro',
+};
+
+/** Stato ORGANIZZATIVO del round (non l'esito). */
+export const INTERVIEW_STATUS_LABELS: Record<InterviewStatus, string> = {
+  to_schedule: 'Da programmare',
+  scheduled: 'Programmato',
+  completed: 'Completato',
+  cancelled: 'Annullato',
+};
+
+export const INTERVIEW_MODALITY_LABELS: Record<InterviewModality, string> = {
+  video: 'Videochiamata',
+  phone: 'Telefono',
+  onsite: 'In presenza',
+};
+
+/** Esito del SINGOLO round: indipendente dall'esito della candidatura. */
+export const INTERVIEW_RESULT_LABELS: Record<InterviewResult, string> = {
+  positive: 'Positivo',
+  neutral: 'Neutro',
+  negative: 'Negativo',
+};
