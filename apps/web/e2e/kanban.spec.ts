@@ -169,15 +169,18 @@ test('11. errore di persistenza: la scheda torna dov’era (rollback) con un avv
 test('lo stato di caricamento: durante un salvataggio lento la scheda è già nella nuova posizione', async ({
   page,
 }) => {
-  await page.route('**/api/v1/cards/*/move*', async (route) => {
+  const slow = '**/api/v1/cards/*/move*';
+  await page.route(slow, async (route) => {
     await new Promise((r) => setTimeout(r, 1200));
-    await route.continue();
+    await route.continue().catch(() => {}); // la pagina può essere già cambiata
   });
+  const saved = page.waitForResponse((r) => /\/cards\/[^/]+\/move/.test(r.url()));
   await page.getByRole('button', { name: 'Azioni per la scheda “Delta”' }).click();
   await page.getByRole('menuitem', { name: 'Da fare' }).click();
-  // Aggiornamento ottimistico: visibile subito, prima della risposta.
-  await expect.poll(() => titlesIn(page, 'Da fare'), { timeout: 800 }).toContain('Delta');
-  await page.unroute('**/api/v1/cards/*/move*');
+  // Aggiornamento ottimistico: visibile subito, prima della risposta del server.
+  await expect.poll(() => titlesIn(page, 'Da fare'), { timeout: 900 }).toContain('Delta');
+  await saved;
+  await page.unroute(slow);
   await page.reload();
   await expect.poll(() => titlesIn(page, 'Da fare')).toContain('Delta');
 });

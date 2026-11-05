@@ -326,7 +326,8 @@ test('creazione rapida globale dalla barra superiore', async ({ page }) => {
   await dialog.getByRole('button', { name: 'Crea scheda' }).click();
   await expect(page.getByText('Scheda “Cassiere” creata.')).toBeVisible();
 
-  await main(page).getByRole('link', { name: 'Ricerca autunno' }).first().click();
+  // `exact`: nell'Overview anche il link di una scheda recente contiene il nome della bacheca.
+  await main(page).getByRole('link', { name: 'Ricerca autunno', exact: true }).first().click();
   await expect.poll(() => titlesIn(page, 'Da candidarsi')).toEqual(['Cassiere']);
 });
 
