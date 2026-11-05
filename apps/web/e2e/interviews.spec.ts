@@ -17,7 +17,6 @@ test.describe.configure({ mode: 'serial' });
 
 const BOARD = 'Colloqui M25';
 let boardId = '';
-const main = (page: Page) => page.getByRole('main');
 const panelOf = (page: Page, title: string) => page.getByRole('dialog', { name: title });
 const formOf = (panel: Locator, heading: string) =>
   panel.locator('form').filter({ has: panel.page().getByRole('heading', { name: heading }) });
