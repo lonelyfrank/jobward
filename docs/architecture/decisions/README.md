@@ -18,3 +18,5 @@ Una decisione si cambia con un nuovo ADR che sostituisce il precedente, non risc
 | [0011](0011-search-and-table-state.md)                 | Ricerca server-side, SQL `LIKE` e stato della tabella nell'indirizzo          | Accettato                      |
 | [0012](0012-interview-tracking-and-workspace-modal.md) | Tracciamento dei colloqui e modale della candidatura                          | Accettato                      |
 | [0013](0013-rebranding-jobward.md)                     | Rebranding a Jobward e identificatori persistenti                             | Accettato                      |
+
+- [ADR-0014 — Rebranding tecnico Jobward e compatibilità dei dati](0014-jobward-technical-rebranding.md): supera D6, separa rename locale e migrazione remota.

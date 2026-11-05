@@ -1,6 +1,6 @@
 # Jobward
 
-> **Nota sul nome.** Il progetto si chiamava _Meet Roulette_ ed è stato rinominato **Jobward**. Il nome visibile è già Jobward; gli identificatori tecnici (pacchetti `@jobward/*`, nomi di Worker e database D1, identità di sviluppo) mantengono il nome storico per non perdere dati né rompere gli ambienti: strategia in [ADR-0013](docs/architecture/decisions/0013-rebranding-jobward.md).
+> **Identità tecnica.** I pacchetti usano `@jobward/*` e i Worker configurati usano nomi Jobward. Per conservare l'accesso ai dati esistenti restano le etichette D1 e l'identità dev già popolata; motivazioni e procedura conservativa in [ADR-0014](docs/architecture/decisions/0014-jobward-technical-rebranding.md). Nessuna risorsa remota è stata rinominata.
 
 **Il workspace del candidato per organizzare la ricerca del lavoro.**
 
@@ -142,7 +142,7 @@ pnpm check            # typecheck + lint + format + contrasto + config + db + te
 ## Struttura della repository
 
 ```text
-meet-roulette/
+jobward/
 ├── apps/
 │   ├── web/                 # SPA React (Vite)
 │   │   ├── src/app/         #   provider e router

@@ -2,6 +2,8 @@
 
 **Stato:** accettata (M3.0) · **Data:** 2026-11-05
 
+**Aggiornamento M3-C1:** [ADR-0014](0014-jobward-technical-rebranding.md) sostituisce il rinvio D6 e le decisioni su logo e nomi Worker. Questo testo è conservato come decisione storica; le compatibilità persistenti sono precisate nella nuova ADR.
+
 ## Contesto
 
 Il prodotto, finora «Meet Roulette», si chiama **Jobward**. Il nome compare in tre famiglie di posti con rischi diversi:
