@@ -45,9 +45,19 @@ con fasi semantiche associate), **Minimal** (Da fare → In corso → Completate
 ## Stato di implementazione
 
 - **M0**: schema e migrazioni di **tutte** le entità; schemi di validazione di tutte le entità.
-- **M1**: API e interfaccia per **Board, BoardColumn, Card** (con archiviazione) e, di `ApplicationDetails`, soltanto **azienda** e **URL dell'annuncio**; `ActivityEvent` per creazione, spostamento tra colonne, cambio priorità, archiviazione e ripristino.
-- Da fare: campi professionali completi e personalizzati, etichette (M2); attività e cronologia estesa (M3).
+- **M1**: API e interfaccia per **Board, BoardColumn, Card** (con archiviazione).
+- **M2**: **ApplicationDetails** completo (azienda, posizione, sede, modalità, contratto, retribuzione con lordo/netto, fonte, URL, date, **fase**, **esito**), **Label** e **CustomFieldDefinition/Value** con interfaccia, **ricerca e filtri**, **vista Tabella**; eventi `stage_changed`, `application_submitted`, `application_closed`.
+- Da fare: attività e cronologia estesa (M3); statistiche approfondite ed esportazione (M4).
 
-## Fase, esito e colonna in M1
+## Fase, esito e colonna
 
-La **categoria** di una colonna è un'etichetta informativa: spostare una scheda **non** modifica `stage` né `outcome`. Vedi [interazioni](../m1/board-interactions.md).
+Sono tre informazioni **indipendenti** (dettagli e statistiche in [`docs/m2/application-lifecycle.md`](../m2/application-lifecycle.md), ADR-0009):
+
+- la **colonna** organizza la bacheca (la sua _categoria_ è un'etichetta e al massimo un suggerimento esplicito);
+- la **fase** e l'**esito** si impostano a mano nel pannello; **spostare una scheda non li modifica**.
+
+Statistiche dell'Overview: «candidature inviate» = data di candidatura **o** fase che la implica; «in colloquio» = fase Colloquio senza esito definitivo. Mai dedotte dal nome della colonna.
+
+## Retribuzione
+
+Importi interi nell'unità della valuta (nessuna conversione), valuta ISO 4217 obbligatoria con un importo, periodicità facoltativa, **lordo/netto `NULL` = non specificato** (mai presentato come l'uno o l'altro).

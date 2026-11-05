@@ -58,7 +58,7 @@ Label = { id, name, color: ColorToken, cardCount: number, createdAt };
 | `GET /labels`                       | —                     | `{ labels }` ordinate per nome (senza distinzione di maiuscole)                             |
 | `POST /labels`                      | `{ name, color? }`    | 201 `{ label }` · nome già esistente (senza distinzione di maiuscole) 409 · oltre 100 → 409 |
 | `PATCH /labels/:id`                 | `{ name?, color? }`   | `{ label }`                                                                                 |
-| `DELETE /labels/:id`                | `{ force?: boolean }` | `{ deleted: true }` · in uso e senza `force` → 409 con il numero di schede                  |
+| `DELETE /labels/:id`                | `{ force?: boolean }` | `{ id }` · in uso e senza `force` → 409 con il numero di schede                             |
 | `POST /cards/:id/labels`            | `{ labelId }`         | `{ labelIds }` · idempotente · oltre 20 etichette per scheda → 409 · scheda archiviata 409  |
 | `DELETE /cards/:id/labels/:labelId` | `{}`                  | `{ labelIds }` · idempotente                                                                |
 
@@ -80,7 +80,7 @@ CardCustomField = { field: CustomFieldDefinition, value: CustomFieldValue, hasVa
 | `POST /boards/:id/custom-fields`        | `customFieldDefinitionInput`                 | 201 `{ field }` · nome duplicato nella bacheca (senza distinzione di maiuscole) 409 · oltre 30 → 409                     |
 | `PATCH /custom-fields/:id`              | `{ name?, config?, isActive? }`, strict, ≥ 1 | `{ field }` · il **tipo non si cambia** (campo rifiutato dallo schema) · config incompatibile con i valori salvati → 409 |
 | `POST /custom-fields/:id/move`          | `{ afterId: string \| null }`                | `{ field }` (riordino nella bacheca)                                                                                     |
-| `DELETE /custom-fields/:id`             | `{ deleteValues?: boolean }`                 | `{ deleted: true }` · con valori e senza `deleteValues` → 409 con il numero di schede                                    |
+| `DELETE /custom-fields/:id`             | `{ deleteValues?: boolean }`                 | `{ id }` · con valori e senza `deleteValues` → 409 con il numero di schede                                               |
 | `GET /cards/:id/custom-fields`          | —                                            | `{ fields: CardCustomField[] }` — **solo campi attivi** della bacheca della scheda                                       |
 | `PUT /cards/:id/custom-fields/:fieldId` | `{ value }`                                  | `{ field: CardCustomField }` · valore non conforme 400 · campo inattivo o scheda archiviata 409                          |
 
@@ -111,3 +111,20 @@ Spareggio deterministico: `id`. I valori mancanti stanno sempre in fondo.
 ## 5. Overview
 
 `GET /overview` — contatori ridefiniti (vedi [architecture.md](architecture.md#d-4--definizioni-delle-statistiche-overview)): `applicationsSubmitted`, `interviews`.
+
+## 6. Scelte rispetto alla bozza di endpoint
+
+| Bozza                                                | Realizzato                                                                   | Motivo                                                        |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| `POST /custom-fields/:id/deactivate` e `/reactivate` | `PATCH /custom-fields/:id` con `{ isActive }`                                | un solo modo per la stessa azione (nessun endpoint duplicato) |
+| `PUT /cards/:id/custom-fields/:fieldId`              | invariato; `{ value: null }` svuota (persistito), nessun `DELETE` del valore | `null` ≠ assente è già espresso dal valore                    |
+| `GET /cards/:id/custom-fields`                       | invariato, restituisce definizione + valore dei soli campi **attivi**        | i campi inattivi restano nascosti ma conservati               |
+| `DELETE /custom-fields/:id`, `DELETE /labels/:id`    | con corpo `{ deleteValues }` / `{ force }`                                   | conferma esplicita quando c'è qualcosa da perdere             |
+| `POST /custom-fields/:id/move`                       | aggiunto                                                                     | riordino dei campi                                            |
+| Risposte di eliminazione                             | `{ id }` (`deletedResponse`, come bacheche e colonne)                        | contratto già usato dal client (difetto M2-01)                |
+
+Tutte le rotte sono sotto `workspaceScope`; nessun `workspaceId` nel body; errori standardizzati; risposte validate con gli schemi condivisi.
+
+## 7. Concorrenza
+
+Nessun token di versione (ADR-0009 §6). Le scritture dipendenti da altro stato sono condizionate nel SQL e danno 409: scheda archiviata, definizione del campo cambiata dopo la lettura, valore modificato durante un cambio di configurazione, etichetta assegnata durante l'eliminazione.

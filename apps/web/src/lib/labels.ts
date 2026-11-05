@@ -18,6 +18,15 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
   urgent: 'Urgente',
 };
 
+/** Tono del contrassegno per priorità: stesso significato nel Kanban, nella tabella e nel pannello. */
+export const PRIORITY_TONE = {
+  none: 'neutral',
+  low: 'neutral',
+  medium: 'primary',
+  high: 'warning',
+  urgent: 'danger',
+} as const satisfies Record<Priority, 'neutral' | 'primary' | 'warning' | 'danger'>;
+
 export const STAGE_LABELS: Record<Stage, string> = {
   saved: 'Salvata',
   preparing: 'In preparazione',

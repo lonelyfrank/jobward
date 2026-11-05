@@ -16,9 +16,9 @@ ATS per recruiter e non invia candidature al posto tuo. Funziona per qualsiasi s
 
 ## Stato effettivo del progetto
 
-**Milestone corrente: M1 — Boards & Cards** (branch `m1-boards-cards`, in attesa di revisione), sopra **M0** (foundation) e **M0.H** (hardening, già integrata).
+**Milestone corrente: M2 — Job Information & Customization** (branch `m2-information-customization`, in attesa di revisione), sopra **M1** (bacheche e Kanban), **M0** (foundation) e **M0.H** (hardening), già integrate.
 
-M1 rende l'app **utilizzabile**: si creano bacheche da template, si personalizzano le colonne, si registrano opportunità con il solo titolo, si modificano e si spostano (trascinamento con mouse, tastiera e touch, oppure da menu), si archiviano e si ripristinano, e tutto persiste: [`docs/m1/delivery.md`](docs/m1/delivery.md).
+M2 trasforma il Kanban in uno strumento da **confrontare e personalizzare**: dati professionali completi, fase ed esito indipendenti dalla colonna, campi personalizzati per bacheca, etichette, ricerca e filtri, vista Tabella ([`docs/m2/delivery.md`](docs/m2/delivery.md)). M1 aveva reso l'app **utilizzabile**: si creano bacheche da template, si personalizzano le colonne, si registrano opportunità con il solo titolo, si modificano e si spostano (trascinamento con mouse, tastiera e touch, oppure da menu), si archiviano e si ripristinano, e tutto persiste: [`docs/m1/delivery.md`](docs/m1/delivery.md).
 
 M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend e deployabilità, e corretto i difetti trovati (isolamento tra workspace nel database, header e cache degli asset, accessibilità del drawer e del menu, e altri): [`docs/m0h/delivery.md`](docs/m0h/delivery.md). **Non è "production ready"**: Cloudflare Access reale e la CI su GitHub non sono ancora stati provati.
 
@@ -36,11 +36,13 @@ M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend 
 | **Colonne** (crea, rinomina, colore, fase, ordine, eliminazione controllata)                   | ✅ **M1** — funzionanti                                     |
 | **Schede** (creazione rapida, dettaglio, priorità, azienda, URL, cronologia, archivio)         | ✅ **M1** — funzionanti                                     |
 | **Kanban interattivo** (trascinamento, tastiera, touch, menu, rollback)                        | ✅ **M1** — funzionante                                     |
-| Campi professionali (stipendio, sede, fase, esito…), etichette, filtri, ricerca, vista tabella | ⏳ M2                                                       |
+| **Dati professionali** (posizione, sede, modalità, contratto, retribuzione, date, fase, esito) | ✅ **M2** — funzionanti                                     |
+| **Campi personalizzati** (8 tipi, per bacheca) ed **etichette**                                | ✅ **M2** — funzionanti                                     |
+| **Ricerca, filtri e vista Tabella** (anche da telefono), Kanban ↔ Tabella                      | ✅ **M2** — funzionanti                                     |
 | Attività, scadenze, cronologia                                                                 | ⏳ M3                                                       |
 | Insights, esportazione dati, deploy privato                                                    | ⏳ M4                                                       |
 
-Le funzioni non ancora disponibili (M2–M4) sono mostrate come tali nell'interfaccia (badge _"In arrivo · Mx"_ e
+Le funzioni non ancora disponibili (M3–M4) sono mostrate come tali nell'interfaccia (badge _"In arrivo · Mx"_ e
 controlli disabilitati): nessuna di esse simula un comportamento. Non esistono dati dimostrativi: l'app
 parte vuota e ogni numero deriva dal database.
 
@@ -125,6 +127,7 @@ pnpm format:check     # Prettier
 pnpm check:contrast   # contrasto WCAG dei token colore, tema chiaro e scuro
 pnpm check:config     # invarianti di sicurezza della configurazione Cloudflare (wrangler.jsonc)
 pnpm db:check         # schema TypeScript coerente con le migrazioni committate
+pnpm db:upgrade-test  # un database di M1 popolato viene portato all'ultima migrazione senza perdere dati
 pnpm test             # unit + integrazione (shared, schemas, API nel runtime Workers, web)
 pnpm build            # build frontend + dry-run di pacchettizzazione del Worker
 pnpm test:e2e         # Playwright su stack di sviluppo (porte 5199/8799, DB pulito a ogni esecuzione)
@@ -166,5 +169,6 @@ meet-roulette/
 - Prodotto: [visione](docs/product/vision.md) · [requisiti](docs/product/requirements.md) · [modello di dominio](docs/product/domain-model.md) · [user stories](docs/product/user-stories.md)
 - UX: [architettura dell'informazione](docs/ux/information-architecture.md) · [design system](docs/ux/design-system.md) · [schermate](docs/ux/screens.md)
 - Roadmap: [milestone](docs/roadmap/milestones.md) · [consegna M0](docs/roadmap/m0-delivery.md) · [backlog](docs/roadmap/backlog.md)
+- M2: [consegna](docs/m2/delivery.md) · [architettura](docs/m2/architecture.md) · [ciclo della candidatura](docs/m2/application-lifecycle.md) · [campi personalizzati](docs/m2/custom-fields.md) · [etichette](docs/m2/labels.md) · [ricerca e filtri](docs/m2/search-and-filtering.md) · [tabella](docs/m2/table-view.md) · [contratti API](docs/m2/api-contracts.md) · [UX](docs/m2/ux-review.md) · [test](docs/m2/testing-report.md) · [problemi](docs/m2/issue-register.md)
 - M1: [consegna](docs/m1/delivery.md) · [architettura](docs/m1/architecture.md) · [contratti API](docs/m1/api-contracts.md) · [interazioni](docs/m1/board-interactions.md) · [ordinamento](docs/m1/kanban-ordering.md) · [accessibilità](docs/m1/accessibility.md) · [test](docs/m1/testing-report.md) · [problemi](docs/m1/issue-register.md)
 - Hardening M0.H: [consegna](docs/m0h/delivery.md) · [registro dei problemi](docs/m0h/issue-register.md) · [baseline](docs/m0h/audit-baseline.md) · [sicurezza](docs/m0h/security-audit.md) · [database](docs/m0h/database-audit.md) · [frontend](docs/m0h/frontend-audit.md) · [test](docs/m0h/testing-report.md) · [readiness Cloudflare](docs/m0h/cloudflare-readiness.md)

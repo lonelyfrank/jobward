@@ -1,14 +1,14 @@
 # Milestone
 
-| Milestone                              | Obiettivo                                                                        | Stato                                                                                              |
-| -------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| **M0** Foundation & Initial Workspace  | Fondamenta solide e primo ambiente navigabile                                    | ✅ Completata (vedi [consegna](m0-delivery.md))                                                    |
-| **M0.H** Hardening & merge readiness   | Verifica di M0, audit di sicurezza/DB/frontend, correzioni, readiness Cloudflare | ✅ Pronta per revisione (vedi [consegna](../m0h/delivery.md)) — **non** "production ready"         |
-| **M1** Boards & Cards                  | Il nucleo operativo: bacheche, colonne, schede, Kanban                           | ✅ Pronta per revisione (vedi [consegna](../m1/delivery.md)) — **dopo** l'integrazione della PR #2 |
-| **M2** Job Information & Customization | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella    | ⏳                                                                                                 |
-| **M3** Tasks & Activity                | Attività, follow-up, scadenze, cronologia, dashboard operativa                   | ⏳                                                                                                 |
-| **M4** Insights & Private Release      | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato        | ⏳                                                                                                 |
-| **M5** Public Readiness                | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi    | 🔮 Futuro, fuori incarico                                                                          |
+| Milestone                              | Obiettivo                                                                        | Stato                                                                                      |
+| -------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **M0** Foundation & Initial Workspace  | Fondamenta solide e primo ambiente navigabile                                    | ✅ Completata (vedi [consegna](m0-delivery.md))                                            |
+| **M0.H** Hardening & merge readiness   | Verifica di M0, audit di sicurezza/DB/frontend, correzioni, readiness Cloudflare | ✅ Pronta per revisione (vedi [consegna](../m0h/delivery.md)) — **non** "production ready" |
+| **M1** Boards & Cards                  | Il nucleo operativo: bacheche, colonne, schede, Kanban                           | ✅ Integrata (PR #3; vedi [consegna](../m1/delivery.md))                                   |
+| **M2** Job Information & Customization | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella    | ✅ Pronta per revisione (vedi [consegna](../m2/delivery.md))                               |
+| **M3** Tasks & Activity                | Attività, follow-up, scadenze, cronologia, dashboard operativa                   | ⏳                                                                                         |
+| **M4** Insights & Private Release      | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato        | ⏳                                                                                         |
+| **M5** Public Readiness                | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi    | 🔮 Futuro, fuori incarico                                                                  |
 
 ## M1 — Boards & Cards (piano originale; esito in [docs/m1](../m1/delivery.md))
 
@@ -51,3 +51,13 @@
 
 - Spostamenti concorrenti e ribilanciamento delle posizioni su D1 senza transazioni interattive → algoritmo e test mirati (passo 5).
 - Accessibilità del drag & drop → l'alternativa da tastiera è un requisito, non un extra.
+
+## M2 — Job Information & Customization (esito in [docs/m2](../m2/delivery.md))
+
+Realizzati: dati professionali completi, fase ed esito indipendenti dalla colonna, statistiche semantiche, campi personalizzati per bacheca (8 tipi, politica conservativa), etichette, ricerca e filtri sul server, vista Tabella (con elenco compatto a telefono), preferenze di colonne locali, Card Detail 2.0.
+
+Decisioni: [ADR-0009](../architecture/decisions/0009-application-lifecycle-and-statistics.md), [ADR-0010](../architecture/decisions/0010-custom-fields-conservative-model.md), [ADR-0011](../architecture/decisions/0011-search-and-table-state.md).
+
+### Rinviato (nessuna funzione finta)
+
+Filtri e colonne per campi personalizzati · modifica inline in tabella · FTS5 · conversione guidata del tipo di un campo · token di versione per le modifiche · Firefox/WebKit nella suite E2E · attività, follow-up, scadenze (M3) · esportazione e deploy privato (M4).

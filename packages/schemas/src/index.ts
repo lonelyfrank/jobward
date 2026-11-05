@@ -1,3 +1,4 @@
+import './zod-setup'; // PRIMO: configura Zod prima della creazione di qualunque schema
 export * from './primitives';
 export * from './workspace';
 export * from './board';

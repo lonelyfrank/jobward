@@ -1,6 +1,6 @@
 import { ArrowLeft, Archive, EllipsisVertical, Star } from 'lucide-react';
-import { useState } from 'react';
-import { Link, Outlet, useNavigate, useParams } from 'react-router';
+import { lazy, Suspense, useState } from 'react';
+import { Link, NavLink, Outlet, useNavigate, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import {
@@ -15,9 +15,13 @@ import { Surface } from '@/components/ui/surface';
 import { useBoardDetail, useDeleteBoard, useUpdateBoard } from '@/features/boards/api';
 import { BoardDialog } from '@/features/boards/board-dialog';
 import { ArchivedDialog } from '@/features/cards/archived-dialog';
-import { KanbanBoard } from '@/features/kanban/kanban-board';
 import { userMessage } from '@/features/kanban/mutations';
 import { cn } from '@/lib/cn';
+
+// Il configuratore è usato di rado: non pesa sul caricamento della bacheca.
+const CustomFieldsDialog = lazy(() =>
+  import('@/features/custom-fields/fields-dialog').then((m) => ({ default: m.CustomFieldsDialog })),
+);
 import { COLOR_BG, isColorToken } from '@/lib/labels';
 
 /** Bacheca aperta: intestazione, Kanban e (come sotto-rotta) il pannello di dettaglio della scheda. */
@@ -32,6 +36,7 @@ export function BoardPage() {
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
+  const [configuringFields, setConfiguringFields] = useState(false);
 
   if (board.isPending) {
     return (
@@ -124,7 +129,30 @@ export function BoardPage() {
             ) : null}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <nav
+              aria-label="Visualizzazione della bacheca"
+              className="flex rounded-md border border-border-strong p-0.5"
+            >
+              {[
+                { to: `/boards/${boardId}`, label: 'Kanban', end: true },
+                { to: `/boards/${boardId}/table`, label: 'Tabella', end: false },
+              ].map((view) => (
+                <NavLink
+                  key={view.to}
+                  to={view.to}
+                  end={view.end}
+                  className={({ isActive }) =>
+                    cn(
+                      'inline-flex h-8 items-center rounded px-3 text-sm font-medium max-md:min-h-11',
+                      isActive ? 'bg-primary text-primary-foreground' : 'hover:bg-surface-muted',
+                    )
+                  }
+                >
+                  {view.label}
+                </NavLink>
+              ))}
+            </nav>
             <Button variant="secondary" onClick={() => setShowArchived(true)}>
               <Archive aria-hidden="true" />
               Archiviate
@@ -143,6 +171,9 @@ export function BoardPage() {
                 <DropdownMenuItem onSelect={() => setEditing(true)}>
                   Modifica bacheca…
                 </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setConfiguringFields(true)}>
+                  Campi personalizzati…
+                </DropdownMenuItem>
                 <DropdownMenuItem danger onSelect={() => setDeleting(true)}>
                   Elimina bacheca…
                 </DropdownMenuItem>
@@ -153,10 +184,8 @@ export function BoardPage() {
       </header>
 
       <div className="min-h-0 flex-1">
-        <KanbanBoard boardId={boardId} data={board.data} />
+        <Outlet />
       </div>
-
-      <Outlet />
 
       <ArchivedDialog
         boardId={boardId}
@@ -171,6 +200,16 @@ export function BoardPage() {
           board={info}
           onOpenChange={(open) => !open && setEditing(false)}
         />
+      ) : null}
+      {configuringFields ? (
+        <Suspense fallback={null}>
+          <CustomFieldsDialog
+            boardId={boardId}
+            boardName={info.name}
+            open
+            onOpenChange={(open) => !open && setConfiguringFields(false)}
+          />
+        </Suspense>
       ) : null}
       <ConfirmDialog
         open={deleting}

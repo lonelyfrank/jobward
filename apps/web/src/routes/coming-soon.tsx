@@ -1,4 +1,4 @@
-import { BarChart3, ListChecks, Table2, type LucideIcon } from 'lucide-react';
+import { BarChart3, ListChecks, type LucideIcon } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PageHeader } from '@/components/ui/page-header';
 
@@ -24,17 +24,6 @@ function ComingSoon({
     </>
   );
 }
-
-export const OpportunitiesPage = () => (
-  <ComingSoon
-    title="Opportunità"
-    description="Tutte le tue schede in una tabella, tra bacheche diverse."
-    icon={Table2}
-    milestone="M2"
-    emptyTitle="Qui vedrai tutte le opportunità"
-    emptyText="Ricerca, filtri e ordinamento per azienda, priorità e fase arrivano con la vista tabella."
-  />
-);
 
 export const TasksPage = () => (
   <ComingSoon

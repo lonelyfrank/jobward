@@ -27,6 +27,11 @@ export const keys = {
   archived: (ws: string, boardId: string) => ['archived', ws, boardId] as const,
   card: (ws: string, cardId: string) => ['card', ws, cardId] as const,
   overview: (ws: string) => ['overview', ws] as const,
+  labels: (ws: string) => ['labels', ws] as const,
+  boardFields: (ws: string, boardId: string) => ['board-fields', ws, boardId] as const,
+  cardFields: (ws: string, cardId: string) => ['card-fields', ws, cardId] as const,
+  /** Prefisso di tutte le ricerche del workspace (si invalida in blocco dopo una modifica). */
+  opportunities: (ws: string) => ['opportunities', ws] as const,
 };
 
 /** Percorso API con il perimetro di workspace (verificato dal server per ogni richiesta). */
@@ -37,6 +42,8 @@ export const scoped = (ws: string, path: string) =>
 export function invalidateSummaries(queryClient: QueryClient, ws: string) {
   void queryClient.invalidateQueries({ queryKey: keys.overview(ws) });
   void queryClient.invalidateQueries({ queryKey: keys.boards(ws) });
+  // Elenchi e tabella derivano dalle stesse schede: restano coerenti col Kanban.
+  void queryClient.invalidateQueries({ queryKey: keys.opportunities(ws) });
 }
 
 // ---------------------------------------------------------------------------
@@ -52,9 +59,10 @@ export function useBoards() {
   });
 }
 
-export function useBoardDetail(boardId: string) {
+export function useBoardDetail(boardId: string, enabled = true) {
   const { workspace } = useWorkspace();
   return useQuery({
+    enabled,
     queryKey: keys.board(workspace.id, boardId),
     queryFn: () => apiRequest(scoped(workspace.id, `/boards/${boardId}`), boardDetailResponse),
     // Un 404 non si risolve ritentando (bacheca eliminata o non accessibile).

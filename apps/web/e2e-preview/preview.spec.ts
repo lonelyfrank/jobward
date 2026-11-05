@@ -213,6 +213,83 @@ test.describe('app reale sotto la CSP di produzione', () => {
     expect(await watch.collect()).toEqual([]);
   });
 
+  test('M2: dettagli, etichette, campi personalizzati, tabella e ricerca sotto la CSP reale', async ({
+    page,
+  }) => {
+    const watch = await watchViolations(page);
+    await page.goto('/boards');
+    await page.getByRole('main').getByRole('link', { name: 'Anteprima Kanban' }).click();
+    await page.getByRole('link', { name: 'Uno', exact: true }).click();
+    const panel = page.getByRole('dialog', { name: 'Uno' });
+
+    // Dettagli professionali (sezioni comprimibili) e fase/esito.
+    await panel.getByRole('button', { name: /Opportunità/ }).click();
+    await panel.getByLabel('Sede').fill('Brescia');
+    await panel.getByLabel('Modalità di lavoro').selectOption('hybrid');
+    await panel.getByLabel('Minima').fill('1800');
+    await panel.getByLabel('Valuta').fill('EUR');
+    await panel.getByLabel('Fase').selectOption('applied');
+    // Etichetta creata al volo.
+    await panel.getByRole('button', { name: 'Aggiungi etichetta' }).click();
+    await panel.getByLabel('Nuova etichetta').fill('Interessante');
+    await panel.getByRole('button', { name: 'Crea e assegna' }).click();
+    await expect(
+      panel.getByRole('list', { name: 'Etichette assegnate' }).getByText('Interessante'),
+    ).toBeVisible();
+    await panel.getByRole('button', { name: 'Salva' }).click();
+    await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
+    await page.keyboard.press('Escape');
+
+    // Configuratore dei campi (modulo caricato a richiesta: stessi vincoli della CSP).
+    await page.getByRole('button', { name: 'Azioni bacheca' }).click();
+    await page.getByRole('menuitem', { name: 'Campi personalizzati…' }).click();
+    const fields = page.getByRole('dialog', { name: 'Campi personalizzati' });
+    await fields.getByRole('button', { name: 'Aggiungi campo' }).click();
+    const form = page.getByRole('dialog', { name: 'Nuovo campo' });
+    await form.getByLabel('Nome del campo').fill('Reparto');
+    await form.getByRole('button', { name: 'Crea campo' }).click();
+    await expect(fields.getByText('Reparto', { exact: true })).toBeVisible();
+    await fields.getByRole('button', { name: 'Chiudi' }).click();
+
+    // Tabella (route caricata a richiesta), ricerca, ordinamento e dettaglio dalla tabella.
+    await page
+      .getByRole('navigation', { name: 'Visualizzazione della bacheca' })
+      .getByRole('link', { name: 'Tabella' })
+      .click();
+    await expect(page.getByRole('status').filter({ hasText: /risultat/ })).toHaveText(
+      '2 risultati',
+    );
+    await page.getByRole('searchbox', { name: 'Cerca in questa bacheca' }).fill('brescia');
+    await expect(page.getByRole('status').filter({ hasText: /risultat/ })).toHaveText(
+      '1 risultato',
+    );
+    await page
+      .getByRole('columnheader', { name: /Opportunità/ })
+      .getByRole('button')
+      .click();
+    await expect(page.getByRole('columnheader', { name: /Opportunità/ })).toHaveAttribute(
+      'aria-sort',
+      'ascending',
+    );
+    await page.getByRole('link', { name: 'Uno', exact: true }).click();
+    await expect(page.getByRole('dialog', { name: 'Uno' }).getByLabel('Fase')).toHaveValue(
+      'applied',
+    );
+    await page.keyboard.press('Escape');
+
+    // Schermata Opportunità e vista compatta da telefono.
+    await page.goto('/opportunities?q=brescia');
+    await expect(page.getByRole('status').filter({ hasText: /risultat/ })).toHaveText(
+      '1 risultato',
+    );
+    await page.setViewportSize({ width: 390, height: 844 });
+    await expect(
+      page.getByRole('list', { name: 'Opportunità' }).getByRole('link', { name: 'Uno' }),
+    ).toBeVisible();
+
+    expect(await watch.collect()).toEqual([]);
+  });
+
   test('le risposte API del Worker non hanno CORS e rifiutano richieste cross-site', async ({
     request,
     baseURL,

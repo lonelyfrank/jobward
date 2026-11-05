@@ -1,5 +1,6 @@
 import { Menu as MenuIcon, Plus, Search } from 'lucide-react';
-import { useState, type RefObject } from 'react';
+import { useState, type FormEvent, type RefObject } from 'react';
+import { useNavigate } from 'react-router';
 import { THEME_PREFERENCES, type ThemePreference } from '@meet-roulette/shared';
 import { Button } from '@/components/ui/button';
 import {
@@ -67,6 +68,14 @@ export function Topbar({
   menuButtonRef: RefObject<HTMLButtonElement | null>;
 }) {
   const [creating, setCreating] = useState(false);
+  const [term, setTerm] = useState('');
+  const navigate = useNavigate();
+  const submitSearch = (event: FormEvent) => {
+    event.preventDefault();
+    const q = term.trim();
+    void navigate(q ? `/opportunities?q=${encodeURIComponent(q)}` : '/opportunities');
+    setTerm('');
+  };
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4">
       <Button
@@ -84,10 +93,14 @@ export function Topbar({
         {title}
       </span>
 
-      {/* La ricerca arriva con M2: qui è dichiarata, non simulata. */}
-      <div role="search" className="ml-auto hidden max-w-xs flex-1 sm:block">
+      {/* Ricerca globale: porta alla schermata Opportunità (tutte le bacheche) con il testo cercato. */}
+      <form
+        role="search"
+        onSubmit={submitSearch}
+        className="ml-auto hidden max-w-xs flex-1 sm:block"
+      >
         <label htmlFor="global-search" className="sr-only">
-          Cerca (disponibile in M2)
+          Cerca in tutte le bacheche
         </label>
         <div className="relative">
           <Search
@@ -96,12 +109,16 @@ export function Topbar({
           />
           <Input
             id="global-search"
-            disabled
-            placeholder="Cerca · in arrivo (M2)"
+            type="search"
+            value={term}
+            maxLength={100}
+            autoComplete="off"
+            placeholder="Cerca in tutte le bacheche"
             className="pl-8"
+            onChange={(e) => setTerm(e.target.value)}
           />
         </div>
-      </div>
+      </form>
 
       <div className="ml-auto flex items-center gap-1 sm:ml-0">
         <Button

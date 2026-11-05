@@ -1,9 +1,14 @@
 import { type ThemePreference } from '@meet-roulette/shared';
+import { lazy, Suspense } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/page-header';
 import { Surface } from '@/components/ui/surface';
 import { useWorkspace } from '@/features/workspace/context';
 import { useTheme } from '@/lib/theme';
+
+const LabelsManager = lazy(() =>
+  import('@/features/labels/labels-manager').then((m) => ({ default: m.LabelsManager })),
+);
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; hint: string }[] = [
   { value: 'light', label: 'Chiaro', hint: 'Sfondo chiaro in ogni condizione.' },
@@ -12,7 +17,6 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; hint: string }[] =
 ];
 
 const UPCOMING = [
-  { label: 'Personalizzazione delle bacheche e dei campi', milestone: 'M2' },
   { label: 'Esportazione dei tuoi dati', milestone: 'M4' },
   { label: 'Eliminazione dell’account e dei dati', milestone: 'M5' },
 ];
@@ -29,6 +33,23 @@ export function SettingsPage() {
       />
 
       <div className="max-w-2xl space-y-6">
+        <Surface className="p-5">
+          <h2 className="font-semibold">Etichette</h2>
+          <p className="mt-1 mb-4 text-sm text-muted-foreground">
+            Parole chiave tue per ritrovare le opportunità, valide in tutte le bacheche. I campi
+            personalizzati si configurano per bacheca, dal menu “Azioni bacheca”.
+          </p>
+          <Suspense
+            fallback={
+              <p role="status" className="text-sm text-muted-foreground">
+                Caricamento…
+              </p>
+            }
+          >
+            <LabelsManager />
+          </Suspense>
+        </Surface>
+
         <Surface className="p-5">
           <fieldset>
             <legend className="font-semibold">Aspetto</legend>

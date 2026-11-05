@@ -7,6 +7,7 @@ import {
   expectNoA11yViolations,
   openSection,
   quickAdd,
+  smallTouchTargets,
 } from './helpers';
 
 /**
@@ -278,5 +279,9 @@ test('9. da telefono (390 px) il pannello è a schermo intero e i dettagli si mo
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBe(0);
+  await openSection(panel, 'Opportunità');
+  await openSection(panel, 'Candidatura');
+  await panel.getByRole('button', { name: 'Aggiungi etichetta' }).click();
   await expectNoA11yViolations(page, 'pannello 2.0 a 390 px');
+  expect(await smallTouchTargets(page, '[role=dialog]')).toEqual([]);
 });

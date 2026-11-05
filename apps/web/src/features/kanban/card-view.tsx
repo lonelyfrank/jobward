@@ -3,16 +3,16 @@ import { Link2 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';
 import { Badge } from '@/components/ui/badge';
-import { OUTCOME_LABELS, PRIORITY_LABELS, STAGE_LABELS, WORK_MODE_LABELS } from '@/lib/labels';
+import {
+  OUTCOME_LABELS,
+  PRIORITY_LABELS,
+  PRIORITY_TONE,
+  STAGE_LABELS,
+  WORK_MODE_LABELS,
+} from '@/lib/labels';
 import { cn } from '@/lib/cn';
-
-const PRIORITY_TONE = {
-  none: 'neutral',
-  low: 'neutral',
-  medium: 'primary',
-  high: 'warning',
-  urgent: 'danger',
-} as const;
+import { LabelChip } from '@/features/labels/label-chip';
+import { useLabels } from '@/features/labels/api';
 
 /** Contenuto di una scheda nel Kanban. È solo presentazione: usato dalla scheda e dall'overlay di trascinamento. */
 export function CardView({
@@ -28,6 +28,8 @@ export function CardView({
   menu?: ReactNode;
   overlay?: boolean;
 }) {
+  const labels = useLabels();
+  const cardLabels = (labels.data ?? []).filter((l) => card.labelIds.includes(l.id));
   // Una riga sola, in ordine di importanza: azienda, sede, modalità (solo ciò che c'è).
   const subtitle = [
     card.company,
@@ -57,6 +59,18 @@ export function CardView({
         )}
         {subtitle ? (
           <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
+        ) : null}
+        {cardLabels.length > 0 ? (
+          <ul aria-label="Etichette" className="mt-1.5 flex flex-wrap gap-1">
+            {cardLabels.slice(0, 3).map((l) => (
+              <li key={l.id} className="max-w-full">
+                <LabelChip name={l.name} color={l.color} />
+              </li>
+            ))}
+            {cardLabels.length > 3 ? (
+              <li className="text-xs text-muted-foreground">+{cardLabels.length - 3}</li>
+            ) : null}
+          </ul>
         ) : null}
         {card.priority !== 'none' || card.sourceUrl || card.stage || card.outcome ? (
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5">

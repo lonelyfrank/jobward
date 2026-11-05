@@ -111,8 +111,82 @@ export async function dragWithMouse(
   await page.mouse.up();
 }
 
-/** Apre una sezione comprimibile del pannello di dettaglio (le sezioni vuote partono chiuse). */
+/**
+ * Apre una sezione comprimibile del pannello di dettaglio (le sezioni vuote partono chiuse).
+ * Alcune si aprono da sole quando arrivano i dati: si riprova finché è aperta, così un clic
+ * non può chiudere ciò che nel frattempo si è aperto.
+ */
 export async function openSection(panel: Locator, name: string) {
   const toggle = panel.getByRole('button', { name, exact: false }).first();
-  if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
+  await expect(async () => {
+    if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true', { timeout: 1000 });
+  }).toPass({ timeout: 10_000 });
+}
+
+/**
+ * Client API per preparare i dati dei test (velocità): stessa origine del browser, quindi stessa
+ * autenticazione di sviluppo. I flussi sotto test restano quelli dell'interfaccia.
+ */
+export async function seedApi(page: Page) {
+  const me = await (await page.request.get('/api/v1/me')).json();
+  const ws = me.workspaces[0].id as string;
+  const url = (path: string) => `/api/v1${path}${path.includes('?') ? '&' : '?'}workspaceId=${ws}`;
+  const send = async (method: 'post' | 'patch' | 'put', path: string, data: unknown) => {
+    const res = await page.request[method](url(path), { data });
+    if (!res.ok()) throw new Error(`${method} ${path} → ${res.status()} ${await res.text()}`);
+    return res.json();
+  };
+  return {
+    workspaceId: ws,
+    async board(name: string) {
+      const created = await send('post', '/boards', { name, templateId: 'minimal' });
+      const columns = created.columns as { id: string; name: string }[];
+      return { id: created.board.id as string, columns };
+    },
+    async card(columnId: string, title: string, details: Record<string, unknown> = {}) {
+      const card = (await send('post', '/cards', { columnId, title })).card;
+      if (Object.keys(details).length > 0) await send('patch', `/cards/${card.id}`, details);
+      return card.id as string;
+    },
+    async label(name: string, color = 'slate') {
+      return (await send('post', '/labels', { name, color })).label.id as string;
+    },
+    async assign(cardId: string, labelId: string) {
+      await send('post', `/cards/${cardId}/labels`, { labelId });
+    },
+  };
+}
+
+/** Titoli delle righe della tabella (desktop), nell'ordine mostrato. */
+export async function tableTitles(page: Page) {
+  return page.locator('table tbody tr th[scope="row"] a').allTextContents();
+}
+
+/**
+ * Controlli interattivi visibili con un lato inferiore a 44 px (WCAG 2.5.8 / uso a telefono).
+ * Le caselle e i radio contano con la loro etichetta cliccabile; i link nel testo corrente sono esclusi.
+ */
+export async function smallTouchTargets(page: Page, rootSelector: string) {
+  return page.evaluate((root) => {
+    const out: string[] = [];
+    const scope = document.querySelector(root);
+    if (!scope) return ['(area non trovata)'];
+    for (const el of scope.querySelectorAll<HTMLElement>(
+      'a[href], button, select, input:not([type=hidden]), textarea, summary',
+    )) {
+      if (el.matches('.sr-only, .sr-only *') || el.closest('p, [hidden]')) continue;
+      const isToggle = el instanceof HTMLInputElement && ['checkbox', 'radio'].includes(el.type);
+      const box = (isToggle ? (el.closest('label') ?? el) : el).getBoundingClientRect();
+      if (box.width === 0 || box.height === 0) continue;
+      if (Math.min(box.width, box.height) < 43.5) {
+        const name =
+          el.getAttribute('aria-label') ?? el.textContent?.trim() ?? el.getAttribute('id');
+        out.push(
+          `${el.tagName} "${(name ?? '').slice(0, 28)}" ${Math.round(box.width)}x${Math.round(box.height)}`,
+        );
+      }
+    }
+    return out;
+  }, rootSelector);
 }

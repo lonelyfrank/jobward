@@ -157,11 +157,28 @@ describe('shell e navigazione', () => {
     expect(window.localStorage.getItem('mr-sidebar-collapsed')).toBe('1');
   });
 
-  it('la creazione rapida è operativa; la ricerca resta dichiarata come non disponibile', async () => {
-    mockApi(withWorkspace());
+  it('creazione rapida e ricerca globale sono operative: la ricerca porta a Opportunità con il testo', async () => {
+    const user = userEvent.setup();
+    mockApi({
+      ...withWorkspace(),
+      'GET /opportunities': () => ({
+        body: { items: [], total: 0, page: 1, pageSize: 25, pageCount: 0 },
+      }),
+      'GET /labels': () => ({ body: { labels: [] } }),
+    });
     renderApp();
     expect(await screen.findByRole('button', { name: /Nuova scheda/ })).toBeEnabled();
-    expect(screen.getByRole('textbox', { name: /Cerca/ })).toBeDisabled();
+    const search = screen.getByRole('searchbox', { name: 'Cerca in tutte le bacheche' });
+    expect(search).toBeEnabled();
+    await user.type(search, 'infermiere{Enter}');
+    // Ambito dichiarato e testo già applicato nella casella di ricerca della schermata.
+    expect(
+      await screen.findByRole('heading', { name: 'Opportunità', level: 1 }),
+    ).toBeInTheDocument();
+    expect(await screen.findByRole('searchbox', { name: 'Cerca nelle opportunità' })).toHaveValue(
+      'infermiere',
+    );
+    expect(screen.getByText(/Ambito: tutte le bacheche/)).toBeInTheDocument();
   });
 });
 
