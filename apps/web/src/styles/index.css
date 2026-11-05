@@ -6,7 +6,7 @@
  * Design tokens semantici.
  * I componenti usano SOLO questi nomi (bg-surface, text-muted-foreground, ...),
  * mai colori letterali: tema chiaro e scuro si cambiano qui, in un punto solo.
- * Identità: "feltro del tavolo da roulette" (verde) su neutri caldi, con il rosso
+ * Identità: verde operativo su neutri caldi, con il rosso
  * riservato a urgenza e azioni distruttive.
  */
 :root {

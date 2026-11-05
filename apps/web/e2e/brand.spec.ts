@@ -11,9 +11,9 @@ test('marchio originale: temi, proporzioni, simbolo compatto e navigazione mobil
     const logo = page.locator('img[alt="Jobward"]:visible');
     await expect(logo).toHaveCount(1);
     await expect(logo).toBeVisible();
-    expect(
-      await logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0),
-    ).toBe(true);
+    await expect
+      .poll(() => logo.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0))
+      .toBe(true);
     const ratio = await logo.evaluate(
       (img) => img.getBoundingClientRect().width / img.getBoundingClientRect().height,
     );

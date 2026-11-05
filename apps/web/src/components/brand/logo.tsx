@@ -8,7 +8,7 @@ export function LogoMark({ className }: { className?: string }) {
       viewBox="60 75 170 170"
       role="img"
       aria-label={BRAND.name}
-      className={cn('size-7 shrink-0', className)}
+      className={cn('size-7 shrink-0 rounded bg-white', className)}
     >
       <image href={BRAND.assets.logo} width="866" height="288" />
     </svg>
