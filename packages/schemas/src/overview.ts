@@ -24,5 +24,16 @@ export const overviewResponse = z.object({
     }),
   ),
   recentBoards: z.array(boardSummarySchema),
+  /** Schede attive modificate di recente, con bacheca e colonna in cui si trovano. */
+  recentCards: z.array(
+    z.object({
+      id: idSchema,
+      title: z.string(),
+      boardId: idSchema,
+      boardName: z.string(),
+      columnName: z.string(),
+      updatedAt: z.number().int(),
+    }),
+  ),
 });
 export type OverviewResponse = z.infer<typeof overviewResponse>;

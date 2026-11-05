@@ -157,12 +157,10 @@ describe('shell e navigazione', () => {
     expect(window.localStorage.getItem('mr-sidebar-collapsed')).toBe('1');
   });
 
-  it('dichiara non disponibili ricerca e creazione rapida, senza simularle', async () => {
+  it('la creazione rapida è operativa; la ricerca resta dichiarata come non disponibile', async () => {
     mockApi(withWorkspace());
     renderApp();
-    const create = await screen.findByRole('button', { name: /Nuova scheda/ });
-    expect(create).toBeDisabled();
-    expect(create).toHaveAccessibleDescription(/Non ancora disponibile.*M1/);
+    expect(await screen.findByRole('button', { name: /Nuova scheda/ })).toBeEnabled();
     expect(screen.getByRole('textbox', { name: /Cerca/ })).toBeDisabled();
   });
 });
@@ -175,8 +173,12 @@ describe('Overview', () => {
     const summary = screen.getByRole('region', { name: 'Riepilogo' });
     expect(within(summary).getAllByText('0')).toHaveLength(5);
     expect(screen.getByText(/Nessuna scadenza in arrivo/)).toBeInTheDocument();
-    // I passi non ancora disponibili dichiarano la milestone.
-    expect(screen.getAllByText(/In arrivo · M1/).length).toBeGreaterThan(0);
+    // M1 è operativa: restano segnalati solo i passi che dipendono da milestone future.
+    expect(screen.queryByText(/In arrivo · M1/)).not.toBeInTheDocument();
+    expect(screen.getByText(/In arrivo · M3/)).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: 'Crea la prima bacheca da un template' }),
+    ).toHaveAttribute('href', '/boards');
   });
 
   it('mostra i numeri, le scadenze (nel fuso del workspace) e le bacheche recenti dall’API', async () => {
@@ -198,6 +200,16 @@ describe('Overview', () => {
         recentBoards: [
           { id: 'b1', name: 'Ricerca autunno', color: null, icon: null, updatedAt: 1 },
         ],
+        recentCards: [
+          {
+            id: 'k1',
+            title: 'Barista part-time',
+            boardId: 'b1',
+            boardName: 'Ricerca autunno',
+            columnName: 'Salvate',
+            updatedAt: 1,
+          },
+        ],
       }),
     );
     renderApp();
@@ -210,6 +222,11 @@ describe('Overview', () => {
     expect(screen.getByText('Richiama HR')).toBeInTheDocument();
     expect(screen.getByText(/10 nov 2026.*09:00/)).toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'Ricerca autunno' }).length).toBeGreaterThan(0);
+    // Opportunità recenti: apre il dettaglio della scheda nella sua bacheca.
+    expect(screen.getByRole('link', { name: /Barista part-time/ })).toHaveAttribute(
+      'href',
+      '/boards/b1/cards/k1',
+    );
   });
 
   it('mostra un errore recuperabile se il riepilogo non si carica', async () => {
@@ -236,9 +253,12 @@ describe('Overview', () => {
 });
 
 describe('schermate base', () => {
-  it('Bacheche mostra i template letti dai dati condivisi, non scritti nel componente', async () => {
-    mockApi(withWorkspace());
+  it('Bacheche (vuota) mostra i template letti dai dati condivisi, non scritti nel componente', async () => {
+    mockApi({ ...withWorkspace(), 'GET /boards': () => ({ body: { boards: [] } }) });
     renderApp('/boards');
+    expect(
+      await screen.findByRole('heading', { name: 'Non hai ancora bacheche' }),
+    ).toBeInTheDocument();
     const standard = await screen.findByRole('heading', { name: 'Job Search Standard' });
     const list = within(standard.closest('li')!).getByRole('list', {
       name: /Colonne di Job Search Standard/,
@@ -248,7 +268,7 @@ describe('schermate base', () => {
         .getAllByRole('listitem')
         .map((i) => i.textContent),
     ).toEqual(['Salvate', 'Da candidarsi', 'Inviate', 'Contattato', 'Colloquio', 'Concluse']);
-    expect(screen.getByRole('button', { name: 'Nuova bacheca' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Nuova bacheca' })).toBeEnabled();
   });
 
   it('le schermate future dichiarano la milestone e non offrono azioni attive', async () => {

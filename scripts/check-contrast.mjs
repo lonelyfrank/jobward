@@ -57,6 +57,11 @@ const pairs = [
   ['ring', 'surface', 3],
   ['border-strong', 'background', 3],
   ['border-strong', 'surface', 3],
+  // Colori delle bacheche/colonne: elementi grafici (non testo) ⇒ almeno 3:1 sulla superficie.
+  ...['slate', 'blue', 'green', 'amber', 'violet', 'rose', 'teal', 'orange'].flatMap((c) => [
+    [`accent-${c}`, 'surface', 3],
+    [`accent-${c}`, 'background', 3],
+  ]),
 ];
 let bad = 0;
 for (const [name, t] of [

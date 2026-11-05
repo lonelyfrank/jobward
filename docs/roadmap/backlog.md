@@ -37,3 +37,15 @@ Voci note, non pianificate in una milestone specifica o da rivalutare. Priorità
 | B   | Preferenze (tema, sidebar) sincronizzate sul server                   | Oggi in `localStorage` del dispositivo                  |
 | B   | Bacheche preferite per utente (oggi attributo della bacheca)          | Con la condivisione (M5)                                |
 | B   | Allegati (R2)                                                         | Milestone successiva a M4                               |
+
+## Emerse in M1 (da [issue-register](../m1/issue-register.md))
+
+| P   | Voce                                                                                                            | Note                                                   |
+| --- | --------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| A   | **Integrare la PR #2 prima di M1** (CI di `main` rossa per l'E2E)                                               | M1 è impilata sul suo branch                           |
+| M   | Code splitting della vista bacheca (JS 293 → 452 kB)                                                            | L-04; M4                                               |
+| M   | Prova manuale con screen reader e trascinamento da tastiera **tra colonne**; test su iOS/Android/Firefox/WebKit | L-05, L-06; prima del rilascio privato                 |
+| M   | Cambio di fase proposto (con conferma) quando una scheda entra in una colonna con categoria                     | Decisione rinviata a M2; M1 è volutamente conservativa |
+| B   | Token di versione nella modifica delle schede (ultima scrittura vince)                                          | L-01; utile solo con più dispositivi/utenti            |
+| B   | Pulizia della cronologia scollegata dopo l'eliminazione di una bacheca                                          | L-07; M4/M5                                            |
+| B   | Paginazione/virtualizzazione per bacheche molto grandi (tetto attuale 2000 schede)                              | L-03                                                   |

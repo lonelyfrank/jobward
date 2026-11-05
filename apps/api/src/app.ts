@@ -5,6 +5,9 @@ import { authenticate, defaultAuthDeps, type AuthDeps } from './middleware/auth'
 import { onError, onNotFound } from './middleware/errors';
 import { csrfGuard, payloadLimit } from './middleware/guards';
 import { apiSecurityHeaders, requestId, requestLogger } from './middleware/request';
+import { boardRoutes } from './modules/boards/routes';
+import { cardRoutes } from './modules/cards/routes';
+import { columnRoutes } from './modules/columns/routes';
 import { healthRoutes } from './modules/health/routes';
 import { meRoutes } from './modules/me/routes';
 import { overviewRoutes } from './modules/overview/routes';
@@ -33,6 +36,9 @@ export function createApp(deps: AuthDeps = defaultAuthDeps) {
   v1.route('/me', meRoutes);
   v1.route('/workspaces', workspaceRoutes);
   v1.route('/overview', overviewRoutes);
+  v1.route('/boards', boardRoutes);
+  v1.route('/columns', columnRoutes);
+  v1.route('/cards', cardRoutes);
   app.route('/api/v1', v1);
 
   return app;

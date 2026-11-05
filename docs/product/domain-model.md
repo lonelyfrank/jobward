@@ -40,8 +40,14 @@ in "Fase 2 — Call tecnica", la fase resta `interviewing` e le statistiche non 
 ## Template di bacheca (dati, non logica)
 
 Definiti in `packages/shared/src/templates.ts`: **Job Search Standard** (Salvate → Da candidarsi → Inviate → Contattato → Colloquio → Concluse,
-con fasi semantiche associate), **Minimal** (Da fare → In corso → Completate) e **Custom** (vuota). Il frontend li legge, il backend li userà in M1 per creare le colonne.
+con fasi semantiche associate), **Minimal** (Da fare → In corso → Completate) e **Custom** (vuota). Il frontend li legge e il backend li usa (da M1) per creare bacheca e colonne in un'unica operazione atomica.
 
-## Stato di implementazione in M0
+## Stato di implementazione
 
-Schema e migrazioni: **tutte le entità**. Schemi di validazione: tutte le entità (testati). API: solo workspace/overview/me. CRUD delle altre entità: M1–M3.
+- **M0**: schema e migrazioni di **tutte** le entità; schemi di validazione di tutte le entità.
+- **M1**: API e interfaccia per **Board, BoardColumn, Card** (con archiviazione) e, di `ApplicationDetails`, soltanto **azienda** e **URL dell'annuncio**; `ActivityEvent` per creazione, spostamento tra colonne, cambio priorità, archiviazione e ripristino.
+- Da fare: campi professionali completi e personalizzati, etichette (M2); attività e cronologia estesa (M3).
+
+## Fase, esito e colonna in M1
+
+La **categoria** di una colonna è un'etichetta informativa: spostare una scheda **non** modifica `stage` né `outcome`. Vedi [interazioni](../m1/board-interactions.md).

@@ -12,8 +12,11 @@ export function DropdownMenuContent({ className, ...props }: ComponentProps<type
       <Menu.Content
         align="end"
         sideOffset={6}
+        // Il menu non supera mai lo spazio disponibile nella finestra: se serve scorre al suo interno
+        // (altrimenti le voci in fondo restano fuori dallo schermo e non sono raggiungibili).
+        collisionPadding={8}
         className={cn(
-          'z-50 min-w-56 animate-[mr-fade-in_0.12s_ease-out] rounded-lg border border-border bg-surface p-1 text-sm shadow-md',
+          'z-50 max-h-(--radix-dropdown-menu-content-available-height) min-w-56 animate-[mr-fade-in_0.12s_ease-out] overflow-y-auto rounded-lg border border-border bg-surface p-1 text-sm shadow-md',
           className,
         )}
         {...props}
@@ -51,4 +54,12 @@ export function DropdownMenuRadioItem({
 
 export function DropdownMenuSeparator() {
   return <Menu.Separator className="my-1 h-px bg-border" />;
+}
+
+export function DropdownMenuItem({
+  className,
+  danger,
+  ...props
+}: ComponentProps<typeof Menu.Item> & { danger?: boolean }) {
+  return <Menu.Item className={cn(itemClass, danger && 'text-danger', className)} {...props} />;
 }

@@ -97,6 +97,11 @@ export const LIMITS = {
   descriptionMax: 10_000,
   shortTextMax: 500,
   urlMax: 2_048,
+  /** Tetti per workspace/bacheca: proteggono costi e prestazioni, applicati in modo atomico. */
+  boardsPerWorkspaceMax: 100,
+  columnsPerBoardMax: 30,
+  /** Schede (anche archiviate) per bacheca: la bacheca le carica tutte insieme (ADR-0008). */
+  cardsPerBoardMax: 2_000,
   /** Dimensione massima del body JSON accettato dall'API, in byte. */
   requestBodyMaxBytes: 64 * 1024,
 } as const;

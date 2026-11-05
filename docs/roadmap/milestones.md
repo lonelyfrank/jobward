@@ -1,16 +1,16 @@
 # Milestone
 
-| Milestone                              | Obiettivo                                                                        | Stato                                                                                      |
-| -------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| **M0** Foundation & Initial Workspace  | Fondamenta solide e primo ambiente navigabile                                    | ✅ Completata (vedi [consegna](m0-delivery.md))                                            |
-| **M0.H** Hardening & merge readiness   | Verifica di M0, audit di sicurezza/DB/frontend, correzioni, readiness Cloudflare | ✅ Pronta per revisione (vedi [consegna](../m0h/delivery.md)) — **non** "production ready" |
-| **M1** Boards & Cards                  | Il nucleo operativo: bacheche, colonne, schede, Kanban                           | ⏳ Prossima                                                                                |
-| **M2** Job Information & Customization | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella    | ⏳                                                                                         |
-| **M3** Tasks & Activity                | Attività, follow-up, scadenze, cronologia, dashboard operativa                   | ⏳                                                                                         |
-| **M4** Insights & Private Release      | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato        | ⏳                                                                                         |
-| **M5** Public Readiness                | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi    | 🔮 Futuro, fuori incarico                                                                  |
+| Milestone                              | Obiettivo                                                                        | Stato                                                                                              |
+| -------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| **M0** Foundation & Initial Workspace  | Fondamenta solide e primo ambiente navigabile                                    | ✅ Completata (vedi [consegna](m0-delivery.md))                                                    |
+| **M0.H** Hardening & merge readiness   | Verifica di M0, audit di sicurezza/DB/frontend, correzioni, readiness Cloudflare | ✅ Pronta per revisione (vedi [consegna](../m0h/delivery.md)) — **non** "production ready"         |
+| **M1** Boards & Cards                  | Il nucleo operativo: bacheche, colonne, schede, Kanban                           | ✅ Pronta per revisione (vedi [consegna](../m1/delivery.md)) — **dopo** l'integrazione della PR #2 |
+| **M2** Job Information & Customization | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella    | ⏳                                                                                                 |
+| **M3** Tasks & Activity                | Attività, follow-up, scadenze, cronologia, dashboard operativa                   | ⏳                                                                                                 |
+| **M4** Insights & Private Release      | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato        | ⏳                                                                                                 |
+| **M5** Public Readiness                | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi    | 🔮 Futuro, fuori incarico                                                                          |
 
-## M1 — Boards & Cards (piano)
+## M1 — Boards & Cards (piano originale; esito in [docs/m1](../m1/delivery.md))
 
 **Obiettivo**: poter creare una bacheca da un template, aggiungere schede e spostarle, con persistenza.
 
@@ -40,11 +40,12 @@
 | 10  | **Onboarding completo**: scelta template + prima opportunità                                                         | E2E del flusso completo della specifica                                                      |
 | 11  | Overview: i contatori e "bacheche recenti" si popolano; rimuovere i badge M1                                         | Test aggiornati                                                                              |
 
-### Decisioni da prendere all'inizio di M1
+### Decisioni prese in M1
 
-- Dimensione/paginazione del carico delle schede per bacheca (tutte insieme finché sono poche centinaia?).
-- Colori e icone delle bacheche: elenco chiuso di token e icone Lucide ammesse.
-- Comportamento esatto del cambio di fase proposto quando si sposta in una colonna con categoria semantica.
+- **Caricamento**: tutte le schede attive di una bacheca insieme; tetti atomici 100 bacheche / 30 colonne / 2000 schede (ADR-0008).
+- **Colori**: elenco chiuso di 8 token (`slate … orange`), con contrasto ≥ 3:1 verificato; le icone delle bacheche non sono esposte in M1.
+- **Fase semantica**: la categoria di una colonna è **solo un'etichetta**; spostare una scheda non cambia `stage` né `outcome` (conservativo). Il cambio proposto, con conferma, è rinviato a M2.
+- **Passo 10 (onboarding con scelta template + prima opportunità)**: realizzato come checklist reale dell'Overview + creazione da template, non come procedura guidata separata.
 
 ### Rischi
 

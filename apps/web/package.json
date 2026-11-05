@@ -13,6 +13,9 @@
     "test:preview": "vite build && playwright test -c playwright.preview.config.ts"
   },
   "dependencies": {
+    "@dnd-kit/core": "6.3.1",
+    "@dnd-kit/sortable": "10.0.0",
+    "@dnd-kit/utilities": "3.2.2",
     "@fontsource-variable/inter": "^5.2.8",
     "@hookform/resolvers": "7.0.2",
     "@meet-roulette/schemas": "workspace:*",

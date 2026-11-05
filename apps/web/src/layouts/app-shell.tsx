@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation, useMatches } from 'react-router';
+import { NoticeProvider } from '@/components/ui/notices';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Sheet } from '@/components/ui/sheet';
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed';
@@ -17,7 +18,11 @@ export function AppShell() {
   const [navOpen, setNavOpen] = useState(false);
   const location = useLocation();
   const matches = useMatches();
-  const title = (matches.at(-1)?.handle as RouteHandle | undefined)?.title ?? 'Meet Roulette';
+  // Il titolo è quello della rotta più profonda che ne dichiara uno (il pannello di dettaglio
+  // è una sotto-rotta senza titolo proprio: la vista resta "Bacheca").
+  const handles = matches.flatMap((m) => (m.handle ? [m.handle as RouteHandle] : []));
+  const title = handles.at(-1)?.title ?? 'Meet Roulette';
+  const fullBleed = handles.some((h) => h.fullBleed);
   const mainRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
   const previousPath = useRef(location.pathname);
@@ -51,46 +56,60 @@ export function AppShell() {
 
   return (
     <TooltipProvider>
-      <a
-        href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
-      >
-        Vai al contenuto
-      </a>
-
-      <div className="flex h-dvh overflow-hidden">
-        <aside
-          className={cn(
-            'hidden shrink-0 border-r border-border bg-sidebar transition-[width] duration-150 md:block',
-            collapsed ? 'w-16' : 'w-64',
-          )}
+      <NoticeProvider>
+        <a
+          href="#main"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:rounded-md focus:bg-primary focus:px-3 focus:py-2 focus:text-primary-foreground"
         >
-          <Sidebar collapsed={collapsed} onToggleCollapsed={toggle} />
-        </aside>
+          Vai al contenuto
+        </a>
 
-        <Sheet
-          open={navOpen}
-          onOpenChange={setNavOpen}
-          title="Menu di navigazione"
-          returnFocusRef={menuButtonRef}
-        >
-          <Sidebar onNavigate={() => setNavOpen(false)} />
-        </Sheet>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <Topbar title={title} onOpenNav={() => setNavOpen(true)} menuButtonRef={menuButtonRef} />
-          <main
-            id="main"
-            ref={mainRef}
-            tabIndex={-1}
-            className="flex-1 overflow-y-auto px-4 py-6 outline-none sm:px-8"
+        <div className="relative flex h-dvh overflow-hidden">
+          <aside
+            className={cn(
+              'hidden shrink-0 border-r border-border bg-sidebar transition-[width] duration-150 md:block',
+              collapsed ? 'w-16' : 'w-64',
+            )}
           >
-            <div className="mx-auto max-w-6xl animate-[mr-fade-in_0.15s_ease-out]">
-              <Outlet />
-            </div>
-          </main>
+            <Sidebar collapsed={collapsed} onToggleCollapsed={toggle} />
+          </aside>
+
+          <Sheet
+            open={navOpen}
+            onOpenChange={setNavOpen}
+            title="Menu di navigazione"
+            returnFocusRef={menuButtonRef}
+          >
+            <Sidebar onNavigate={() => setNavOpen(false)} />
+          </Sheet>
+
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Topbar
+              title={title}
+              onOpenNav={() => setNavOpen(true)}
+              menuButtonRef={menuButtonRef}
+            />
+            <main
+              id="main"
+              ref={mainRef}
+              tabIndex={-1}
+              className={cn(
+                'flex-1 outline-none',
+                fullBleed ? 'min-h-0 overflow-hidden' : 'overflow-y-auto px-4 py-6 sm:px-8',
+              )}
+            >
+              <div
+                className={cn(
+                  'animate-[mr-fade-in_0.15s_ease-out]',
+                  fullBleed ? 'h-full' : 'mx-auto max-w-6xl',
+                )}
+              >
+                <Outlet />
+              </div>
+            </main>
+          </div>
         </div>
-      </div>
+      </NoticeProvider>
     </TooltipProvider>
   );
 }

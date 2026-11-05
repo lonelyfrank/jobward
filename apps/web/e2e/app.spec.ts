@@ -56,12 +56,15 @@ test('naviga tra tutte le schermate e ciascuna dichiara cosa non è ancora dispo
   // Un URL diretto (SPA fallback) deve funzionare anche dopo un refresh.
   await page.goto('/boards');
   await expect(page.getByRole('heading', { level: 1, name: 'Bacheche' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Nuova bacheca' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Nuova bacheca' })).toBeEnabled();
 });
 
 test('accessibilità WCAG 2.2 AA (automatica) su ogni schermata, tema chiaro e scuro', async ({
   page,
 }) => {
+  // Dodici analisi axe in sequenza (6 schermate × 2 temi): già vicine al limite predefinito
+  // (19–30 s su un portatile con 4 core) e in crescita a ogni schermata nuova.
+  test.slow();
   for (const scheme of ['light', 'dark'] as const) {
     await page.emulateMedia({ colorScheme: scheme });
     // localStorage è accessibile solo su una pagina reale, non su about:blank.

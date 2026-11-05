@@ -1,5 +1,5 @@
 import { Menu as MenuIcon, Plus, Search } from 'lucide-react';
-import type { RefObject } from 'react';
+import { useState, type RefObject } from 'react';
 import { THEME_PREFERENCES, type ThemePreference } from '@meet-roulette/shared';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
+import { GlobalCreateCardDialog } from '@/features/kanban/global-create';
 import { useWorkspace } from '@/features/workspace/context';
 import { useTheme } from '@/lib/theme';
 
@@ -65,6 +66,7 @@ export function Topbar({
   onOpenNav: () => void;
   menuButtonRef: RefObject<HTMLButtonElement | null>;
 }) {
+  const [creating, setCreating] = useState(false);
   return (
     <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background px-4">
       <Button
@@ -82,7 +84,7 @@ export function Topbar({
         {title}
       </span>
 
-      {/* Ricerca e creazione rapida arrivano con le schede (M1/M2): qui sono dichiarate, non simulate. */}
+      {/* La ricerca arriva con M2: qui è dichiarata, non simulata. */}
       <div role="search" className="ml-auto hidden max-w-xs flex-1 sm:block">
         <label htmlFor="global-search" className="sr-only">
           Cerca (disponibile in M2)
@@ -106,18 +108,14 @@ export function Topbar({
           variant="primary"
           size="sm"
           className="max-md:min-w-11"
-          disabled
-          aria-describedby="quick-create-note"
-          title="Disponibile in M1"
+          onClick={() => setCreating(true)}
         >
           <Plus aria-hidden="true" />
           <span className="max-sm:sr-only">Nuova scheda</span>
         </Button>
-        <span id="quick-create-note" className="sr-only">
-          Non ancora disponibile: la creazione di schede arriva in M1.
-        </span>
         <UserMenu />
       </div>
+      {creating ? <GlobalCreateCardDialog open onOpenChange={setCreating} /> : null}
     </header>
   );
 }

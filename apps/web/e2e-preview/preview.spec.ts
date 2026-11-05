@@ -165,6 +165,54 @@ test.describe('app reale sotto la CSP di produzione', () => {
     expect(await watch.collect()).toEqual([]);
   });
 
+  test('M1: bacheca, colonne, schede, trascinamento, pannello di dettaglio e conferme sotto la CSP reale', async ({
+    page,
+  }) => {
+    const watch = await watchViolations(page);
+    await page.goto('/boards');
+    await page.getByRole('button', { name: 'Crea la tua prima bacheca' }).click();
+    const dialog = page.getByRole('dialog', { name: 'Nuova bacheca' });
+    await dialog.getByLabel('Nome', { exact: true }).fill('Anteprima Kanban');
+    await dialog.getByRole('radio', { name: /Minimal/ }).check({ force: true });
+    await dialog.getByRole('button', { name: 'Crea bacheca' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Anteprima Kanban' })).toBeVisible();
+
+    const col = (name: string) =>
+      page.getByRole('region', { name, exact: true }).and(page.locator('[data-column-id]'));
+    for (const title of ['Uno', 'Due']) {
+      const first = col('Da fare');
+      if (!(await first.getByLabel(/Titolo della nuova scheda/).isVisible()))
+        await first.getByRole('button', { name: /Aggiungi scheda/ }).click();
+      await first.getByLabel(/Titolo della nuova scheda/).fill(title);
+      await page.keyboard.press('Enter');
+      await expect(first.getByRole('link', { name: title })).toBeVisible();
+    }
+
+    // Trascinamento con il mouse (dnd-kit applica stili inline: la CSP deve consentirli).
+    const from = (await page.locator('[data-card-id]').filter({ hasText: 'Due' }).boundingBox())!;
+    const to = (await col('In corso').boundingBox())!;
+    await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(from.x + from.width / 2 + 10, from.y + 10, { steps: 4 });
+    await page.mouse.move(to.x + to.width / 2, to.y + 90, { steps: 12 });
+    await page.mouse.up();
+    await expect(col('In corso').getByRole('link', { name: 'Due' })).toBeVisible();
+
+    // Pannello di dettaglio (Dialog Radix come drawer) e conferma di eliminazione (AlertDialog).
+    await page.getByRole('link', { name: 'Uno', exact: true }).click();
+    const panel = page.getByRole('dialog', { name: 'Uno' });
+    await panel.getByLabel('Azienda').fill('ACME');
+    await panel.getByRole('button', { name: 'Salva' }).click();
+    await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
+    await page.keyboard.press('Escape');
+    await page.getByRole('button', { name: 'Azioni bacheca' }).click();
+    await page.getByRole('menuitem', { name: 'Elimina bacheca…' }).click();
+    await expect(page.getByRole('alertdialog')).toBeVisible();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Annulla' }).click();
+
+    expect(await watch.collect()).toEqual([]);
+  });
+
   test('le risposte API del Worker non hanno CORS e rifiutano richieste cross-site', async ({
     request,
     baseURL,
