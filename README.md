@@ -18,7 +18,7 @@ ATS per recruiter e non invia candidature al posto tuo. Funziona per qualsiasi s
 
 ## Stato effettivo del progetto
 
-**Milestone corrente: M2.5 — Smart Application Modal & Interview Tracking** (branch `m25-smart-application-modal`, in attesa di revisione; deriva da M2 + PR #4), sopra **M2** (dati, campi personalizzati, ricerca, tabella), **M1** (bacheche e Kanban), **M0** (foundation) e **M0.H** (hardening). M0–M2 sono su `main`; la correzione di un test E2E (PR #4) è ancora da integrare.
+**Checkpoint corrente: M3-C1 — Domain & Pipeline e rebranding tecnico**, sul branch locale `m3-application-workflow`, sopra M2.5 e la baseline `0000550`. Il dominio puro e il rebranding sono completati e verificati; API, persistenza e UI pipeline di C2–C5 non sono ancora avviate. [Consegna e risultati C1](docs/m3/c1-delivery.md).
 
 M2 trasforma il Kanban in uno strumento da **confrontare e personalizzare**: dati professionali completi, fase ed esito indipendenti dalla colonna, campi personalizzati per bacheca, etichette, ricerca e filtri, vista Tabella ([`docs/m2/delivery.md`](docs/m2/delivery.md)). M1 aveva reso l'app **utilizzabile**: si creano bacheche da template, si personalizzano le colonne, si registrano opportunità con il solo titolo, si modificano e si spostano (trascinamento con mouse, tastiera e touch, oppure da menu), si archiviano e si ripristinano, e tutto persiste: [`docs/m1/delivery.md`](docs/m1/delivery.md).
 
@@ -42,7 +42,7 @@ M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend 
 | **Campi personalizzati** (8 tipi, per bacheca) ed **etichette**                                     | ✅ **M2** — funzionanti                                     |
 | **Ricerca, filtri e vista Tabella** (anche da telefono), Kanban ↔ Tabella                           | ✅ **M2** — funzionanti                                     |
 | **Modale della candidatura e colloqui** (più round, feedback, prossimo colloquio sulla card Kanban) | ✅ **M2.5** — funzionanti                                   |
-| Attività, scadenze, cronologia                                                                      | ⏳ M3                                                       |
+| Attività, scadenze e timeline unificata                                                             | ⏳ M3                                                       |
 | Insights, esportazione dati, deploy privato                                                         | ⏳ M4                                                       |
 
 Le funzioni non ancora disponibili (M3–M4) sono mostrate come tali nell'interfaccia (badge _"In arrivo · Mx"_ e
@@ -100,7 +100,7 @@ Per ripartire da zero cancella `apps/api/.wrangler/state` e rilancia `pnpm db:mi
 | `OWNER_EMAIL`        | _da impostare_       | —                         | Unico account ammesso in produzione                     |
 | `ACCESS_TEAM_DOMAIN` | _da impostare_       | —                         | Es. `miotuo.cloudflareaccess.com`                       |
 | `ACCESS_AUD`         | _da impostare_       | —                         | Audience tag dell'applicazione Access                   |
-| `DEV_USER_EMAIL`     | —                    | `dev@meet-roulette.local` | Identità fittizia locale                                |
+| `DEV_USER_EMAIL`     | —                    | `dev@meet-roulette.local` | Identità dev persistente preservata; vedi ADR-0014      |
 | `APP_ORIGIN`         | —                    | `http://localhost:5173`   | Origine aggiuntiva ammessa dalla protezione CSRF        |
 
 Con i valori di produzione vuoti l'API **rifiuta ogni richiesta** (fail-closed: provato anche eseguendo la configurazione di produzione su workerd).
@@ -160,7 +160,7 @@ jobward/
 ├── packages/
 │   ├── database/            # schema Drizzle + migrazioni SQL
 │   ├── schemas/             # schemi Zod (contratti API, validazione dominio)
-│   └── shared/              # costanti di dominio, template di bacheca, codici d'errore
+│   └── shared/              # dominio puro (pipeline, colloqui, timeline, azioni), costanti
 ├── docs/                    # architettura, prodotto, UX, roadmap
 ├── scripts/                 # strumenti di verifica (contrasto colori)
 └── .github/workflows/       # CI
@@ -176,3 +176,10 @@ jobward/
 - M2: [consegna](docs/m2/delivery.md) · [architettura](docs/m2/architecture.md) · [ciclo della candidatura](docs/m2/application-lifecycle.md) · [campi personalizzati](docs/m2/custom-fields.md) · [etichette](docs/m2/labels.md) · [ricerca e filtri](docs/m2/search-and-filtering.md) · [tabella](docs/m2/table-view.md) · [contratti API](docs/m2/api-contracts.md) · [UX](docs/m2/ux-review.md) · [test](docs/m2/testing-report.md) · [problemi](docs/m2/issue-register.md)
 - M1: [consegna](docs/m1/delivery.md) · [architettura](docs/m1/architecture.md) · [contratti API](docs/m1/api-contracts.md) · [interazioni](docs/m1/board-interactions.md) · [ordinamento](docs/m1/kanban-ordering.md) · [accessibilità](docs/m1/accessibility.md) · [test](docs/m1/testing-report.md) · [problemi](docs/m1/issue-register.md)
 - Hardening M0.H: [consegna](docs/m0h/delivery.md) · [registro dei problemi](docs/m0h/issue-register.md) · [baseline](docs/m0h/audit-baseline.md) · [sicurezza](docs/m0h/security-audit.md) · [database](docs/m0h/database-audit.md) · [frontend](docs/m0h/frontend-audit.md) · [test](docs/m0h/testing-report.md) · [readiness Cloudflare](docs/m0h/cloudflare-readiness.md)
+
+### M3-C1 — Dominio e rebranding tecnico
+
+Disponibili in `@jobward/shared` le funzioni pure di pipeline, transizioni, coerenza dei colloqui, timeline e azioni contestuali. C1 non aggiunge API, scritture o UI pipeline: integrazione e idempotenza backend restano a C2, non avviato. Pacchetti, Worker configurati, logo e favicon seguono il nome Jobward; dati e migrazioni storiche sono preservati.
+
+- [Consegna C1](docs/m3/c1-delivery.md) · [test](docs/m3/c1-testing-report.md) · [problemi e limiti](docs/m3/c1-issue-register.md).
+- `pnpm check:brand` verifica scope e riferimenti attivi; `pnpm test:identity` prova su database temporanei la procedura conservativa dell'identità locale. Entrambi fanno parte di `pnpm check` e della CI.

@@ -708,3 +708,21 @@ Le occorrenze `mr-*` includono utility Tailwind di margine (`-mr-1`, `mr-auto`):
 - Riga 29, codice/configurazione/documentazione corrente: `name: 'mr-upgrade-test',`
 - Riga 34, codice/configurazione/documentazione corrente: `database_name: 'mr-upgrade',`
 - Riga 47, codice/configurazione/documentazione corrente: `'@meet-roulette/api',`
+
+## Verifica finale M3-C1
+
+Scope, import, lockfile, URL delle fixture, nomi Worker, animazioni e nomi temporanei rinominati. `pnpm check:brand` passa. Nessuna dipendenza esterna o versione è stata aggiunta: il lockfile coincide esattamente con quello iniziale dopo la sola sostituzione dello scope workspace.
+
+Riferimenti primari residui nel codice/configurazione (la documentazione e l’inventario storico sono esclusi da questo elenco):
+
+| File                      | Riga finale | Motivo della conservazione                                        |
+| ------------------------- | ----------: | ----------------------------------------------------------------- |
+| `apps/api/wrangler.jsonc` |          26 | Etichetta D1 o identità dev persistente preservata (ADR-0014)     |
+| `apps/api/wrangler.jsonc` |          62 | Etichetta D1 o identità dev persistente preservata (ADR-0014)     |
+| `apps/api/wrangler.jsonc` |          71 | Etichetta D1 o identità dev persistente preservata (ADR-0014)     |
+| `apps/api/wrangler.jsonc` |          94 | Etichetta D1 o identità dev persistente preservata (ADR-0014)     |
+| `scripts/check-brand.mjs` |          38 | Regola del guard automatico che delimita le eccezioni persistenti |
+| `scripts/check-brand.mjs` |          42 | Regola del guard automatico che delimita le eccezioni persistenti |
+| `scripts/check-brand.mjs` |          43 | Regola del guard automatico che delimita le eccezioni persistenti |
+
+Le sole abbreviazioni applicative `mr-*` residue sono le chiavi tema/sidebar nei lettori di compatibilità e nei test di conservazione delle preferenze. Le utility di margine Tailwind non sono state rinominate. Le occorrenze nei documenti storici e nelle ADR/inventari sono intenzionali; README e documentazione corrente indicano le eccezioni, senza dichiarare una migrazione remota già avvenuta.
