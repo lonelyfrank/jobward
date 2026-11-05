@@ -1,8 +1,24 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, type Page } from '@playwright/test';
 
+/**
+ * Attende la fine delle animazioni FINITE (entrata di pagina, pannelli, menu). Axe calcola il
+ * contrasto sul colore composto con l'opacità corrente: campionando a metà di un fade-in, il testo
+ * secondario risulta più chiaro del reale e produce un falso positivo (visto in CI, M2-00).
+ * Le animazioni infinite (skeleton) sono escluse: non terminano mai.
+ */
+export async function waitForAnimationsToSettle(page: Page) {
+  await page.evaluate(async () => {
+    const finite = document
+      .getAnimations()
+      .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity);
+    await Promise.allSettled(finite.map((a) => a.finished));
+  });
+}
+
 /** Verifica automatica WCAG 2.x A/AA (non sostituisce la verifica manuale). */
 export async function expectNoA11yViolations(page: Page, label: string) {
+  await waitForAnimationsToSettle(page);
   const results = await new AxeBuilder({ page })
     .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
     .analyze();

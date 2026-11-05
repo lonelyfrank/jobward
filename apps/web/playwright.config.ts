@@ -17,6 +17,9 @@ export default defineConfig({
   workers: 1,
   forbidOnly: !!process.env['CI'],
   retries: process.env['CI'] ? 1 : 0,
+  // In CI il primo caricamento a freddo di Vite (ottimizzazione delle dipendenze) può superare i
+  // 5 s predefiniti: il primo test risultava "flaky" (M2-00). Più margine, non meno controlli.
+  expect: { timeout: process.env['CI'] ? 15_000 : 5_000 },
   reporter: process.env['CI'] ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: `http://localhost:${WEB_PORT}`,
