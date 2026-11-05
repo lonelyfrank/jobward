@@ -1,6 +1,6 @@
 import { schema, type Database } from '@meet-roulette/database';
 import type { OverviewResponse } from '@meet-roulette/schemas';
-import { and, asc, count, desc, eq, gte, isNotNull, isNull, lt } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, isNotNull, isNull, lt, sql } from 'drizzle-orm';
 
 /**
  * Riepilogo della ricerca, calcolato esclusivamente da dati persistiti.
@@ -54,6 +54,19 @@ export async function getOverview(
         .limit(5),
     ]);
 
+  // Fuori dal batch e in SQL esplicito: in un batch D1 i risultati sono oggetti indicizzati per
+  // nome di colonna, quindi due colonne chiamate `name` (bacheca e colonna) si fonderebbero e
+  // i valori si sfaserebbero (verificato da test).
+  const recentCards = await db.all<OverviewResponse['recentCards'][number]>(sql`
+    SELECT k.id AS id, k.title AS title, k.board_id AS boardId,
+           b.name AS boardName, c.name AS columnName, k.updated_at AS updatedAt
+    FROM cards k
+    JOIN boards b ON b.id = k.board_id AND b.workspace_id = k.workspace_id
+    JOIN board_columns c ON c.id = k.column_id AND c.workspace_id = k.workspace_id
+    WHERE k.workspace_id = ${workspaceId} AND k.archived_at IS NULL
+    ORDER BY k.updated_at DESC, k.id
+    LIMIT 5`);
+
   return {
     workspaceId,
     counts: {
@@ -66,5 +79,6 @@ export async function getOverview(
     },
     upcomingTasks: upcoming.flatMap((t) => (t.dueAt === null ? [] : [{ ...t, dueAt: t.dueAt }])),
     recentBoards: recent,
+    recentCards,
   };
 }

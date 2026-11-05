@@ -26,6 +26,8 @@ export interface Variables {
   requestId: string;
   db: Database;
   user: AuthUser;
+  /** Impostato da `workspaceScope`: workspace già verificato per l'utente corrente. */
+  workspaceId: string;
 }
 
 export type AppEnv = { Bindings: Bindings; Variables: Variables };

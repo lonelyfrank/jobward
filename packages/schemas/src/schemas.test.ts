@@ -6,6 +6,12 @@ import {
   createColumnInput,
   createTaskInput,
   createWorkspaceInput,
+  deleteColumnInput,
+  moveCardInput,
+  moveInput,
+  updateBoardInput,
+  updateCardInput,
+  updateColumnInput,
   customFieldDefinitionInput,
   parseStoredCustomFieldValue,
   serializeCustomFieldValue,
@@ -228,5 +234,58 @@ describe('campi personalizzati', () => {
       expect(roundTripped).toStrictEqual(value);
       expect(typeof roundTripped).toBe(typeof value);
     }
+  });
+});
+
+describe('contratti M1 (bacheche, colonne, schede)', () => {
+  it('createBoardInput: template di default "custom", solo template noti', () => {
+    expect(createBoardInput.parse({ name: 'x' }).templateId).toBe('custom');
+    expect(createBoardInput.parse({ name: 'x', templateId: 'minimal' }).templateId).toBe('minimal');
+    expect(createBoardInput.safeParse({ name: 'x', templateId: 'altro' }).success).toBe(false);
+  });
+
+  it.each([
+    ['updateBoardInput', updateBoardInput],
+    ['updateColumnInput', updateColumnInput],
+    ['updateCardInput', updateCardInput],
+  ])(
+    '%s: richiede almeno un campo e rifiuta campi sconosciuti (nessun mass-assignment)',
+    (_n, schema) => {
+      expect(schema.safeParse({}).success).toBe(false);
+      expect(schema.safeParse({ workspaceId: 'altro', name: 'x', title: 'x' }).success).toBe(false);
+      expect(schema.safeParse({ position: 3 }).success).toBe(false);
+    },
+  );
+
+  it('updateCardInput: modifiche parziali valide, URL solo http(s), null azzera', () => {
+    expect(updateCardInput.parse({ description: null }).description).toBeNull();
+    expect(updateCardInput.parse({ title: '  Nuovo  ' }).title).toBe('Nuovo');
+    expect(updateCardInput.safeParse({ sourceUrl: 'javascript:alert(1)' }).success).toBe(false);
+    expect(updateCardInput.safeParse({ sourceUrl: 'https://example.com/a' }).success).toBe(true);
+    expect(updateCardInput.safeParse({ priority: 'critical' }).success).toBe(false);
+    expect(updateCardInput.safeParse({ archivedAt: 1 }).success).toBe(false);
+  });
+
+  it('createCardInput: i dettagli di M1 sono azienda e URL; i campi di M2 sono rifiutati, non ignorati', () => {
+    expect(
+      createCardInput.safeParse({ title: 'x', columnId: 'c', details: { company: 'ACME' } })
+        .success,
+    ).toBe(true);
+    expect(
+      createCardInput.safeParse({ title: 'x', columnId: 'c', details: { salaryMin: 1 } }).success,
+    ).toBe(false);
+  });
+
+  it('moveInput / moveCardInput: ancora esplicita (null = in cima), nessun indice', () => {
+    expect(moveInput.parse({ afterId: null }).afterId).toBeNull();
+    expect(moveInput.safeParse({}).success).toBe(false);
+    expect(moveInput.safeParse({ afterId: 'a', index: 2 }).success).toBe(false);
+    expect(moveCardInput.safeParse({ columnId: 'c', afterCardId: null }).success).toBe(true);
+    expect(moveCardInput.safeParse({ columnId: 'c' }).success).toBe(false);
+  });
+
+  it('deleteColumnInput: destinazione facoltativa, nient’altro', () => {
+    expect(deleteColumnInput.parse({}).moveCardsToColumnId).toBeNull();
+    expect(deleteColumnInput.safeParse({ force: true }).success).toBe(false);
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { overviewResponse } from '@meet-roulette/schemas';
 import { createApp } from '../src/app';
+import { addCard, createMinimalBoard, newUser } from './kanban-helpers';
 import { call, devEnv, seedBoardWithColumn, seedCard, seedTask, seedWorkspace } from './helpers';
 
 const app = createApp();
@@ -27,6 +28,7 @@ describe('GET /api/v1/overview', () => {
       },
       upcomingTasks: [],
       recentBoards: [],
+      recentCards: [],
     });
   });
 
@@ -76,6 +78,37 @@ describe('GET /api/v1/overview', () => {
       'tra 2 ore',
     ]);
     expect(res.body.recentBoards).toHaveLength(1);
+    expect(res.body.recentCards).toHaveLength(3); // le archiviate non compaiono
+  });
+
+  it('opportunità recenti: dati reali creati dall’API, con bacheca e colonna, solo del proprio workspace', async () => {
+    const mine = await newUser('ov-recent@example.com');
+    const other = await newUser('ov-recent-other@example.com');
+    const board = await createMinimalBoard(mine.api, 'Estate');
+    const otherBoard = await createMinimalBoard(other.api, 'Altrui');
+    await addCard(other.api, otherBoard.columnIds[0]!, 'Non mia');
+    const first = await addCard(mine.api, board.columnIds[0]!, 'Prima');
+    await new Promise((r) => setTimeout(r, 3));
+    await addCard(mine.api, board.columnIds[1]!, 'Seconda');
+    await new Promise((r) => setTimeout(r, 3));
+    await mine.api.post(`/cards/${first.id}/move`, {
+      columnId: board.columnIds[2],
+      afterCardId: null,
+    });
+
+    const res = await mine.api.get('/overview');
+    expect(res.status).toBe(200);
+    expect(res.body.counts).toMatchObject({ boards: 1, opportunities: 2 });
+    expect(res.body.recentCards.map((c: any) => [c.title, c.boardName, c.columnName])).toEqual([
+      ['Prima', 'Estate', 'Completate'], // spostata per ultima ⇒ più recente
+      ['Seconda', 'Estate', 'In corso'],
+    ]);
+    expect(JSON.stringify(res.body)).not.toContain('Non mia');
+
+    await mine.api.post(`/cards/${first.id}/archive`);
+    expect((await mine.api.get('/overview')).body.recentCards.map((c: any) => c.title)).toEqual([
+      'Seconda',
+    ]);
   });
 
   it('non include dati di altri workspace', async () => {

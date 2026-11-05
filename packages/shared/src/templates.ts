@@ -15,8 +15,11 @@ export interface BoardTemplateColumn {
   category: Stage | null;
 }
 
+export const BOARD_TEMPLATE_IDS = ['job-search-standard', 'minimal', 'custom'] as const;
+export type BoardTemplateId = (typeof BOARD_TEMPLATE_IDS)[number];
+
 export interface BoardTemplate {
-  id: 'job-search-standard' | 'minimal' | 'custom';
+  id: BoardTemplateId;
   name: string;
   description: string;
   columns: readonly BoardTemplateColumn[];
@@ -54,6 +57,6 @@ export const BOARD_TEMPLATES: readonly BoardTemplate[] = [
   },
 ];
 
-export function getBoardTemplate(id: BoardTemplate['id']): BoardTemplate | undefined {
+export function getBoardTemplate(id: BoardTemplateId): BoardTemplate | undefined {
   return BOARD_TEMPLATES.find((template) => template.id === id);
 }
