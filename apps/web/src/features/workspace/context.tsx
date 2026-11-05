@@ -1,4 +1,4 @@
-import type { User, Workspace } from '@meet-roulette/schemas';
+import type { User, Workspace } from '@jobward/schemas';
 import { createContext, useContext } from 'react';
 
 interface WorkspaceContextValue {

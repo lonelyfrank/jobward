@@ -1,7 +1,7 @@
 import { Menu as MenuIcon, Plus, Search } from 'lucide-react';
 import { useState, type FormEvent, type RefObject } from 'react';
 import { useNavigate } from 'react-router';
-import { THEME_PREFERENCES, type ThemePreference } from '@meet-roulette/shared';
+import { THEME_PREFERENCES, type ThemePreference } from '@jobward/shared';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,

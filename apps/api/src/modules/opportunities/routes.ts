@@ -1,4 +1,4 @@
-import { opportunitiesQuery, opportunitiesResponse } from '@meet-roulette/schemas';
+import { opportunitiesQuery, opportunitiesResponse } from '@jobward/schemas';
 import { Hono } from 'hono';
 import type { AppEnv } from '../../env';
 import { ApiError } from '../../lib/errors';

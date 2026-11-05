@@ -1,4 +1,4 @@
-import { createWorkspaceInput } from '@meet-roulette/schemas';
+import { createWorkspaceInput } from '@jobward/schemas';
 import { Hono } from 'hono';
 import type { AppEnv } from '../../env';
 import { parseJsonBody } from '../../lib/validate';

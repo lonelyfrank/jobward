@@ -12,7 +12,7 @@ import {
   moveCardInput,
   putCustomFieldValueInput,
   updateCardInput,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../../env';

@@ -3,10 +3,10 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * Anteprima della BUILD di produzione: Worker + Static Assets (stesso percorso di deploy),
  * con identità di sviluppo e D1 locale. Verifica ciò che `vite dev` non mostra: header e CSP
- * reali, fallback SPA, instradamento /api/*. Richiede `pnpm --filter @meet-roulette/web build`.
+ * reali, fallback SPA, instradamento /api/*. Richiede `pnpm --filter @jobward/web build`.
  */
 const PORT = Number(process.env['PREVIEW_PORT'] ?? 8797);
-const API = 'pnpm --filter @meet-roulette/api exec wrangler';
+const API = 'pnpm --filter @jobward/api exec wrangler';
 const STATE = '../../.e2e-state-preview';
 
 export default defineConfig({

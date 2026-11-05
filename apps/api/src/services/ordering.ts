@@ -1,4 +1,4 @@
-import { POSITION_GAP, placeAfter, type Positioned } from '@meet-roulette/shared';
+import { POSITION_GAP, placeAfter, type Positioned } from '@jobward/shared';
 import { conflict } from '../lib/errors';
 
 /**

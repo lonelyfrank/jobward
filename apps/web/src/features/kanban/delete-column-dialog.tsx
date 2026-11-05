@@ -1,4 +1,4 @@
-import type { Column } from '@meet-roulette/schemas';
+import type { Column } from '@jobward/schemas';
 import { useState } from 'react';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Select } from '@/components/ui/input';

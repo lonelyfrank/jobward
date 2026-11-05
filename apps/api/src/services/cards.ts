@@ -1,4 +1,4 @@
-import { newId, schema, type Database } from '@meet-roulette/database';
+import { newId, schema, type Database } from '@jobward/database';
 import type {
   ActivityEvent,
   Card,
@@ -6,9 +6,9 @@ import type {
   CreateCardInput,
   MoveCardInput,
   UpdateCardInput,
-} from '@meet-roulette/schemas';
-import { salaryIssues } from '@meet-roulette/schemas';
-import { LIMITS, POSITION_GAP } from '@meet-roulette/shared';
+} from '@jobward/schemas';
+import { salaryIssues } from '@jobward/schemas';
+import { LIMITS, POSITION_GAP } from '@jobward/shared';
 import { and, asc, desc, eq, isNotNull, isNull } from 'drizzle-orm';
 import { ApiError, conflict, notFound } from '../lib/errors';
 import { getBoard } from './boards';

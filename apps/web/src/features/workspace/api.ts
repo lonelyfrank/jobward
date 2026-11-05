@@ -1,4 +1,4 @@
-import { meResponse, workspaceResponse, type CreateWorkspaceInput } from '@meet-roulette/schemas';
+import { meResponse, workspaceResponse, type CreateWorkspaceInput } from '@jobward/schemas';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/api';
 

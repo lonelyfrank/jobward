@@ -1,5 +1,5 @@
 import { env } from 'cloudflare:workers';
-import { createDb, newId, schema } from '@meet-roulette/database';
+import { createDb, newId, schema } from '@jobward/database';
 import { createLocalJWKSet, exportJWK, generateKeyPair, SignJWT, type JWK } from 'jose';
 import type { createApp } from '../src/app';
 import type { Bindings } from '../src/env';

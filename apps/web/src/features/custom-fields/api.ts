@@ -7,7 +7,7 @@ import {
   type CardCustomField,
   type CreateCustomFieldInput,
   type UpdateCustomFieldInput,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { keys, scoped } from '@/features/boards/api';
 import { useWorkspace } from '@/features/workspace/context';

@@ -1,4 +1,4 @@
-import { newId } from '@meet-roulette/database';
+import { newId } from '@jobward/database';
 
 /** Eventi di cronologia e aggiornamento della bacheca, condivisi dai servizi di dominio. */
 

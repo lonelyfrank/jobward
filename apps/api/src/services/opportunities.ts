@@ -2,10 +2,10 @@ import type {
   OpportunitiesQuery,
   OpportunitiesResponse,
   OpportunitySort,
-} from '@meet-roulette/schemas';
-import { DEFAULT_SORT_DIR } from '@meet-roulette/schemas';
-import { CONTRACT_TYPES, OUTCOMES, PRIORITIES, STAGES, WORK_MODES } from '@meet-roulette/shared';
-import type { Database } from '@meet-roulette/database';
+} from '@jobward/schemas';
+import { DEFAULT_SORT_DIR } from '@jobward/schemas';
+import { CONTRACT_TYPES, OUTCOMES, PRIORITIES, STAGES, WORK_MODES } from '@jobward/shared';
+import type { Database } from '@jobward/database';
 import { toCard } from './card-rows';
 import { summariesForCards, withSummaries } from './interview-summaries';
 

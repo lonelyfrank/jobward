@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createWorkspaceInput, timezoneSchema } from '@meet-roulette/schemas';
+import { createWorkspaceInput, timezoneSchema } from '@jobward/schemas';
 import { Columns3, LayoutGrid, StickyNote } from 'lucide-react';
 import { useMemo } from 'react';
 import { useForm } from 'react-hook-form';

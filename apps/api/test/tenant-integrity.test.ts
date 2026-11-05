@@ -1,6 +1,6 @@
 import { applyD1Migrations } from 'cloudflare:test';
 import { env } from 'cloudflare:workers';
-import { newId, schema } from '@meet-roulette/database';
+import { newId, schema } from '@jobward/database';
 import { eq } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 import { db, seedBoardWithColumn, seedCard, seedWorkspace } from './helpers';

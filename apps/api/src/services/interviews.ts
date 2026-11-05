@@ -1,11 +1,11 @@
-import { newId, type Database } from '@meet-roulette/database';
+import { newId, type Database } from '@jobward/database';
 import {
   type CompleteInterviewInput,
   type CreateInterviewInput,
   type Interview,
   type UpdateInterviewInput,
-} from '@meet-roulette/schemas';
-import { LIMITS } from '@meet-roulette/shared';
+} from '@jobward/schemas';
+import { LIMITS } from '@jobward/shared';
 import { sql } from 'drizzle-orm';
 import { ApiError, conflict, notFound } from '../lib/errors';
 import { isConstraintError } from './ordering';

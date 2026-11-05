@@ -1,4 +1,4 @@
-import type { CardCustomField } from '@meet-roulette/schemas';
+import type { CardCustomField } from '@jobward/schemas';
 import { DetailSection } from '@/features/cards/detail-section';
 import { ValueEditor } from './value-editor';
 import { draftFromValue, type FieldDraft } from './values';

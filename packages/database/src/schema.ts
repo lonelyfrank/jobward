@@ -13,7 +13,7 @@ import {
   SALARY_PERIODS,
   STAGES,
   WORK_MODES,
-} from '@meet-roulette/shared';
+} from '@jobward/shared';
 import { sql, type SQL } from 'drizzle-orm';
 import {
   check,

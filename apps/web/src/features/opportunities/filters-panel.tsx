@@ -1,4 +1,4 @@
-import type { Column, Label } from '@meet-roulette/schemas';
+import type { Column, Label } from '@jobward/schemas';
 import {
   CONTRACT_TYPES,
   OUTCOMES,
@@ -6,7 +6,7 @@ import {
   SALARY_PERIODS,
   STAGES,
   WORK_MODES,
-} from '@meet-roulette/shared';
+} from '@jobward/shared';
 import type { ReactNode } from 'react';
 import { Field } from '@/components/ui/field';
 import { Input, Select } from '@/components/ui/input';

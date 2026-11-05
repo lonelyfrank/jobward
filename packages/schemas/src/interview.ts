@@ -4,7 +4,7 @@ import {
   INTERVIEW_STATUSES,
   INTERVIEW_TYPES,
   LIMITS,
-} from '@meet-roulette/shared';
+} from '@jobward/shared';
 import { z } from 'zod';
 import { httpUrl, idSchema, optionalText, requiredText, timezoneSchema } from './primitives';
 

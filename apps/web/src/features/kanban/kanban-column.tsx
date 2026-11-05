@@ -1,6 +1,6 @@
 import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import type { Card, Column } from '@meet-roulette/schemas';
+import type { Card, Column } from '@jobward/schemas';
 import { EllipsisVertical, GripVertical } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

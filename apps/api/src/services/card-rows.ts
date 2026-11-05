@@ -1,5 +1,5 @@
-import { schema, type Database } from '@meet-roulette/database';
-import { EMPTY_INTERVIEW_SUMMARY, type Card } from '@meet-roulette/schemas';
+import { schema, type Database } from '@jobward/database';
+import { EMPTY_INTERVIEW_SUMMARY, type Card } from '@jobward/schemas';
 import { eq, sql } from 'drizzle-orm';
 
 const { cards, applicationDetails } = schema;

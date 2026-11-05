@@ -1,5 +1,5 @@
 import { card as fixtureCard } from '@/test/fixtures';
-import type { BoardDetailResponse, Card, Column } from '@meet-roulette/schemas';
+import type { BoardDetailResponse, Card, Column } from '@jobward/schemas';
 import { describe, expect, it } from 'vitest';
 import {
   appendCard,

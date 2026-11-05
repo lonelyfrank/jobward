@@ -44,7 +44,7 @@ const wrangler = (args, { quiet = false } = {}) => {
     'pnpm',
     [
       '--filter',
-      '@meet-roulette/api',
+      '@jobward/api',
       'exec',
       'wrangler',
       ...args,

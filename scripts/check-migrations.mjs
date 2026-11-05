@@ -19,7 +19,7 @@ fs.writeFileSync(
 );
 
 const run = (args) =>
-  spawnSync('pnpm', ['--filter', '@meet-roulette/database', 'exec', 'drizzle-kit', ...args], {
+  spawnSync('pnpm', ['--filter', '@jobward/database', 'exec', 'drizzle-kit', ...args], {
     cwd: root,
     encoding: 'utf8',
   });

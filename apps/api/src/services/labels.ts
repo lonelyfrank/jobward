@@ -1,6 +1,6 @@
-import { newId, type Database } from '@meet-roulette/database';
-import type { CreateLabelInput, Label, UpdateLabelInput } from '@meet-roulette/schemas';
-import { LIMITS } from '@meet-roulette/shared';
+import { newId, type Database } from '@jobward/database';
+import type { CreateLabelInput, Label, UpdateLabelInput } from '@jobward/schemas';
+import { LIMITS } from '@jobward/shared';
 import { sql } from 'drizzle-orm';
 import { conflict, notFound } from '../lib/errors';
 import { getCard } from './cards';

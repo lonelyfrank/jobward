@@ -4,7 +4,7 @@ import {
   type CompleteInterviewInput,
   type CreateInterviewInput,
   type UpdateInterviewInput,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { invalidateSummaries, keys, scoped } from '@/features/boards/api';
 import { useWorkspace } from '@/features/workspace/context';

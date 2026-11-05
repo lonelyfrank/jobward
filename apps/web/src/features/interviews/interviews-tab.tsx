@@ -1,5 +1,5 @@
-import type { Card, Interview } from '@meet-roulette/schemas';
-import { INTERVIEW_RESULTS, LIMITS, type InterviewResult } from '@meet-roulette/shared';
+import type { Card, Interview } from '@jobward/schemas';
+import { INTERVIEW_RESULTS, LIMITS, type InterviewResult } from '@jobward/shared';
 import { Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Badge } from '@/components/ui/badge';

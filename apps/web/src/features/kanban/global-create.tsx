@@ -1,4 +1,4 @@
-import { LIMITS } from '@meet-roulette/shared';
+import { LIMITS } from '@jobward/shared';
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';

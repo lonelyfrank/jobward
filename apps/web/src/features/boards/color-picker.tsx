@@ -1,4 +1,4 @@
-import { COLOR_TOKENS, type ColorToken } from '@meet-roulette/schemas';
+import { COLOR_TOKENS, type ColorToken } from '@jobward/schemas';
 import { Check } from 'lucide-react';
 import { COLOR_BG, COLOR_LABELS } from '@/lib/labels';
 import { cn } from '@/lib/cn';

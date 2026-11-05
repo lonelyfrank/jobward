@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createColumnInput, type Column } from '@meet-roulette/schemas';
-import { LIMITS, STAGES } from '@meet-roulette/shared';
+import { createColumnInput, type Column } from '@jobward/schemas';
+import { LIMITS, STAGES } from '@jobward/shared';
 import { Controller, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 import { Button } from '@/components/ui/button';

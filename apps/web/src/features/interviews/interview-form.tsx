@@ -4,14 +4,14 @@ import {
   type CreateInterviewInput,
   type Interview,
   type UpdateInterviewInput,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import {
   INTERVIEW_MODALITIES,
   INTERVIEW_TYPES,
   LIMITS,
   type InterviewModality,
   type InterviewType,
-} from '@meet-roulette/shared';
+} from '@jobward/shared';
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';

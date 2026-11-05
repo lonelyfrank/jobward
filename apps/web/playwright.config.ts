@@ -5,7 +5,7 @@ import { defineConfig, devices } from '@playwright/test';
  * Il database parte pulito a ogni esecuzione (.e2e-state viene ricreato), quindi i
  * test non dipendono da dati preesistenti. Nessun dato reale, nessun servizio remoto.
  */
-const API = 'pnpm --filter @meet-roulette/api exec wrangler';
+const API = 'pnpm --filter @jobward/api exec wrangler';
 const STATE = '../../.e2e-state';
 // Porte dedicate: non collidono con i server di sviluppo già attivi (5173/8787).
 const WEB_PORT = Number(process.env['E2E_WEB_PORT'] ?? 5199);
@@ -38,7 +38,7 @@ export default defineConfig({
     },
     {
       cwd: '../..',
-      command: `pnpm --filter @meet-roulette/web exec vite --port ${WEB_PORT} --strictPort`,
+      command: `pnpm --filter @jobward/web exec vite --port ${WEB_PORT} --strictPort`,
       env: { API_PROXY_TARGET: `http://localhost:${API_PORT}` },
       url: `http://localhost:${WEB_PORT}`,
       reuseExistingServer: false,

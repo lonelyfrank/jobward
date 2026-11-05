@@ -10,8 +10,8 @@ import type {
   SalaryPeriod,
   Stage,
   WorkMode,
-} from '@meet-roulette/shared';
-import type { ColorToken } from '@meet-roulette/schemas';
+} from '@jobward/shared';
+import type { ColorToken } from '@jobward/schemas';
 
 /** Testi dell'interfaccia per i vocabolari controllati (i valori restano neutri nel dominio). */
 export const PRIORITY_LABELS: Record<Priority, string> = {

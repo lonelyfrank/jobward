@@ -1,4 +1,4 @@
-import { opportunitiesResponse } from '@meet-roulette/schemas';
+import { opportunitiesResponse } from '@jobward/schemas';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { keys, scoped } from '@/features/boards/api';
 import { useWorkspace } from '@/features/workspace/context';

@@ -4,7 +4,7 @@ import {
   deletedResponse,
   moveInput,
   updateCustomFieldInput,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import { Hono } from 'hono';
 import type { AppEnv } from '../../env';
 import { parseJsonBody } from '../../lib/validate';

@@ -1,4 +1,4 @@
-import type { ActivityEvent } from '@meet-roulette/schemas';
+import type { ActivityEvent } from '@jobward/schemas';
 import {
   OUTCOMES,
   PRIORITIES,
@@ -6,7 +6,7 @@ import {
   type Outcome,
   type Priority,
   type Stage,
-} from '@meet-roulette/shared';
+} from '@jobward/shared';
 import { formatInterviewDate } from '@/features/interviews/time';
 import { formatCalendarDate, formatDateTime } from '@/lib/format';
 import { INTERVIEW_RESULT_LABELS } from '@/lib/labels';

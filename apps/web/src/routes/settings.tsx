@@ -1,4 +1,4 @@
-import { type ThemePreference } from '@meet-roulette/shared';
+import { type ThemePreference } from '@jobward/shared';
 import { lazy, Suspense } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/ui/page-header';

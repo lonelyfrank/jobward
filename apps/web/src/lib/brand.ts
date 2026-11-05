@@ -3,7 +3,7 @@
  *
  * Il marchio grafico (logo, favicon) NON è definito qui: vive in `components/brand/logo.tsx` e in
  * `public/favicon.svg`, ed è un segnaposto da sostituire quando la brand identity di Jobward sarà
- * pronta. Gli identificatori tecnici persistenti (pacchetti `@meet-roulette/*`, nomi Worker e D1,
+ * pronta. Gli identificatori tecnici persistenti (pacchetti `@jobward/*`, nomi Worker e D1,
  * identità di sviluppo) mantengono il nome storico: vedi ADR-0013.
  */
 export const BRAND = {

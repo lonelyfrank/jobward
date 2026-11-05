@@ -1,4 +1,4 @@
-import type { ApiErrorBody, ApiErrorCode } from '@meet-roulette/shared';
+import type { ApiErrorBody, ApiErrorCode } from '@jobward/shared';
 import type { ZodType } from 'zod';
 
 /** Errore restituito dall'API o dalla rete. L'interfaccia si basa su `code`, non sul messaggio. */

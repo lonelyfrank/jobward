@@ -1,4 +1,4 @@
-import type { BoardDetailResponse, BoardListItem, Card, Column } from '@meet-roulette/schemas';
+import type { BoardDetailResponse, BoardListItem, Card, Column } from '@jobward/schemas';
 
 export const board = (over: Partial<BoardListItem> = {}): BoardListItem => ({
   id: 'b1',

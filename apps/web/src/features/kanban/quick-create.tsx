@@ -1,4 +1,4 @@
-import { LIMITS } from '@meet-roulette/shared';
+import { LIMITS } from '@jobward/shared';
 import { Plus } from 'lucide-react';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';

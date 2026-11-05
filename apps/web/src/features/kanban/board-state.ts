@@ -1,9 +1,9 @@
-import type { BoardDetailResponse, Card, Column } from '@meet-roulette/schemas';
-import { anchorBefore, applyPlacement, sortPositioned } from '@meet-roulette/shared';
+import type { BoardDetailResponse, Card, Column } from '@jobward/schemas';
+import { anchorBefore, applyPlacement, sortPositioned } from '@jobward/shared';
 
 /**
  * Funzioni PURE sullo stato di una bacheca. Il client le usa per l'aggiornamento ottimistico
- * con la stessa logica di posizionamento del server (`@meet-roulette/shared`), così la vista
+ * con la stessa logica di posizionamento del server (`@jobward/shared`), così la vista
  * provvisoria coincide con quella che il server confermerà.
  */
 

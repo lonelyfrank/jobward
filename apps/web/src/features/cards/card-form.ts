@@ -3,8 +3,8 @@ import {
   updateCardInput,
   type Card,
   type UpdateCardInput,
-} from '@meet-roulette/schemas';
-import type { Priority } from '@meet-roulette/shared';
+} from '@jobward/schemas';
+import type { Priority } from '@jobward/shared';
 
 /**
  * Bozza del modulo di dettaglio: ogni controllo lavora con TESTO (anche numeri e menu, dove

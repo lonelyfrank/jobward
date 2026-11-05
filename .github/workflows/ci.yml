@@ -65,12 +65,12 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm --filter @meet-roulette/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @jobward/web exec playwright install --with-deps chromium
       # Ogni job gira su un runner separato: la build del job "quality" NON è disponibile qui.
       # test:preview serve apps/web/dist da Static Assets. Gli E2E di sviluppo non ne dipendono più
       # (env.dev usa apps/web/public), ma si produce la build esplicitamente per rendere evidente
       # che i job non condividono file.
-      - run: pnpm --filter @meet-roulette/web build
+      - run: pnpm --filter @jobward/web build
       # Stack di sviluppo (Vite + Worker + D1 locale).
       - run: pnpm test:e2e
       # Build di produzione servita da Workers Static Assets: header, CSP e fallback SPA reali.

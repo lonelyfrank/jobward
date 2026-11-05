@@ -1,4 +1,4 @@
-import { LIMITS } from '@meet-roulette/shared';
+import { LIMITS } from '@jobward/shared';
 import { Columns3, Filter, Search, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router';

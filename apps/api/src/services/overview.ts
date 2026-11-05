@@ -1,6 +1,6 @@
-import { schema, type Database } from '@meet-roulette/database';
-import type { OverviewResponse } from '@meet-roulette/schemas';
-import { SUBMITTED_STAGES } from '@meet-roulette/shared';
+import { schema, type Database } from '@jobward/database';
+import type { OverviewResponse } from '@jobward/schemas';
+import { SUBMITTED_STAGES } from '@jobward/shared';
 import { and, asc, count, desc, eq, gte, isNull, lt, sql } from 'drizzle-orm';
 
 /**

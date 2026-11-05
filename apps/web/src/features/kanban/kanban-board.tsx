@@ -23,8 +23,8 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
-import type { BoardDetailResponse, Card, Column } from '@meet-roulette/schemas';
-import { anchorBefore } from '@meet-roulette/shared';
+import type { BoardDetailResponse, Card, Column } from '@jobward/schemas';
+import { anchorBefore } from '@jobward/shared';
 import { Plus } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';

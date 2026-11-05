@@ -14,9 +14,9 @@ import {
   type CreateColumnInput,
   type UpdateBoardInput,
   type UpdateColumnInput,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { applyPlacement } from '@meet-roulette/shared';
+import { applyPlacement } from '@jobward/shared';
 import { apiRequest } from '@/lib/api';
 import { useWorkspace } from '@/features/workspace/context';
 

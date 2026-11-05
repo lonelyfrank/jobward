@@ -1,5 +1,5 @@
 {
-  "name": "@meet-roulette/database",
+  "name": "@jobward/database",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,7 @@
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@meet-roulette/shared": "workspace:*",
+    "@jobward/shared": "workspace:*",
     "drizzle-orm": "catalog:"
   },
   "devDependencies": {

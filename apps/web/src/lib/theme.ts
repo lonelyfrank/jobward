@@ -1,4 +1,4 @@
-import { THEME_PREFERENCES, type ThemePreference } from '@meet-roulette/shared';
+import { THEME_PREFERENCES, type ThemePreference } from '@jobward/shared';
 import { useEffect, useSyncExternalStore } from 'react';
 import { readStorage, writeStorage } from './storage';
 

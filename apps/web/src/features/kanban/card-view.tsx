@@ -1,4 +1,4 @@
-import type { Card } from '@meet-roulette/schemas';
+import type { Card } from '@jobward/schemas';
 import { CalendarClock, Link2, ListTodo } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';

@@ -1,6 +1,6 @@
 # Jobward
 
-> **Nota sul nome.** Il progetto si chiamava _Meet Roulette_ ed è stato rinominato **Jobward**. Il nome visibile è già Jobward; gli identificatori tecnici (pacchetti `@meet-roulette/*`, nomi di Worker e database D1, identità di sviluppo) mantengono il nome storico per non perdere dati né rompere gli ambienti: strategia in [ADR-0013](docs/architecture/decisions/0013-rebranding-jobward.md).
+> **Nota sul nome.** Il progetto si chiamava _Meet Roulette_ ed è stato rinominato **Jobward**. Il nome visibile è già Jobward; gli identificatori tecnici (pacchetti `@jobward/*`, nomi di Worker e database D1, identità di sviluppo) mantengono il nome storico per non perdere dati né rompere gli ambienti: strategia in [ADR-0013](docs/architecture/decisions/0013-rebranding-jobward.md).
 
 **Il workspace del candidato per organizzare la ricerca del lavoro.**
 
@@ -68,7 +68,7 @@ Le versioni e i vincoli di compatibilità sono motivati in [`pnpm-workspace.yaml
 - **Node.js ≥ 22.22** (vedi `.nvmrc`)
 - **pnpm 12** (`corepack enable` oppure `npm i -g pnpm`)
 - Nessun account Cloudflare è necessario: D1 gira in locale tramite Miniflare/Wrangler.
-- Per gli E2E: Chromium di Playwright (`pnpm --filter @meet-roulette/web exec playwright install chromium`).
+- Per gli E2E: Chromium di Playwright (`pnpm --filter @jobward/web exec playwright install chromium`).
 
 ## Installazione e avvio
 

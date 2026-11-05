@@ -1,4 +1,4 @@
-import { createDb } from '@meet-roulette/database';
+import { createDb } from '@jobward/database';
 import { Hono } from 'hono';
 import type { AppEnv } from './env';
 import { authenticate, defaultAuthDeps, type AuthDeps } from './middleware/auth';

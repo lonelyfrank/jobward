@@ -1,5 +1,5 @@
-import { DEFAULT_SORT_DIR, OPPORTUNITY_SORTS, type OpportunitySort } from '@meet-roulette/schemas';
-import { LIMITS } from '@meet-roulette/shared';
+import { DEFAULT_SORT_DIR, OPPORTUNITY_SORTS, type OpportunitySort } from '@jobward/schemas';
+import { LIMITS } from '@jobward/shared';
 
 /**
  * Stato della tabella nell'indirizzo (ricerca, filtri, ordinamento, pagina): condivisibile,

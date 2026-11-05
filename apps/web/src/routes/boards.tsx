@@ -1,4 +1,4 @@
-import { anchorBefore, BOARD_TEMPLATES } from '@meet-roulette/shared';
+import { anchorBefore, BOARD_TEMPLATES } from '@jobward/shared';
 import { Plus, SquareKanban } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';

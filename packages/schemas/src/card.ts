@@ -8,7 +8,7 @@ import {
   SALARY_PERIODS,
   STAGES,
   WORK_MODES,
-} from '@meet-roulette/shared';
+} from '@jobward/shared';
 import { z } from 'zod';
 import { boardSchema, columnSchema } from './board';
 import { interviewSummarySchema } from './interview';

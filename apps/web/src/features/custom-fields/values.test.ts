@@ -1,4 +1,4 @@
-import type { CustomField } from '@meet-roulette/schemas';
+import type { CustomField } from '@jobward/schemas';
 import { describe, expect, it } from 'vitest';
 import { displayValue, draftFromValue, sameValue, valueFromDraft } from './values';
 

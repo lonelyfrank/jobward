@@ -1,6 +1,6 @@
-import { newId, schema, type Database } from '@meet-roulette/database';
-import type { Column, CreateColumnInput, UpdateColumnInput } from '@meet-roulette/schemas';
-import { LIMITS, POSITION_GAP } from '@meet-roulette/shared';
+import { newId, schema, type Database } from '@jobward/database';
+import type { Column, CreateColumnInput, UpdateColumnInput } from '@jobward/schemas';
+import { LIMITS, POSITION_GAP } from '@jobward/shared';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { ApiError, conflict, notFound } from '../lib/errors';
 import { getBoard } from './boards';

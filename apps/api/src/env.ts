@@ -1,4 +1,4 @@
-import type { Database } from '@meet-roulette/database';
+import type { Database } from '@jobward/database';
 
 /** Binding e variabili del Worker. Nessun segreto transita dal frontend. */
 export interface Bindings {

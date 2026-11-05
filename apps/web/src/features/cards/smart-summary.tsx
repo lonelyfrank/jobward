@@ -1,5 +1,5 @@
-import type { Card } from '@meet-roulette/schemas';
-import { STAGES, type Stage } from '@meet-roulette/shared';
+import type { Card } from '@jobward/schemas';
+import { STAGES, type Stage } from '@jobward/shared';
 import { CalendarClock, ListTodo, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';

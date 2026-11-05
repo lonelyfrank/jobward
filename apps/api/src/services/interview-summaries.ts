@@ -1,10 +1,10 @@
-import type { Database } from '@meet-roulette/database';
+import type { Database } from '@jobward/database';
 import {
   EMPTY_INTERVIEW_SUMMARY,
   summarizeInterviews,
   type InterviewSummary,
   type InterviewSummaryRow,
-} from '@meet-roulette/schemas';
+} from '@jobward/schemas';
 import { sql } from 'drizzle-orm';
 
 // ---------------------------------------------------------------------------

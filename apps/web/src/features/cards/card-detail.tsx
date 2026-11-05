@@ -1,4 +1,4 @@
-import type { ActivityEvent, Card, Column } from '@meet-roulette/schemas';
+import type { ActivityEvent, Card, Column } from '@jobward/schemas';
 import {
   CONTRACT_TYPES,
   LIMITS,
@@ -10,7 +10,7 @@ import {
   WORK_MODES,
   type Priority,
   type Stage,
-} from '@meet-roulette/shared';
+} from '@jobward/shared';
 import { ExternalLink, Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';

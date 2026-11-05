@@ -4,8 +4,8 @@ import {
   interviewResponse,
   interviewsResponse,
   opportunitiesResponse,
-} from '@meet-roulette/schemas';
-import { LIMITS } from '@meet-roulette/shared';
+} from '@jobward/schemas';
+import { LIMITS } from '@jobward/shared';
 import { addCard, createMinimalBoard, newUser, type Api } from './kanban-helpers';
 
 const HOUR = 3_600_000;

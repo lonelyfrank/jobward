@@ -1,4 +1,4 @@
-import type { Label, Opportunity } from '@meet-roulette/schemas';
+import type { Label, Opportunity } from '@jobward/schemas';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Link } from 'react-router';

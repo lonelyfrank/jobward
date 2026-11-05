@@ -1,5 +1,5 @@
-import type { CustomField } from '@meet-roulette/schemas';
-import { CUSTOM_FIELD_TYPES, LIMITS, type CustomFieldType } from '@meet-roulette/shared';
+import type { CustomField } from '@jobward/schemas';
+import { CUSTOM_FIELD_TYPES, LIMITS, type CustomFieldType } from '@jobward/shared';
 import { ArrowDown, ArrowUp, Plus, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';

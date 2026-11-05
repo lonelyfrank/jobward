@@ -1,6 +1,6 @@
 import type { ErrorHandler, NotFoundHandler } from 'hono';
 import { HTTPException } from 'hono/http-exception';
-import type { ApiErrorBody, ApiErrorCode } from '@meet-roulette/shared';
+import type { ApiErrorBody, ApiErrorCode } from '@jobward/shared';
 import type { AppEnv } from '../env';
 import { ApiError } from '../lib/errors';
 
