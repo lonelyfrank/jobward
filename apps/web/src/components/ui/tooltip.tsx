@@ -8,10 +8,12 @@ export function Tooltip({
   content,
   children,
   disabled = false,
+  side = 'right',
 }: {
   content: string;
   children: ReactNode;
   disabled?: boolean;
+  side?: 'top' | 'right' | 'bottom' | 'left';
 }) {
   const [open, setOpen] = useState(false);
   return (
@@ -23,9 +25,9 @@ export function Tooltip({
       <Tip.Trigger asChild>{children}</Tip.Trigger>
       <Tip.Portal>
         <Tip.Content
-          side="right"
+          side={side}
           sideOffset={8}
-          className="z-50 rounded-md bg-foreground px-2 py-1 text-xs text-background shadow-md"
+          className="pointer-events-none z-50 rounded-md bg-foreground px-2 py-1 text-xs text-background shadow-md"
         >
           {content}
         </Tip.Content>

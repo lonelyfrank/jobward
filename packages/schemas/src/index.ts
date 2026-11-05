@@ -9,3 +9,4 @@ export * from './label';
 export * from './opportunity';
 export * from './task';
 export * from './overview';
+export * from './search';

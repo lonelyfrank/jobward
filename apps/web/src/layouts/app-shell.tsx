@@ -9,10 +9,10 @@ import { cn } from '@/lib/cn';
 import type { RouteHandle } from './nav';
 import { Sidebar } from './sidebar';
 import { SidebarBulge } from './sidebar-bulge';
-import { Topbar } from './topbar';
+import { WorkspaceControlsProvider } from '@/features/workspace/workspace-controls';
 
 /**
- * Struttura dell'app: sidebar (comprimibile; drawer su mobile), topbar e area principale.
+ * Struttura dell'app: sidebar (comprimibile; drawer su mobile) e area principale.
  * Il pannello di dettaglio delle schede si innesterà accanto a <main> in M1.
  */
 export function AppShell() {
@@ -66,54 +66,56 @@ export function AppShell() {
           Vai al contenuto
         </a>
 
-        <div className="relative flex h-dvh overflow-hidden">
-          <aside
-            className={cn(
-              'relative z-30 hidden shrink-0 bg-sidebar transition-[width] duration-200 ease-in-out md:block',
-              collapsed ? 'w-[52px]' : 'w-[220px]',
-            )}
-          >
-            <Sidebar collapsed={collapsed} />
-            <SidebarBulge collapsed={collapsed} onToggle={toggle} />
-          </aside>
-
-          <Sheet
-            open={navOpen}
-            onOpenChange={setNavOpen}
-            title="Menu di navigazione"
-            returnFocusRef={menuButtonRef}
-          >
-            <Sidebar onNavigate={() => setNavOpen(false)} />
-          </Sheet>
-
-          <div className="flex min-w-0 flex-1 flex-col">
-            <Topbar
-              title={title}
-              onOpenNav={() => setNavOpen(true)}
-              menuButtonRef={menuButtonRef}
-            />
-            <main
-              id="main"
-              ref={mainRef}
-              tabIndex={-1}
+        <WorkspaceControlsProvider
+          onOpenNav={() => setNavOpen(true)}
+          setMenuButton={(element) => {
+            menuButtonRef.current = element;
+          }}
+        >
+          <div className="relative flex h-dvh overflow-hidden">
+            <aside
               className={cn(
-                'flex-1 outline-none',
-                fullBleed
-                  ? 'min-h-0 overflow-hidden'
-                  : 'overflow-y-auto px-4 pt-6 pb-12 sm:px-8 lg:px-11 lg:pt-8',
+                'relative z-30 hidden shrink-0 bg-sidebar transition-[width] duration-200 ease-in-out md:block',
+                collapsed ? 'w-[52px]' : 'w-[220px]',
               )}
             >
-              <div
+              <Sidebar collapsed={collapsed} />
+              <SidebarBulge collapsed={collapsed} onToggle={toggle} />
+            </aside>
+
+            <Sheet
+              open={navOpen}
+              onOpenChange={setNavOpen}
+              title="Menu di navigazione"
+              returnFocusRef={menuButtonRef}
+            >
+              <Sidebar onNavigate={() => setNavOpen(false)} />
+            </Sheet>
+
+            <div className="flex min-w-0 flex-1 flex-col">
+              <main
+                id="main"
+                ref={mainRef}
+                tabIndex={-1}
                 className={cn(
-                  'animate-[jobward-fade-in_0.15s_ease-out]',
-                  fullBleed ? 'h-full' : 'mx-auto max-w-[80rem]',
+                  'flex-1 outline-none',
+                  fullBleed
+                    ? 'min-h-0 overflow-hidden'
+                    : 'overflow-y-auto px-4 pt-6 pb-12 sm:px-8 lg:px-11 lg:pt-8',
                 )}
               >
-                <Outlet />
-              </div>
-            </main>
+                <div
+                  className={cn(
+                    'animate-[jobward-fade-in_0.15s_ease-out]',
+                    fullBleed ? 'h-full' : 'mx-auto max-w-[80rem]',
+                  )}
+                >
+                  <Outlet />
+                </div>
+              </main>
+            </div>
           </div>
-        </div>
+        </WorkspaceControlsProvider>
       </NoticeProvider>
     </TooltipProvider>
   );

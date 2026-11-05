@@ -9,10 +9,10 @@ import {
   SquareKanban,
   type LucideIcon,
 } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { PageHeader } from '@/components/ui/page-header';
+import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Surface } from '@/components/ui/surface';
 import { useOverview } from '@/features/overview/api';
@@ -50,19 +50,22 @@ function StatCard({
 export function OverviewPage() {
   const { workspace } = useWorkspace();
   const overview = useOverview(workspace.id);
+  const navigate = useNavigate();
 
   const header = (
-    <PageHeader
+    <WorkspacePageHeader
       title={`${greetingFor(new Date(), workspace.timezone)}!`}
       description={`Ecco a che punto è la tua ricerca in “${workspace.name}”.`}
-      actions={
-        <Button asChild>
-          <Link to="/boards">
-            <SquareKanban aria-hidden="true" />
-            Le mie bacheche
-          </Link>
-        </Button>
-      }
+      canCreateCard
+      actions={[
+        {
+          id: 'boards',
+          label: 'Le mie bacheche',
+          icon: SquareKanban,
+          separator: true,
+          onSelect: () => void navigate('/boards'),
+        },
+      ]}
     />
   );
 

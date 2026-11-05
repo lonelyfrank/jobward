@@ -25,13 +25,14 @@ export function Dialog({
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
-  variant?: 'center' | 'drawer' | 'workspace';
+  variant?: 'center' | 'drawer' | 'workspace' | 'search';
   children: ReactNode;
   onCloseAutoFocus?: (event: Event) => void;
   className?: string;
 }) {
   const drawer = variant === 'drawer';
   const workspace = variant === 'workspace';
+  const search = variant === 'search';
   return (
     <Primitive.Root open={open} onOpenChange={onOpenChange}>
       <Primitive.Portal>
@@ -40,6 +41,7 @@ export function Dialog({
             'fixed inset-0 z-40 bg-foreground/45',
             // Il pannello laterale lascia intravedere la bacheca: velo più leggero da `md`.
             drawer && 'md:bg-foreground/20',
+            search && 'bg-background/55 backdrop-blur-sm',
           )}
         />
         <Primitive.Content
@@ -47,16 +49,18 @@ export function Dialog({
           onCloseAutoFocus={onCloseAutoFocus}
           className={cn(
             'fixed z-50 flex flex-col bg-surface shadow-md outline-none',
-            workspace
-              ? // Modale ampia: schermo intero a telefono, centrata (max ~1000 px, 90dvh) da `md`.
-                'inset-0 h-dvh animate-[jobward-fade-in_0.12s_ease-out] md:inset-auto md:top-1/2 md:left-1/2 md:h-auto md:max-h-[90dvh] md:min-h-[min(36rem,90dvh)] md:w-[min(1000px,calc(100vw-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-xl md:border md:border-border'
-              : drawer
-                ? 'inset-0 animate-[jobward-fade-in_0.12s_ease-out] md:left-auto md:w-[30rem] md:max-w-[92vw] md:animate-[jobward-slide-in-right_0.18s_ease-out] md:border-l md:border-border'
-                : 'top-1/2 left-1/2 max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 animate-[jobward-fade-in_0.12s_ease-out] rounded-xl border border-border',
+            search
+              ? 'top-[min(15dvh,6rem)] left-1/2 max-h-[min(75dvh,42rem)] w-[calc(100vw-1rem)] max-w-[44rem] -translate-x-1/2 rounded-xl border border-border bg-surface/95 backdrop-blur-md'
+              : workspace
+                ? // Modale ampia: schermo intero a telefono, centrata (max ~1000 px, 90dvh) da `md`.
+                  'inset-0 h-dvh animate-[jobward-fade-in_0.12s_ease-out] md:inset-auto md:top-1/2 md:left-1/2 md:h-auto md:max-h-[90dvh] md:min-h-[min(36rem,90dvh)] md:w-[min(1000px,calc(100vw-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-xl md:border md:border-border'
+                : drawer
+                  ? 'inset-0 animate-[jobward-fade-in_0.12s_ease-out] md:left-auto md:w-[30rem] md:max-w-[92vw] md:animate-[jobward-slide-in-right_0.18s_ease-out] md:border-l md:border-border'
+                  : 'top-1/2 left-1/2 max-h-[90dvh] w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 animate-[jobward-fade-in_0.12s_ease-out] rounded-xl border border-border',
             className,
           )}
         >
-          {workspace ? (
+          {workspace || search ? (
             // Il contenuto fornisce un'intestazione propria (titolo, stato, azioni); qui resta il nome
             // accessibile della finestra.
             <>

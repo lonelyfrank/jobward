@@ -215,8 +215,11 @@ test.describe('responsive', () => {
       expect(overflow).toBeLessThanOrEqual(0);
       const kanban = page.getByTestId('kanban');
       const scrolls = await kanban.evaluate((el) => el.scrollWidth > el.clientWidth);
-      expect(scrolls).toBe(true); // 3 colonne + "Aggiungi colonna" non entrano in nessuna di queste larghezze... tranne desktop largo
-      await expect(page.getByRole('button', { name: 'Aggiungi colonna' })).toBeAttached();
+      // Dopo la rimozione della colonna aggiuntiva le tre colonne possono entrare sul laptop.
+      expect(scrolls).toBe(width < 1360);
+      await page.getByRole('button', { name: 'Azioni della vista' }).click();
+      await expect(page.getByRole('menuitem', { name: 'Aggiungi colonna' })).toBeVisible();
+      await page.keyboard.press('Escape');
       await expectNoA11yViolations(page, `bacheca ${width}px`);
     });
   }

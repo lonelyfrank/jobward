@@ -21,7 +21,8 @@ test('marchio originale: temi, proporzioni, simbolo compatto e navigazione mobil
     await expectNoA11yViolations(page, `brand ${theme}`);
     await page.screenshot({ path: info.outputPath(`brand-${theme}.png`) });
   }
-  await page.getByRole('button', { name: 'Comprimi la barra laterale' }).click();
+  await page.getByRole('button', { name: 'Comprimi la barra laterale' }).focus();
+  await page.keyboard.press('Enter');
   await expect(page.locator('svg[aria-label="Jobward"]')).toBeVisible();
   await waitForAnimationsToSettle(page);
   await page.screenshot({ path: info.outputPath('brand-collapsed.png') });

@@ -5,7 +5,7 @@ import type { ReactNode, RefObject } from 'react';
  * Pannello laterale modale (navigazione mobile). Focus trap, Esc e aria gestiti da Radix.
  *
  * Radix riporta il focus alla chiusura solo a un `Dialog.Trigger`; qui il pulsante di apertura
- * è esterno (nella topbar), quindi il suo ref viene passato in `returnFocusRef`.
+ * è esterno (nell’header della vista), quindi il suo ref viene passato in `returnFocusRef`.
  */
 export function Sheet({
   open,

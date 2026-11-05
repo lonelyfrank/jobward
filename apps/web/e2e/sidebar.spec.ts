@@ -95,8 +95,10 @@ test('collapse da tastiera e accessibilità nei due temi con movimento ridotto',
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   const sidebar = page.locator('aside');
-  const toggle = sidebar.getByRole('button');
+  const toggle = sidebar.getByRole('button', { name: /(?:Comprimi|Espandi) la barra laterale/ });
   await sidebar.getByRole('link', { name: 'Impostazioni', exact: true }).focus();
+  await page.keyboard.press('Tab');
+  await expect(sidebar.getByRole('button', { name: 'Menu account' })).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(toggle).toBeFocused();
   await expect(toggle).toHaveCSS('opacity', '1');

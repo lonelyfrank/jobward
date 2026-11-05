@@ -25,9 +25,7 @@ import {
 } from '@dnd-kit/sortable';
 import type { BoardDetailResponse, Card, Column } from '@jobward/schemas';
 import { anchorBefore } from '@jobward/shared';
-import { Plus } from 'lucide-react';
 import { useCallback, useMemo, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { useNotify } from '@/components/ui/notices';
 import { groupCards, menuMove } from './board-state';
 import { CardView } from './card-view';
@@ -77,7 +75,7 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
   const items = dragItems ?? baseItems;
   const lastOverId = useRef<UniqueIdentifier | null>(null);
 
-  const [editingColumn, setEditingColumn] = useState<Column | 'new' | null>(null);
+  const [editingColumn, setEditingColumn] = useState<Column | null>(null);
   const [deletingColumn, setDeletingColumn] = useState<Column | null>(null);
 
   const sensors = useSensors(
@@ -326,22 +324,12 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
             ))}
           </SortableContext>
 
-          <div className="w-[85vw] shrink-0 sm:w-[18rem]">
-            <Button
-              variant="secondary"
-              className="w-full justify-start"
-              onClick={() => setEditingColumn('new')}
-            >
-              <Plus aria-hidden="true" />
-              Aggiungi colonna
-            </Button>
-            {columns.length === 0 ? (
-              <p className="mt-3 text-sm text-muted-foreground">
-                Questa bacheca non ha ancora colonne. Aggiungine una per iniziare a inserire le tue
-                opportunità.
-              </p>
-            ) : null}
-          </div>
+          {columns.length === 0 ? (
+            <p className="w-[85vw] shrink-0 text-sm text-muted-foreground sm:w-[18rem]">
+              Questa bacheca non ha ancora colonne. Usa “Aggiungi colonna” nel menu delle azioni per
+              iniziare.
+            </p>
+          ) : null}
         </div>
 
         <DragOverlay dropAnimation={null}>
@@ -356,10 +344,10 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
 
       {editingColumn ? (
         <ColumnDialog
-          key={editingColumn === 'new' ? 'new' : editingColumn.id}
+          key={editingColumn.id}
           boardId={boardId}
           open
-          {...(editingColumn === 'new' ? {} : { column: editingColumn })}
+          column={editingColumn}
           onOpenChange={(open) => !open && setEditingColumn(null)}
         />
       ) : null}

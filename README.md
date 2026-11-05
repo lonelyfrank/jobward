@@ -183,3 +183,11 @@ Disponibili in `@jobward/shared` le funzioni pure di pipeline, transizioni, coer
 
 - [Consegna C1](docs/m3/c1-delivery.md) · [test](docs/m3/c1-testing-report.md) · [problemi e limiti](docs/m3/c1-issue-register.md).
 - `pnpm check:brand` verifica scope e riferimenti attivi; `pnpm test:identity` prova su database temporanei la procedura conservativa dell'identità locale. Entrambi fanno parte di `pnpm check` e della CI.
+
+### M3.UI.1 — Navigazione, azioni contestuali e ricerca globale
+
+La navbar superiore lascia spazio agli header delle viste, con ricerca globale e menu contestuale.
+L’account è nella sidebar; opportunità, bacheche e colloqui sono ricercabili nel workspace autorizzato.
+Questa consegna UI non anticipa le funzionalità di dominio/API M3-C2–C5 o M4.
+
+- [Consegna e architettura](docs/m3-ui1/delivery.md) · [audit delle azioni](docs/m3-ui1/audit.md) · [test](docs/m3-ui1/testing-report.md) · [screenshot prima/dopo](docs/m3-ui1/screenshots.md).

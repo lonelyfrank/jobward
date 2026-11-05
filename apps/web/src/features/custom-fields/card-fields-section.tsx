@@ -57,7 +57,7 @@ export function CardFieldsSection({
         </p>
       ) : !fields || fields.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Questa bacheca non ha campi personalizzati. Puoi crearne dal menu “Azioni bacheca” →
+          Questa bacheca non ha campi personalizzati. Puoi crearne dal menu “Azioni della vista” →
           “Campi personalizzati”.
         </p>
       ) : (

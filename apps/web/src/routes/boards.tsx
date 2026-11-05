@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useNotify } from '@/components/ui/notices';
-import { PageHeader } from '@/components/ui/page-header';
+import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Surface } from '@/components/ui/surface';
 import {
@@ -64,15 +64,19 @@ export function BoardsPage() {
   };
 
   const header = (
-    <PageHeader
+    <WorkspacePageHeader
       title="Bacheche"
       description="Una bacheca raccoglie le opportunità di una ricerca, organizzate nelle tue colonne."
-      actions={
-        <Button onClick={() => setCreating(true)}>
-          <Plus aria-hidden="true" />
-          Nuova bacheca
-        </Button>
-      }
+      canCreateCard={ordered.some((board) => board.columnCount > 0)}
+      actions={[
+        {
+          id: 'create-board',
+          label: 'Nuova bacheca',
+          icon: Plus,
+          separator: true,
+          onSelect: () => setCreating(true),
+        },
+      ]}
     />
   );
 

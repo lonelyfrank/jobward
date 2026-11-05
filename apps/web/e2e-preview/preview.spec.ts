@@ -210,7 +210,7 @@ test.describe('app reale sotto la CSP di produzione', () => {
     await panel.getByRole('button', { name: 'Salva', exact: true }).last().click();
     await expect(panel.getByRole('button', { name: 'Salva', exact: true }).last()).toBeDisabled();
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Azioni bacheca' }).click();
+    await page.getByRole('button', { name: 'Azioni della vista' }).click();
     await page.getByRole('menuitem', { name: 'Elimina bacheca…' }).click();
     await expect(page.getByRole('alertdialog')).toBeVisible();
     await page.getByRole('alertdialog').getByRole('button', { name: 'Annulla' }).click();
@@ -249,7 +249,7 @@ test.describe('app reale sotto la CSP di produzione', () => {
     await page.keyboard.press('Escape');
 
     // Configuratore dei campi (modulo caricato a richiesta: stessi vincoli della CSP).
-    await page.getByRole('button', { name: 'Azioni bacheca' }).click();
+    await page.getByRole('button', { name: 'Azioni della vista' }).click();
     await page.getByRole('menuitem', { name: 'Campi personalizzati…' }).click();
     const fields = page.getByRole('dialog', { name: 'Campi personalizzati' });
     await fields.getByRole('button', { name: 'Aggiungi campo' }).click();
@@ -362,4 +362,24 @@ test.describe('app reale sotto la CSP di produzione', () => {
     const ok = await request.get('/api/v1/me', { headers: { origin: baseURL! } });
     expect(Object.keys(ok.headers()).filter((h) => h.startsWith('access-control-'))).toEqual([]);
   });
+});
+
+test('M3.UI.1: ricerca globale e menu nella build con CSP reale', async ({ page }) => {
+  const watch = await watchViolations(page);
+  await page.goto('/');
+  const search = page.getByRole('button', { name: 'Cerca in Jobward' });
+  await expect(search).toBeVisible();
+  await page.keyboard.press('Control+k');
+  const input = page.getByRole('combobox', { name: 'Cerca in Jobward' });
+  await expect(input).toBeFocused();
+  await input.fill('ACME');
+  await expect(page.getByRole('group', { name: 'Opportunità', exact: true })).toBeVisible();
+  await input.press('Enter');
+  await expect(page.getByRole('dialog', { name: 'Uno' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Azioni della vista' }).click();
+  await expect(page.getByRole('menuitem', { name: 'Nuova scheda' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('banner')).toHaveCount(0);
+  expect(await watch.collect()).toEqual([]);
 });

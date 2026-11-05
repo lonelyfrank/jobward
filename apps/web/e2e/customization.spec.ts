@@ -24,7 +24,7 @@ async function openBoard(page: Page) {
 }
 
 async function openConfigurator(page: Page) {
-  await page.getByRole('button', { name: 'Azioni bacheca' }).click();
+  await page.getByRole('button', { name: 'Azioni della vista' }).click();
   await page.getByRole('menuitem', { name: 'Campi personalizzati…' }).click();
   const dialog = page.getByRole('dialog', { name: 'Campi personalizzati' });
   await expect(dialog).toBeVisible();

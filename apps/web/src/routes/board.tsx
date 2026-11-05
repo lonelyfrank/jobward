@@ -1,14 +1,10 @@
-import { ArrowLeft, Archive, EllipsisVertical, Star } from 'lucide-react';
+import { ArrowLeft, Archive, Plus, Star } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
+import { ColumnDialog } from '@/features/kanban/column-dialog';
 import { useNotify } from '@/components/ui/notices';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Surface } from '@/components/ui/surface';
@@ -36,6 +32,7 @@ export function BoardPage() {
   const update = useUpdateBoard();
   const remove = useDeleteBoard();
 
+  const [addingColumn, setAddingColumn] = useState(false);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
@@ -44,7 +41,7 @@ export function BoardPage() {
   if (board.isPending) {
     return (
       <div className="px-4 py-6 sm:px-8">
-        <Skeleton className="mb-6 h-8 w-64" />
+        <WorkspacePageHeader title="Bacheca" description="Caricamento…" />
         <div role="status" aria-label="Caricamento della bacheca" className="flex gap-4">
           {Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} className="h-64 w-72 shrink-0" />
@@ -58,10 +55,11 @@ export function BoardPage() {
     const notFound = 'status' in board.error && board.error.status === 404;
     return (
       <div className="px-4 py-6 sm:px-8">
+        <WorkspacePageHeader title={notFound ? 'Bacheca non trovata' : 'Bacheca'} />
         <Surface className="p-6" role="alert">
-          <h1 className="font-semibold">
+          <p className="font-semibold">
             {notFound ? 'Bacheca non trovata' : 'Non riusciamo a caricare la bacheca.'}
-          </h1>
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
             {notFound
               ? 'Potrebbe essere stata eliminata, o l’indirizzo non è corretto.'
@@ -88,143 +86,127 @@ export function BoardPage() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="px-4 pt-6 pb-5 sm:px-8 lg:px-11">
-        <Link
-          to="/boards"
-          className="inline-flex items-center gap-1 rounded-sm text-sm text-muted-foreground hover:text-foreground max-md:min-h-11 max-md:items-center"
+      <WorkspacePageHeader
+        className="mb-0 shrink-0 px-4 pt-6 pb-5 sm:px-8 lg:px-11"
+        title={info.name}
+        description={info.description ?? undefined}
+        canCreateCard={columns.length > 0}
+        boardId={boardId}
+        navigation={
+          <Link
+            to="/boards"
+            className="inline-flex min-h-11 items-center gap-1 rounded-sm text-sm text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft aria-hidden="true" className="size-4" />
+            {isColorToken(info.color) ? (
+              <span
+                aria-hidden="true"
+                className={cn('size-3 shrink-0 rounded-full', COLOR_BG[info.color])}
+              />
+            ) : null}
+            Tutte le bacheche
+          </Link>
+        }
+        actions={[
+          {
+            id: 'add-column',
+            label: 'Aggiungi colonna',
+            icon: Plus,
+            onSelect: () => setAddingColumn(true),
+          },
+          {
+            id: 'archived',
+            label: `Archiviate (${archivedTotal})`,
+            icon: Archive,
+            onSelect: () => setShowArchived(true),
+          },
+          {
+            id: 'favorite',
+            label: info.isFavorite ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti',
+            icon: Star,
+            separator: true,
+            onSelect: () =>
+              update.mutate(
+                { boardId: info.id, input: { isFavorite: !info.isFavorite } },
+                { onError: () => notify('error', 'Non siamo riusciti ad aggiornare i preferiti.') },
+              ),
+          },
+          { id: 'edit-board', label: 'Modifica bacheca…', onSelect: () => setEditing(true) },
+          {
+            id: 'fields',
+            label: 'Campi personalizzati…',
+            onSelect: () => setConfiguringFields(true),
+          },
+          {
+            id: 'delete-board',
+            label: 'Elimina bacheca…',
+            danger: true,
+            separator: true,
+            onSelect: () => setDeleting(true),
+          },
+        ]}
+      >
+        <nav
+          aria-label="Visualizzazione della bacheca"
+          className="flex gap-1 rounded-md border border-border-strong bg-surface p-1"
         >
-          <ArrowLeft aria-hidden="true" className="size-4" />
-          Tutte le bacheche
-        </Link>
-        <div className="mt-1 flex flex-wrap items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              {isColorToken(info.color) ? (
-                <span
-                  aria-hidden="true"
-                  className={cn('size-3 shrink-0 rounded-full', COLOR_BG[info.color])}
-                />
-              ) : null}
-              <h1 className="truncate text-3xl leading-tight font-extrabold tracking-tight">
-                {info.name}
-              </h1>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={info.isFavorite ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
-                aria-pressed={info.isFavorite}
-                onClick={() =>
-                  update.mutate(
-                    { boardId: info.id, input: { isFavorite: !info.isFavorite } },
-                    {
-                      onError: () =>
-                        notify('error', 'Non siamo riusciti ad aggiornare i preferiti.'),
-                    },
-                  )
-                }
-              >
-                <Star
-                  aria-hidden="true"
-                  className={cn(info.isFavorite && 'fill-current text-accent-amber')}
-                />
-              </Button>
-            </div>
-            {info.description ? (
-              <p className="mt-2.5 max-w-2xl text-[15px] text-muted-foreground">
-                {info.description}
-              </p>
-            ) : null}
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <nav
-              aria-label="Visualizzazione della bacheca"
-              className="flex gap-1 rounded-md border border-border-strong bg-surface p-1"
+          {[
+            { to: `/boards/${boardId}`, label: 'Kanban', end: true },
+            { to: `/boards/${boardId}/table`, label: 'Tabella', end: false },
+          ].map((view) => (
+            <NavLink
+              key={view.to}
+              to={view.to}
+              end={view.end}
+              className={({ isActive }) =>
+                cn(
+                  'inline-flex h-9 items-center rounded-lg px-4 text-sm font-semibold max-md:min-h-11',
+                  isActive
+                    ? 'bg-primary-soft text-primary-soft-foreground'
+                    : 'text-muted-foreground hover:bg-hover-soft hover:text-foreground',
+                )
+              }
             >
-              {[
-                { to: `/boards/${boardId}`, label: 'Kanban', end: true },
-                { to: `/boards/${boardId}/table`, label: 'Tabella', end: false },
-              ].map((view) => (
-                <NavLink
-                  key={view.to}
-                  to={view.to}
-                  end={view.end}
-                  className={({ isActive }) =>
-                    cn(
-                      'inline-flex h-9 items-center rounded-lg px-4 text-sm font-semibold max-md:min-h-11',
-                      isActive
-                        ? 'bg-primary-soft text-primary-soft-foreground'
-                        : 'text-muted-foreground hover:bg-hover-soft hover:text-foreground',
-                    )
-                  }
-                >
-                  {view.label}
-                </NavLink>
-              ))}
-            </nav>
-            {!location.pathname.endsWith('/table') ? (
-              <div
-                role="group"
-                aria-label="Densità delle schede"
-                className="flex gap-1 rounded-md border border-border-strong bg-surface p-1"
+              {view.label}
+            </NavLink>
+          ))}
+        </nav>
+        {!location.pathname.endsWith('/table') ? (
+          <div
+            role="group"
+            aria-label="Densità delle schede"
+            className="flex gap-1 rounded-md border border-border-strong bg-surface p-1"
+          >
+            {(
+              [
+                ['compact', 'Compatta'],
+                ['informative', 'Informativa'],
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={density === value}
+                onClick={() => setDensity(value)}
+                className={cn(
+                  'inline-flex h-9 items-center rounded-lg px-4 text-sm font-semibold max-md:min-h-11',
+                  density === value
+                    ? 'bg-primary-soft text-primary-soft-foreground'
+                    : 'text-muted-foreground hover:bg-hover-soft hover:text-foreground',
+                )}
               >
-                {(
-                  [
-                    ['compact', 'Compatta'],
-                    ['informative', 'Informativa'],
-                  ] as const
-                ).map(([value, label]) => (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={density === value}
-                    onClick={() => setDensity(value)}
-                    className={cn(
-                      'inline-flex h-9 items-center rounded-lg px-4 text-sm font-semibold max-md:min-h-11',
-                      density === value
-                        ? 'bg-primary-soft text-primary-soft-foreground'
-                        : 'text-muted-foreground hover:bg-hover-soft hover:text-foreground',
-                    )}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-            <Button variant="secondary" onClick={() => setShowArchived(true)}>
-              <Archive aria-hidden="true" />
-              Archiviate
-              <span className="sr-only"> ({archivedTotal})</span>
-              <span aria-hidden="true" className="text-muted-foreground">
-                {archivedTotal}
-              </span>
-            </Button>
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="secondary" size="icon" aria-label="Azioni bacheca">
-                  <EllipsisVertical aria-hidden="true" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onSelect={() => setEditing(true)}>
-                  Modifica bacheca…
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setConfiguringFields(true)}>
-                  Campi personalizzati…
-                </DropdownMenuItem>
-                <DropdownMenuItem danger onSelect={() => setDeleting(true)}>
-                  Elimina bacheca…
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                {label}
+              </button>
+            ))}
           </div>
-        </div>
-      </header>
+        ) : null}
+      </WorkspacePageHeader>
 
       <div className="min-h-0 flex-1">
         <Outlet />
       </div>
 
+      {addingColumn ? <ColumnDialog boardId={boardId} open onOpenChange={setAddingColumn} /> : null}
       <ArchivedDialog
         boardId={boardId}
         columnNames={columnNames}

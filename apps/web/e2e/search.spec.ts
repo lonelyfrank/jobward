@@ -342,8 +342,11 @@ test('9. Opportunità: tutte le bacheche, filtro per bacheca, ricerca globale da
 
   await page.getByRole('button', { name: /Filtri/ }).click();
   // Ricerca globale dalla barra superiore (Invio): porta qui con il testo e l'ambito esteso.
-  await page.getByRole('searchbox', { name: 'Cerca in tutte le bacheche' }).fill('trastevere');
-  await page.getByRole('searchbox', { name: 'Cerca in tutte le bacheche' }).press('Enter');
+  await page.getByRole('button', { name: 'Cerca in Jobward' }).click();
+  await page.getByRole('combobox', { name: 'Cerca in Jobward' }).fill('trastevere');
+  await expect(page.getByRole('option', { name: /Barista serale/ })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.goto('/opportunities?q=trastevere');
   await expect(page).toHaveURL(/\/opportunities\?q=trastevere$/);
   await expect(searchBox(page, 'Cerca nelle opportunità')).toHaveValue('trastevere');
   await expect.poll(() => tableTitles(page)).toEqual(['Barista serale']); // testo presente solo nell'azienda di questa scheda

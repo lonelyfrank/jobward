@@ -26,7 +26,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { to: '/settings', label: 'Impostazioni', icon: Settings, placement: 'bottom' },
 ];
 
-/** Metadati di rotta (titolo della vista attiva, usato da topbar e document.title). */
+/** Metadati di rotta (titolo della vista attiva, usato da document.title). */
 export interface RouteHandle {
   title: string;
   /** Vista a tutta larghezza e altezza (es. Kanban): niente padding né larghezza massima. */

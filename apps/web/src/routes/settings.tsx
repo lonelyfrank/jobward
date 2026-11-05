@@ -1,7 +1,7 @@
 import { type ThemePreference } from '@jobward/shared';
 import { lazy, Suspense } from 'react';
 import { Badge } from '@/components/ui/badge';
-import { PageHeader } from '@/components/ui/page-header';
+import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
 import { Surface } from '@/components/ui/surface';
 import { useWorkspace } from '@/features/workspace/context';
 import { useTheme } from '@/lib/theme';
@@ -27,7 +27,7 @@ export function SettingsPage() {
 
   return (
     <>
-      <PageHeader
+      <WorkspacePageHeader
         title="Impostazioni"
         description="Preferenze dell’interfaccia e informazioni sul tuo spazio."
       />
@@ -37,7 +37,7 @@ export function SettingsPage() {
           <h2 className="text-[17px] font-bold">Etichette</h2>
           <p className="mt-1 mb-4 text-sm text-muted-foreground">
             Parole chiave tue per ritrovare le opportunità, valide in tutte le bacheche. I campi
-            personalizzati si configurano per bacheca, dal menu “Azioni bacheca”.
+            personalizzati si configurano per bacheca, dal menu “Azioni della vista”.
           </p>
           <Suspense
             fallback={

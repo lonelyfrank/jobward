@@ -5,6 +5,7 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { useOverview } from '@/features/overview/api';
 import { useWorkspace } from '@/features/workspace/context';
 import { cn } from '@/lib/cn';
+import { UserMenu } from './user-menu';
 import { NAV_ITEMS, type NavItem } from './nav';
 
 /** Sezione "Bacheche recenti": dati reali; senza bacheche mostra un suggerimento onesto. */
@@ -167,6 +168,9 @@ export function Sidebar({
               />
             ))}
           </ul>
+          <div className="px-0.5">
+            <UserMenu />
+          </div>
         </div>
       </nav>
     </div>

@@ -116,7 +116,8 @@ test('4-5. colonne: crea, rinomina, cambia colore e fase, sposta', async ({ page
   await expect(page.getByRole('heading', { level: 1, name: 'Progetti paralleli' })).toBeVisible();
 
   for (const name of ['Idee', 'Da fare ora', 'Fatto']) {
-    await page.getByRole('button', { name: 'Aggiungi colonna' }).click();
+    await page.getByRole('button', { name: 'Azioni della vista' }).click();
+    await page.getByRole('menuitem', { name: 'Aggiungi colonna' }).click();
     const dialog = page.getByRole('dialog', { name: 'Nuova colonna' });
     await dialog.getByLabel('Nome', { exact: true }).fill(name);
     await dialog.getByRole('button', { name: 'Aggiungi colonna' }).click();
@@ -262,7 +263,9 @@ test('12. archivia con "Annulla", poi ripristina dal pannello Archiviate', async
   await page.getByRole('button', { name: 'Azioni per la scheda “Addetto vendite”' }).click();
   await page.getByRole('menuitem', { name: 'Archivia' }).click();
   await expect(cardLink(page, 'Addetto vendite')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: /Archiviate/ })).toContainText('1');
+  await page.getByRole('button', { name: 'Azioni della vista' }).click();
+  await expect(page.getByRole('menuitem', { name: /Archiviate/ })).toContainText('1');
+  await page.keyboard.press('Escape');
   await expect(page.getByText('Scheda “Addetto vendite” archiviata.')).toBeVisible();
 
   // "Annulla" nell'avviso la ripristina.
@@ -277,7 +280,8 @@ test('12. archivia con "Annulla", poi ripristina dal pannello Archiviate', async
 
   await page.reload(); // persiste archiviata
   await expect(cardLink(page, 'Addetto vendite')).toHaveCount(0);
-  await page.getByRole('button', { name: /Archiviate/ }).click();
+  await page.getByRole('button', { name: 'Azioni della vista' }).click();
+  await page.getByRole('menuitem', { name: /Archiviate/ }).click();
   const list = page.getByRole('dialog', { name: 'Schede archiviate' });
   await expect(list.getByText('Addetto vendite', { exact: true })).toBeVisible();
   await expectNoA11yViolations(page, 'schede archiviate');
@@ -324,9 +328,10 @@ test('elimina la bacheca solo dopo conferma esplicita', async ({ page }) => {
   await expect(main(page).getByRole('link', { name: 'Lavoretti estivi' })).toHaveCount(0);
 });
 
-test('creazione rapida globale dalla barra superiore', async ({ page }) => {
+test('creazione rapida globale dal menu della vista', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: /Nuova scheda/ }).click();
+  await page.getByRole('button', { name: 'Azioni della vista' }).click();
+  await page.getByRole('menuitem', { name: 'Nuova scheda' }).click();
   const dialog = page.getByRole('dialog', { name: 'Nuova scheda' });
   await dialog.getByLabel('Titolo').fill('Cassiere');
   await dialog.getByLabel('Bacheca').selectOption({ label: 'Ricerca autunno' });

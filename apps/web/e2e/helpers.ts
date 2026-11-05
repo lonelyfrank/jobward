@@ -67,10 +67,8 @@ export async function createBoard(
   template: 'Job Search Standard' | 'Minimal' | 'Personalizzata' = 'Minimal',
 ) {
   await page.goto('/boards');
-  await page
-    .getByRole('button', { name: /Nuova bacheca|Crea la tua prima bacheca/ })
-    .first()
-    .click();
+  await page.getByRole('button', { name: 'Azioni della vista' }).click();
+  await page.getByRole('menuitem', { name: 'Nuova bacheca' }).click();
   const dialog = page.getByRole('dialog', { name: 'Nuova bacheca' });
   await dialog.getByLabel('Nome', { exact: true }).fill(name);
   await dialog.getByRole('radio', { name: new RegExp(template) }).check({ force: true });
