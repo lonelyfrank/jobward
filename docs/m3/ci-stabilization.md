@@ -41,6 +41,6 @@
 
 - La causa 3 è dedotta dalla trace e dai tempi; il fallimento **senza** la correzione **non** è stato riprodotto in locale (il tentativo con una variante temporanea del file è stato bloccato da un controllo di sicurezza e non è stato aggirato). La correzione è verificata come stabile, non provata come unica causa.
 - Il ramo `409 → riuso` di `label()` non è esercitato dai test (il riuso della bacheca lo precede): è una difesa a costo ridotto.
-- Un primo `pnpm test` locale ha avuto un fallimento nel pacchetto web (log non conservato); due riesecuzioni consecutive sono state verdi. **Flake non diagnosticato**, probabile contesa di risorse con `pnpm -r` in parallelo.
+- Il flake locale di `pnpm test` (pacchetto web, `app.test.tsx`: «Unable to find role=heading») era reale ed è stato **diagnosticato dopo**: sotto CPU satura `findBy*` (1 s) non basta per le rotte caricate in modo pigro (riprodotto: 1–2 test su 2 di 3 esecuzioni). Corretto con `asyncUtilTimeout: 5000` e `testTimeout: 20000` (solo tetti massimi); con la stessa CPU satura 4/4 verdi. Non toccava la CI remota (lì passava), ma poteva comparire.
 - La verifica sulla CI remota è **pendente** fino al push del branch e all'esecuzione di GitHub Actions.
 - Osservazione non toccata: `wrangler` mostra ancora `database_name` `meet-roulette` (etichetta D1 persistente conservata per scelta di ADR-0014).

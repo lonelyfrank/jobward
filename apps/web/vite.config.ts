@@ -37,5 +37,7 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
     css: false,
+    // Test di navigazione con più passaggi: sotto carico superano i 5 s predefiniti.
+    testTimeout: 20_000,
   },
 });

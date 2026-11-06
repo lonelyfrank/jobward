@@ -1,7 +1,12 @@
 import '@testing-library/jest-dom/vitest';
 import * as matchers from '@testing-library/jest-dom/matchers';
-import { cleanup } from '@testing-library/react';
+import { cleanup, configure } from '@testing-library/react';
 import { afterEach, beforeEach, expect, vi } from 'vitest';
+
+// `findBy*`/`waitFor` aspettano al massimo 1 s per impostazione predefinita: con le rotte caricate in
+// modo pigro e la CPU occupata (es. `pnpm -r test` in parallelo) non basta. È solo un tetto massimo:
+// in condizioni normali i test non rallentano.
+configure({ asyncUtilTimeout: 5000 });
 
 // Registra esplicitamente sull'istanza del runner anche con risoluzione workspace/Vite.
 expect.extend(matchers);
