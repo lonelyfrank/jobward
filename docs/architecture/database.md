@@ -24,8 +24,8 @@ erDiagram
   workspaces ||--o{ activity_events : registra
 ```
 
-13 tabelle: `users`, `workspaces`, `workspace_members`, `boards`, `board_columns`, `cards`, `application_details`,
-`custom_field_definitions`, `custom_field_values`, `labels`, `card_labels`, `tasks`, `activity_events`.
+16 tabelle (M3-C2: `card_notes`, `card_documents`; M2.5: `interviews`): `users`, `workspaces`, `workspace_members`, `boards`, `board_columns`, `cards`, `application_details`,
+`custom_field_definitions`, `custom_field_values`, `labels`, `card_labels`, `tasks`, `activity_events`, `interviews`, `card_notes`, `card_documents`.
 Descrizione delle entità: [domain-model](../product/domain-model.md).
 
 ## Convenzioni

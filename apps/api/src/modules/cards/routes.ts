@@ -6,19 +6,33 @@ import {
   cardLabelsResponse,
   cardResponse,
   createCardInput,
+  createDocumentInput,
   createInterviewInput,
+  createNoteInput,
+  documentResponse,
+  documentsResponse,
   interviewResponse,
   interviewsResponse,
   moveCardInput,
+  noteResponse,
+  notesResponse,
+  pipelineTransitionInput,
+  pipelineTransitionResponse,
   putCustomFieldValueInput,
+  timelineQuery,
+  timelineResponse,
   updateCardInput,
 } from '@jobward/schemas';
 import { Hono } from 'hono';
 import { z } from 'zod';
 import type { AppEnv } from '../../env';
-import { parseJsonBody } from '../../lib/validate';
+import { parseJsonBody, parseQuery } from '../../lib/validate';
 import { idParam, workspaceScope } from '../../middleware/workspace';
+import { createDocument, listDocuments } from '../../services/documents';
 import { createInterview, listInterviews } from '../../services/interviews';
+import { createNote, listNotes } from '../../services/notes';
+import { transitionCard } from '../../services/pipeline';
+import { getTimeline } from '../../services/timeline';
 import { listCardFields, putCardFieldValue } from '../../services/custom-fields';
 import { assignLabel, unassignLabel } from '../../services/labels';
 import {
@@ -158,7 +172,7 @@ export const cardRoutes = new Hono<AppEnv>()
 
   .post('/:id/interviews', async (c) => {
     const input = await parseJsonBody(c, createInterviewInput);
-    const interview = await createInterview(
+    const { interview, replayed } = await createInterview(
       c.env.DB,
       c.get('db'),
       c.get('workspaceId'),
@@ -167,5 +181,63 @@ export const cardRoutes = new Hono<AppEnv>()
       input,
       Date.now(),
     );
-    return c.json(interviewResponse.parse({ interview }), 201);
+    // 201 alla prima creazione, 200 al replay della stessa richiesta (stessa identità, nessun evento).
+    return c.json(interviewResponse.parse({ interview }), replayed ? 200 : 201);
+  })
+
+  // --- M3-C2: pipeline, note, documenti, timeline -------------------------------------------------
+  .post('/:id/pipeline', async (c) => {
+    const input = await parseJsonBody(c, pipelineTransitionInput);
+    const result = await transitionCard(
+      c.env.DB,
+      c.get('db'),
+      c.get('workspaceId'),
+      c.get('user').id,
+      idParam(c),
+      input,
+      Date.now(),
+    );
+    return c.json(pipelineTransitionResponse.parse(result));
+  })
+
+  .get('/:id/timeline', async (c) => {
+    const query = parseQuery(c, timelineQuery);
+    const timeline = await getTimeline(c.get('db'), c.get('workspaceId'), idParam(c), query);
+    return c.json(timelineResponse.parse(timeline));
+  })
+
+  .get('/:id/notes', async (c) => {
+    const notes = await listNotes(c.get('db'), c.get('workspaceId'), idParam(c));
+    return c.json(notesResponse.parse({ notes }));
+  })
+
+  .post('/:id/notes', async (c) => {
+    const input = await parseJsonBody(c, createNoteInput);
+    const { note, replayed } = await createNote(
+      c.env.DB,
+      c.get('db'),
+      c.get('workspaceId'),
+      idParam(c),
+      input,
+      Date.now(),
+    );
+    return c.json(noteResponse.parse({ note }), replayed ? 200 : 201);
+  })
+
+  .get('/:id/documents', async (c) => {
+    const documents = await listDocuments(c.get('db'), c.get('workspaceId'), idParam(c));
+    return c.json(documentsResponse.parse({ documents }));
+  })
+
+  .post('/:id/documents', async (c) => {
+    const input = await parseJsonBody(c, createDocumentInput);
+    const { document, replayed } = await createDocument(
+      c.env.DB,
+      c.get('db'),
+      c.get('workspaceId'),
+      idParam(c),
+      input,
+      Date.now(),
+    );
+    return c.json(documentResponse.parse({ document }), replayed ? 200 : 201);
   });

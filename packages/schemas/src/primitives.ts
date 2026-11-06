@@ -62,3 +62,12 @@ export const timezoneSchema = z.string().refine((tz) => {
     return false;
   }
 }, 'Fuso orario non valido');
+
+/**
+ * ID stabile generato dal CLIENT all'apertura di un modulo di creazione (D5, docs/m3/plan.md §1.2):
+ * è la chiave di idempotenza di colloqui, note, documenti e transizioni. Solo caratteri sicuri per
+ * chiavi e log (UUID compresi); abbastanza lungo da non essere indovinabile.
+ */
+export const clientIdSchema = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{16,64}$/, 'Identificativo non valido');

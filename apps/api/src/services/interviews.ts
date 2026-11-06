@@ -5,12 +5,13 @@ import {
   type Interview,
   type UpdateInterviewInput,
 } from '@jobward/schemas';
-import { LIMITS } from '@jobward/shared';
+import { LIMITS, timelineDedupeKey } from '@jobward/shared';
 import { sql } from 'drizzle-orm';
 import { ApiError, conflict, notFound } from '../lib/errors';
 import { isConstraintError } from './ordering';
 import { eventStatement, touchBoard } from './events';
 import { getCard } from './cards';
+import { requestFingerprint } from './idempotency';
 
 /**
  * Colloqui (M2.5). Regole di business (docs/m25/interview-domain.md):
@@ -105,10 +106,23 @@ function assertCardEditable(archivedAt: number | null) {
   }
 }
 
+/** Round già creato con questo ID nel workspace, se c'è (replay o collisione). */
+async function findCreated(db: Database, workspaceId: string, interviewId: string) {
+  return (
+    (await db.get<{ cardId: string; requestFingerprint: string | null }>(
+      sql`SELECT card_id AS cardId, request_fingerprint AS requestFingerprint FROM interviews
+          WHERE id = ${interviewId} AND workspace_id = ${workspaceId}`,
+    )) ?? null
+  );
+}
+
 /**
- * Crea un round. Il numero d'ordine, il tetto per scheda e l'appartenenza al workspace sono
- * verificati nella STESSA istruzione (nessuna finestra di concorrenza). Non tocca colonna, fase
- * o esito della scheda.
+ * Crea un round, in modo IDEMPOTENTE (D5). Con un ID del client: stesso ID e stessa richiesta →
+ * il round esistente (`replayed: true`, nessun secondo round né evento, anche se nel frattempo è
+ * stato modificato); stesso ID e richiesta diversa → 409 senza toccare nulla. La garanzia è la
+ * chiave primaria + l'indice univoco `dedupe_key` dentro la STESSA `batch()`, non un SELECT.
+ * Numero d'ordine, tetto per scheda e appartenenza al workspace sono verificati nella stessa
+ * istruzione. Non tocca colonna, fase o esito della scheda.
  */
 export async function createInterview(
   d1: D1Database,
@@ -118,8 +132,31 @@ export async function createInterview(
   cardId: string,
   input: CreateInterviewInput,
   now: number,
-): Promise<Interview> {
+): Promise<{ interview: Interview; replayed: boolean }> {
   const card = await getCard(db, workspaceId, cardId);
+  const { id: clientId, ...payload } = input;
+  // Il fingerprint copre la richiesta normalizzata, non i valori generati dal server.
+  const fingerprint = await requestFingerprint('interview.create', {
+    workspaceId,
+    cardId,
+    payload,
+  });
+  const id = clientId ?? newId();
+  const replayOrConflict = async () => {
+    const found = await findCreated(db, workspaceId, id);
+    if (!found) return null;
+    if (found.cardId !== cardId || found.requestFingerprint !== fingerprint) {
+      throw conflict(
+        'Questo identificativo è già stato usato per una richiesta diversa: genera un nuovo modulo',
+      );
+    }
+    return { interview: await getInterview(db, workspaceId, id), replayed: true };
+  };
+  if (clientId) {
+    const replay = await replayOrConflict();
+    if (replay) return replay;
+  }
+
   assertCardEditable(card.archivedAt);
   let previous: Interview | null = null;
   if (input.followUpOf) {
@@ -129,7 +166,7 @@ export async function createInterview(
   const scheduledAt = input.scheduledAt ?? null;
   const timezone =
     input.timezone ?? (scheduledAt !== null ? await workspaceTimezone(db, workspaceId) : null);
-  const id = newId();
+  const eventType = previous ? 'interview_next_round_created' : 'interview_created';
 
   const nextSeq = `COALESCE((SELECT max(sequence) FROM interviews WHERE card_id = k.id), 0) + 1`;
   let statements: D1PreparedStatement[];
@@ -138,9 +175,10 @@ export async function createInterview(
       d1
         .prepare(
           `INSERT INTO interviews (id, workspace_id, card_id, sequence, title, type, status, scheduled_at, timezone,
-              duration_minutes, modality, location, meeting_url, interviewers, preparation_notes, created_at, updated_at)
+              duration_minutes, modality, location, meeting_url, interviewers, preparation_notes, created_at, updated_at,
+              request_fingerprint)
            SELECT ?1, k.workspace_id, k.id, ${nextSeq}, COALESCE(?4, 'Round ' || (${nextSeq})), ?5, ?6, ?7, ?8,
-                  ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?15
+                  ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?15, ?17
            FROM cards k
            WHERE k.id = ?2 AND k.workspace_id = ?3 AND k.archived_at IS NULL
              AND (SELECT count(*) FROM interviews WHERE card_id = k.id) < ?16`,
@@ -162,24 +200,29 @@ export async function createInterview(
           input.preparationNotes ?? null,
           now,
           LIMITS.interviewsPerCardMax,
+          fingerprint,
         ),
       // Evento solo se il round esiste davvero. `sequence` nei metadati si legge dalla riga creata.
+      // La chiave di deduplica è scoped al workspace dall'indice univoco (workspace_id, dedupe_key).
       d1
         .prepare(
-          `INSERT INTO activity_events (id, workspace_id, board_id, card_id, actor_user_id, type, metadata, occurred_at)
+          `INSERT INTO activity_events (id, workspace_id, board_id, card_id, actor_user_id, type, metadata, occurred_at,
+              dedupe_key, operation_id, request_fingerprint)
            SELECT ?1, i.workspace_id, k.board_id, k.id, ?2, ?3,
                   json_object('interviewId', i.id, 'sequence', i.sequence, 'scheduledAt', i.scheduled_at${previous ? ", 'previousSequence', " + previous.sequence : ''}),
-                  ?4
+                  ?4, ?7, i.id, ?8
            FROM interviews i JOIN cards k ON k.id = i.card_id AND k.workspace_id = i.workspace_id
            WHERE i.id = ?5 AND i.workspace_id = ?6`,
         )
         .bind(
           newId(),
           userId,
-          previous ? 'interview_next_round_created' : 'interview_created',
+          eventType,
           now,
           id,
           workspaceId,
+          timelineDedupeKey(eventType, { type: 'interview', id }, id),
+          fingerprint,
         ),
       d1
         .prepare(
@@ -198,11 +241,16 @@ export async function createInterview(
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (isConstraintError(error)) {
+      // Richiesta concorrente con lo stesso ID: converge sullo stesso round (o perde con 409).
+      if (clientId) {
+        const replay = await replayOrConflict();
+        if (replay) return replay;
+      }
       throw conflict('Un altro round è stato creato nello stesso momento: riprova');
     }
     throw error;
   }
-  return getInterview(db, workspaceId, id);
+  return { interview: await getInterview(db, workspaceId, id), replayed: false };
 }
 
 /** Colonne modificabili: insieme chiuso e costante (nessun nome di colonna dall'input). */

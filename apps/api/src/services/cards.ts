@@ -314,6 +314,25 @@ export async function updateCard(
       }),
     );
   }
+  // Riapertura (M3-C2): un esito conclusivo riportato a «in corso» dal modulo Dettagli lascia lo
+  // stesso evento dedicato della transizione `reopen` (una sola fonte di eventi). Senza ID di
+  // operazione: non ha chiave di deduplica, come gli altri eventi di questo percorso.
+  const closedOutcome = current.outcome !== null && current.outcome !== 'pending';
+  if (
+    input.outcome !== undefined &&
+    (input.outcome === null || input.outcome === 'pending') &&
+    closedOutcome
+  ) {
+    statements.push(
+      eventStatement(d1, {
+        ...base,
+        type: 'application_reopened',
+        metadata: { outcome: current.outcome },
+        guard: detailGuard('outcome'),
+        guardBinds: [input.outcome],
+      }),
+    );
+  }
   statements.push(touchBoard(d1, workspaceId, current.boardId, now));
 
   let results: D1Result[];

@@ -111,7 +111,7 @@ export function BoardCard({
           to={`/boards/${board.id}`}
           tabIndex={-1}
           aria-hidden="true"
-          className="text-[13px] font-semibold text-primary"
+          className="text-[13px] font-semibold text-primary max-md:-my-3 max-md:inline-flex max-md:min-h-11 max-md:items-center"
         >
           Apri bacheca →
         </Link>

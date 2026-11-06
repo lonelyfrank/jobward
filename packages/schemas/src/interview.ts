@@ -6,7 +6,14 @@ import {
   LIMITS,
 } from '@jobward/shared';
 import { z } from 'zod';
-import { httpUrl, idSchema, optionalText, requiredText, timezoneSchema } from './primitives';
+import {
+  clientIdSchema,
+  httpUrl,
+  idSchema,
+  optionalText,
+  requiredText,
+  timezoneSchema,
+} from './primitives';
 
 /**
  * Colloqui (M2.5). Contratti `strict`. STATO (organizzativo) ed ESITO (del colloquio) sono separati;
@@ -38,6 +45,11 @@ const emptyToNull = (v: string | null) => (v === '' ? null : v);
 
 export const createInterviewInput = z
   .object({
+    /**
+     * ID stabile del client (facoltativo per compatibilità con M2.5): con lo stesso ID un retry
+     * restituisce il round esistente (200) senza secondo evento; con payload diverso è 409.
+     */
+    id: clientIdSchema.optional(),
     title: fields.title.optional(),
     type: fields.type.default('other'),
     scheduledAt: fields.scheduledAt.optional(),

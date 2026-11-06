@@ -20,7 +20,7 @@ const files = fs
   .sort();
 const last = files.at(-1);
 const baseline = files.filter((f) => f < '0003'); // il database "di M1"
-const upgrade = files.filter((f) => f >= '0003'); // M2 (0003) e M2.5 (0004) in sequenza
+const upgrade = files.filter((f) => f >= '0003'); // M2 (0003), M2.5 (0004) e M3-C2 (0005) in sequenza
 if (upgrade.length === 0) throw new Error('Nessuna migrazione successiva a M1 da provare');
 
 fs.writeFileSync(
@@ -70,6 +70,9 @@ const run = (sql, options) => {
   fs.writeFileSync(file, sql);
   wrangler(['d1', 'execute', 'DB', '--local', '--file', file], options);
 };
+// Colonne di activity_events precedenti a 0005 (che ne aggiunge tre, NULL per le righe esistenti).
+const EVENT_COLUMNS_SQL =
+  'SELECT id, workspace_id, board_id, card_id, actor_user_id, type, metadata, occurred_at FROM activity_events ORDER BY id';
 const expect = (cond, message) => {
   if (!cond) throw new Error(`✖ ${message}`);
   console.log(`  ✓ ${message}`);
@@ -107,7 +110,7 @@ try {
     details: query(
       'SELECT card_id, company, source_url, stage, applied_on, salary_min, salary_max, currency FROM application_details ORDER BY card_id',
     ),
-    events: query('SELECT * FROM activity_events ORDER BY id'),
+    events: query(EVENT_COLUMNS_SQL),
   };
   console.log(
     `   ${before.cards} schede (${before.archived} archiviate), ${before.details.length} righe di dettagli`,
@@ -123,7 +126,7 @@ try {
     details: query(
       'SELECT card_id, company, source_url, stage, applied_on, salary_min, salary_max, currency FROM application_details ORDER BY card_id',
     ),
-    events: query('SELECT * FROM activity_events ORDER BY id'),
+    events: query(EVENT_COLUMNS_SQL),
   };
   expect(
     after.cards === before.cards && after.archived === before.archived,

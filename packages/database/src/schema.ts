@@ -2,6 +2,7 @@ import {
   ACTIVITY_EVENT_TYPES,
   CONTRACT_TYPES,
   CUSTOM_FIELD_TYPES,
+  DOCUMENT_KINDS,
   INTERVIEW_MODALITIES,
   INTERVIEW_RESULTS,
   INTERVIEW_STATUSES,
@@ -416,6 +417,8 @@ export const interviews = sqliteTable(
     feedbackNotes: text('feedback_notes'),
     result: text('result', { enum: INTERVIEW_RESULTS }),
     completedAt: integer('completed_at'),
+    /** SHA-256 della richiesta di creazione (0005); NULL per i round precedenti a M3-C2. */
+    requestFingerprint: text('request_fingerprint'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
@@ -457,6 +460,102 @@ export const interviews = sqliteTable(
     check(
       'interviews_completed_at_matches',
       sql`(${t.status} = 'completed') = (${t.completedAt} is not null)`,
+    ),
+  ],
+);
+
+// ---------------------------------------------------------------------------
+// Note e riferimenti documentali (M3-C2)
+// ---------------------------------------------------------------------------
+
+/**
+ * Nota manuale di una candidatura. Il testo vive SOLO qui (la cronologia di sistema non lo copia).
+ * - L'ID è generato dal client all'apertura del modulo: è la chiave di idempotenza della creazione.
+ * - `request_fingerprint` (SHA-256 della richiesta originale normalizzata) non cambia mai: un replay
+ *   si confronta con quello, non con la versione corrente della nota.
+ * - L'eliminazione lascia una LAPIDE (`deleted_at`, testo e fingerprint azzerati): un retry tardivo
+ *   della creazione non può ricreare una nota eliminata. Le lapidi non contano per il tetto.
+ */
+export const cardNotes = sqliteTable(
+  'card_notes',
+  {
+    id: id(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    cardId: text('card_id').notNull(),
+    body: text('body').notNull(),
+    requestFingerprint: text('request_fingerprint'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+    deletedAt: integer('deleted_at'),
+  },
+  (t) => [
+    foreignKey({
+      name: 'card_notes_card_fk',
+      columns: [t.cardId, t.workspaceId],
+      foreignColumns: [cards.id, cards.workspaceId],
+    }).onDelete('cascade'),
+    uniqueIndex('card_notes_id_workspace_unique').on(t.id, t.workspaceId),
+    index('card_notes_card_created_idx').on(t.cardId, t.createdAt, t.id),
+    check(
+      'card_notes_body_valid',
+      sql`${t.deletedAt} is not null or length(${t.body}) between 1 and 10000`,
+    ),
+    check(
+      'card_notes_fingerprint_valid',
+      sql`(${t.deletedAt} is null and coalesce(length(${t.requestFingerprint}), 0) = 64) or (${t.deletedAt} is not null and ${t.requestFingerprint} is null)`,
+    ),
+    check('card_notes_tombstone_scrubbed', sql`${t.deletedAt} is null or ${t.body} = ''`),
+  ],
+);
+
+/**
+ * Riferimento a un documento (CV, lettera, annuncio, portfolio): titolo, tipo, URL http(s)
+ * facoltativo e nota. Nessun file, nessun fetch dell'URL. Stesse regole di idempotenza e di lapide
+ * delle note.
+ */
+export const cardDocuments = sqliteTable(
+  'card_documents',
+  {
+    id: id(),
+    workspaceId: text('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'cascade' }),
+    cardId: text('card_id').notNull(),
+    title: text('title').notNull(),
+    kind: text('kind', { enum: DOCUMENT_KINDS }).notNull().default('other'),
+    url: text('url'),
+    note: text('note'),
+    requestFingerprint: text('request_fingerprint'),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+    deletedAt: integer('deleted_at'),
+  },
+  (t) => [
+    foreignKey({
+      name: 'card_documents_card_fk',
+      columns: [t.cardId, t.workspaceId],
+      foreignColumns: [cards.id, cards.workspaceId],
+    }).onDelete('cascade'),
+    uniqueIndex('card_documents_id_workspace_unique').on(t.id, t.workspaceId),
+    index('card_documents_card_created_idx').on(t.cardId, t.createdAt, t.id),
+    check('card_documents_kind_valid', inList(t.kind, DOCUMENT_KINDS)),
+    check(
+      'card_documents_title_valid',
+      sql`${t.deletedAt} is not null or length(${t.title}) between 1 and 200`,
+    ),
+    check(
+      'card_documents_url_valid',
+      sql`${t.url} is null or ${t.url} like 'http://%' or ${t.url} like 'https://%'`,
+    ),
+    check(
+      'card_documents_fingerprint_valid',
+      sql`(${t.deletedAt} is null and coalesce(length(${t.requestFingerprint}), 0) = 64) or (${t.deletedAt} is not null and ${t.requestFingerprint} is null)`,
+    ),
+    check(
+      'card_documents_tombstone_scrubbed',
+      sql`${t.deletedAt} is null or (${t.title} = '' and ${t.url} is null and ${t.note} is null)`,
     ),
   ],
 );
@@ -514,10 +613,34 @@ export const activityEvents = sqliteTable(
     type: text('type', { enum: ACTIVITY_EVENT_TYPES }).notNull(),
     metadata: text('metadata').notNull().default('{}'),
     occurredAt: integer('occurred_at').notNull(),
+    /**
+     * Idempotenza (0005). `dedupe_key` = JSON `[tipo, entità, id entità, id operazione]`, univoca per
+     * workspace: un retry non può registrare due volte lo stesso evento. NULL per gli eventi
+     * preesistenti e per quelli che non nascono da un'operazione con ID stabile.
+     */
+    dedupeKey: text('dedupe_key'),
+    /** ID stabile dell'operazione del client che ha prodotto l'evento (transizione, creazione). */
+    operationId: text('operation_id'),
+    /** SHA-256 della richiesta originale normalizzata: immutabile, mai testo riservato. */
+    requestFingerprint: text('request_fingerprint'),
   },
   (t) => [
     index('activity_events_workspace_time_idx').on(t.workspaceId, t.occurredAt),
     index('activity_events_card_time_idx').on(t.cardId, t.occurredAt),
+    uniqueIndex('activity_events_dedupe_unique')
+      .on(t.workspaceId, t.dedupeKey)
+      .where(sql`${t.dedupeKey} is not null`),
+    index('activity_events_operation_idx')
+      .on(t.workspaceId, t.operationId)
+      .where(sql`${t.operationId} is not null`),
     check('activity_events_type_valid', inList(t.type, ACTIVITY_EVENT_TYPES)),
+    check(
+      'activity_events_operation_consistent',
+      sql`(${t.operationId} is null) = (${t.requestFingerprint} is null)`,
+    ),
+    check(
+      'activity_events_dedupe_needs_operation',
+      sql`${t.dedupeKey} is null or ${t.operationId} is not null`,
+    ),
   ],
 );
