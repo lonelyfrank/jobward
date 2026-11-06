@@ -1,6 +1,6 @@
 # M3 — Piano tecnico
 
-**Stato:** D1–D5 approvate con le condizioni D4/D5 sotto riportate. La successiva autorizzazione M3-C1 supera il rinvio D6: pacchetti, branding e configurazioni locali sono rinominati secondo [ADR-0014](../architecture/decisions/0014-jobward-technical-rebranding.md), insieme al dominio puro di C1. **C2–C5 restano non autorizzati e non avviati.** Nessun push, merge, PR, deploy o operazione remota; lavoro esclusivamente su `m3-application-workflow`, con `main` invariato.
+**Stato:** D1–D5 approvate con le condizioni D4/D5 sotto riportate. La successiva autorizzazione M3-C1 supera il rinvio D6: pacchetti, branding e configurazioni locali sono rinominati secondo [ADR-0014](../architecture/decisions/0014-jobward-technical-rebranding.md), insieme al dominio puro di C1. **C2 è implementato nel branch `m3-c2-pipeline-notes-api` (vedi [c2-delivery](c2-delivery.md)); C3–C5 restano non autorizzati e non avviati.** Nessun push, merge, PR, deploy o operazione remota; lavoro esclusivamente su `m3-application-workflow`, con `main` invariato.
 Premessa: M2.5 ha già costruito modale, colloqui e cronologia di base ([audit §4](audit.md)). M3 **completa e collega**: non riscrive.
 
 ## 1. Decisioni approvate
