@@ -22,6 +22,13 @@ import {
   type CustomFieldValue,
   summarizeInterviews,
   createInterviewInput,
+  clientIdSchema,
+  createDocumentInput,
+  createNoteInput,
+  pipelineTransitionInput,
+  timelineQuery,
+  updateDocumentInput,
+  updateNoteInput,
   updateInterviewInput,
   completeInterviewInput,
   type InterviewSummaryRow,
@@ -438,5 +445,102 @@ describe('colloqui (M2.5)', () => {
       completeInterviewInput.safeParse({ result: 'positive', feedbackNotes: 'ok' }).success,
     ).toBe(true);
     expect(completeInterviewInput.safeParse({ result: 'ottimo' }).success).toBe(false);
+  });
+});
+
+describe('M3-C2 — pipeline, note, documenti, timeline', () => {
+  const id = '3f2b8c1e-5a4d-4e6f-9b7a-1c2d3e4f5a6b';
+
+  it('clientIdSchema: UUID e token sicuri 16–64; rifiuta corti, lunghi, separatori e spazi', () => {
+    for (const ok of [id, 'abcdefghijklmnop', 'A_b-c1234567890123']) {
+      expect(clientIdSchema.safeParse(ok).success).toBe(true);
+    }
+    for (const bad of [
+      '',
+      'corto',
+      'a'.repeat(65),
+      'con spazio 1234567890',
+      "a'b1234567890123456",
+      'ünicode1234567890123',
+    ]) {
+      expect(clientIdSchema.safeParse(bad).success, bad).toBe(false);
+    }
+  });
+
+  it('transizione: richiede ID, rifiuta archivio come destinazione, campi sconosciuti e combinazioni incoerenti', () => {
+    const ok = pipelineTransitionInput.safeParse({
+      id,
+      to: 'applied',
+      kind: 'advance',
+      appliedOn: '2026-11-01',
+    });
+    expect(ok.success).toBe(true);
+    for (const bad of [
+      { to: 'applied', kind: 'advance' },
+      { id, to: 'archived', kind: 'advance' },
+      { id, to: 'applied', kind: 'salta' },
+      { id, to: 'applied', kind: 'advance', extra: 1 },
+      { id, to: 'applied', kind: 'advance', futureInterviews: 'cancel' },
+      { id, to: 'rejected', kind: 'close', appliedOn: '2026-11-01' },
+      { id, to: 'applied', kind: 'advance', appliedOn: '01/11/2026' },
+    ]) {
+      expect(pipelineTransitionInput.safeParse(bad).success, JSON.stringify(bad)).toBe(false);
+    }
+    expect(
+      pipelineTransitionInput.safeParse({
+        id,
+        to: 'rejected',
+        kind: 'close',
+        futureInterviews: 'cancel',
+      }).success,
+    ).toBe(true);
+  });
+
+  it('note: testo rifilato, 1–10.000 caratteri, ID obbligatorio, nessun campo extra', () => {
+    expect(createNoteInput.parse({ id, body: '  ciao  ' }).body).toBe('ciao');
+    expect(createNoteInput.safeParse({ id, body: '   ' }).success).toBe(false);
+    expect(createNoteInput.safeParse({ id, body: 'x'.repeat(10_001) }).success).toBe(false);
+    expect(createNoteInput.safeParse({ body: 'x' }).success).toBe(false);
+    expect(createNoteInput.safeParse({ id, body: 'x', cardId: 'altra' }).success).toBe(false);
+    expect(updateNoteInput.safeParse({ body: '' }).success).toBe(false);
+  });
+
+  it('documenti: solo http(s), tipo dal vocabolario, nota ≤ 500, nessun contenuto di file', () => {
+    expect(createDocumentInput.parse({ id, title: ' CV ' })).toMatchObject({
+      title: 'CV',
+      kind: 'other',
+    });
+    for (const url of [
+      'javascript:alert(1)',
+      'data:text/plain,x',
+      'file:///etc/passwd',
+      'ftp://x.it',
+      'x',
+    ]) {
+      expect(createDocumentInput.safeParse({ id, title: 't', url }).success, url).toBe(false);
+    }
+    expect(createDocumentInput.safeParse({ id, title: 't', url: 'https://x.it/a' }).success).toBe(
+      true,
+    );
+    expect(createDocumentInput.safeParse({ id, title: 't', kind: 'exe' }).success).toBe(false);
+    expect(createDocumentInput.safeParse({ id, title: 't', content: 'AAAA' }).success).toBe(false);
+    expect(updateDocumentInput.safeParse({}).success).toBe(false);
+    expect(updateDocumentInput.parse({ note: '' })).toEqual({ note: null });
+  });
+
+  it('timeline: limite 1–50 (predefinito 25), cursore opzionale', () => {
+    expect(timelineQuery.parse({})).toEqual({ limit: 25 });
+    expect(timelineQuery.parse({ limit: '50', before: 'abc' })).toEqual({
+      limit: 50,
+      before: 'abc',
+    });
+    for (const limit of ['0', '51', 'x', '1.5'])
+      expect(timelineQuery.safeParse({ limit }).success, limit).toBe(false);
+  });
+
+  it('colloquio: l’ID del client è facoltativo ma, se presente, validato', () => {
+    expect(createInterviewInput.safeParse({}).success).toBe(true);
+    expect(createInterviewInput.safeParse({ id }).success).toBe(true);
+    expect(createInterviewInput.safeParse({ id: 'x' }).success).toBe(false);
   });
 });
