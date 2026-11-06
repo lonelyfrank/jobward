@@ -186,7 +186,7 @@ export function OverviewPage() {
                 {'to' in step && !step.done ? (
                   <Link
                     to={step.to}
-                    className="font-medium text-primary underline underline-offset-2"
+                    className="font-medium text-primary underline underline-offset-2 max-md:-my-3 max-md:inline-flex max-md:min-h-11 max-md:items-center"
                   >
                     {step.label}
                   </Link>

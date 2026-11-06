@@ -152,8 +152,18 @@ export async function seedApi(page: Page) {
     if (!res.ok()) throw new Error(`${method} ${path} → ${res.status()} ${await res.text()}`);
     return res.json();
   };
+  const get = async (path: string) => {
+    const res = await page.request.get(url(path));
+    if (!res.ok()) throw new Error(`get ${path} → ${res.status()} ${await res.text()}`);
+    return res.json();
+  };
   return {
     workspaceId: ws,
+    /** Id della bacheca con questo nome, se esiste: serve a rendere ripetibile la preparazione dei dati. */
+    async findBoard(name: string) {
+      const { boards } = (await get('/boards')) as { boards: { id: string; name: string }[] };
+      return boards.find((b) => b.name === name)?.id ?? null;
+    },
     async board(name: string) {
       const created = await send('post', '/boards', { name, templateId: 'minimal' });
       const columns = created.columns as { id: string; name: string }[];
@@ -164,8 +174,20 @@ export async function seedApi(page: Page) {
       if (Object.keys(details).length > 0) await send('patch', `/cards/${card.id}`, details);
       return card.id as string;
     },
+    /**
+     * Idempotente: un gruppo di test `serial` che fallisce viene rieseguito da capo (con i suoi
+     * `beforeAll`) su un database che conserva i dati del primo tentativo. Un'etichetta già
+     * presente con lo stesso nome (409) è riutilizzata invece di far fallire il secondo tentativo.
+     */
     async label(name: string, color = 'slate') {
-      return (await send('post', '/labels', { name, color })).label.id as string;
+      const res = await page.request.post(url('/labels'), { data: { name, color } });
+      if (res.ok()) return (await res.json()).label.id as string;
+      if (res.status() === 409) {
+        const { labels } = (await get('/labels')) as { labels: { id: string; name: string }[] };
+        const existing = labels.find((l) => l.name === name);
+        if (existing) return existing.id;
+      }
+      throw new Error(`post /labels → ${res.status()} ${await res.text()}`);
     },
     async assign(cardId: string, labelId: string) {
       await send('post', `/cards/${cardId}/labels`, { labelId });

@@ -115,6 +115,12 @@ test.describe('responsive: 320 / 390 / 768 / 1024 / 1360 px', () => {
     page,
   }) => {
     await page.setViewportSize({ width: 390, height: 844 });
+    // L'elenco bacheche mostra controlli diversi quando ci sono bacheche: il test non deve dipendere
+    // dai dati lasciati da altri file (in CI ci sono, isolato no).
+    const api = await seedApi(page);
+    if (!(await api.findBoard('Bacheca per i target tattili'))) {
+      await api.board('Bacheca per i target tattili');
+    }
     const small: string[] = [];
     for (const path of ['/', '/boards', '/settings']) {
       await page.goto(path);

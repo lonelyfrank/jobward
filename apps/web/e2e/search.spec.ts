@@ -24,6 +24,14 @@ test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage();
   await ensureWorkspace(page);
   const api = await seedApi(page);
+  // Se il gruppo seriale viene rieseguito dopo un fallimento, i dati del primo tentativo sono già nel
+  // database: si riusano (ricrearli duplicherebbe bacheche e schede e falserebbe i conteggi).
+  const already = await api.findBoard(BOARD);
+  if (already) {
+    boardId = already;
+    await page.close();
+    return;
+  }
   const board = await api.board(BOARD);
   boardId = board.id;
   const other = await api.board(OTHER);
@@ -194,7 +202,11 @@ test('4. filtri: OR nello stesso gruppo, AND tra gruppi, contrassegni rimovibili
   // Filtri incompatibili → nessun risultato, spiegato.
   await page.getByRole('group', { name: 'Fase' }).getByLabel('Salvata').check();
   await expect(page.getByRole('heading', { name: 'Nessun risultato' })).toBeVisible();
+  // La vista mostra subito lo stato scelto (ottimistico); la voce di cronologia nasce quando
+  // l'indirizzo è aggiornato. "Indietro" prima di allora annullerebbe il passo sbagliato.
+  await expect(page).toHaveURL(/[?&]stage=saved\b/);
   await page.goBack();
+  await expect(page).not.toHaveURL(/[?&]stage=/);
   await expect(results(page)).toHaveText('2 risultati');
   await page.getByRole('button', { name: 'Cancella filtri' }).first().click();
   await expect(results(page)).toHaveText('4 risultati');
