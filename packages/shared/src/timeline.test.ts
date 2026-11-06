@@ -37,13 +37,12 @@ describe('timeline pura, compatibile con gli eventi M2.5', () => {
       data: {},
     });
   });
-  it.each(ACTIVITY_EVENT_TYPES)(
-    'accetta il tipo persistente %s senza cambiare il vocabolario SQL',
-    (type) => {
-      expect(mergeTimeline([event({ type })], [])[0]?.kind).toBe(type);
-      expect(ACTIVITY_EVENT_TYPES as readonly string[]).not.toContain('application_reopened');
-    },
-  );
+  it.each(ACTIVITY_EVENT_TYPES)('accetta il tipo persistente %s', (type) => {
+    expect(mergeTimeline([event({ type })], [])[0]?.kind).toBe(type);
+  });
+  it('M3-C2: la riapertura è un tipo persistente (migrazione 0005)', () => {
+    expect(ACTIVITY_EVENT_TYPES as readonly string[]).toContain('application_reopened');
+  });
   it('whitelist: nessuna nota, feedback, titolo o oggetto annidato nei metadati', () => {
     const input = Object.freeze({
       interviewId: 'round',

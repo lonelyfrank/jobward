@@ -100,8 +100,14 @@ export const ACTIVITY_EVENT_TYPES = [
   'interview_completed',
   'interview_cancelled',
   'interview_feedback_recorded',
+  // M3-C2 — riapertura di una candidatura chiusa (migrazione 0005).
+  'application_reopened',
 ] as const;
 export type ActivityEventType = (typeof ACTIVITY_EVENT_TYPES)[number];
+
+/** Riferimenti documentali (M3-C2): si conserva il riferimento, mai il file. */
+export const DOCUMENT_KINDS = ['cv', 'cover_letter', 'job_posting', 'portfolio', 'other'] as const;
+export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
 
 /**
  * Colloqui (M2.5). Tipi neutri rispetto al settore; lo STATO è organizzativo, l'ESITO è un'altra cosa
@@ -156,6 +162,14 @@ export const LIMITS = {
   /** Round di colloquio per candidatura (atomico) e persone che conducono un colloquio. */
   interviewsPerCardMax: 50,
   interviewersMax: 10,
+  /** Note e riferimenti documentali per candidatura (M3-C2, applicati in modo atomico). */
+  notesPerCardMax: 500,
+  noteBodyMax: 10_000,
+  documentsPerCardMax: 50,
+  documentNoteMax: 500,
+  /** Pagina della timeline di una candidatura. */
+  timelinePageDefault: 25,
+  timelinePageMax: 50,
   /** Ricerca: lunghezza del testo, numero di parole e dimensione di pagina. */
   searchTextMax: 100,
   searchTermsMax: 6,
