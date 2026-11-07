@@ -229,14 +229,14 @@ test.describe('app reale sotto la CSP di produzione', () => {
     const panel = page.getByRole('dialog', { name: 'Uno' });
 
     // Dettagli professionali (sezioni comprimibili) e fase/esito.
-    await panel.getByRole('tab', { name: 'Dettagli' }).click();
+    await openTab(panel, 'Dettagli');
     await panel.getByRole('button', { name: /Opportunità/ }).click();
     await panel.getByLabel('Sede').fill('Brescia');
     await panel.getByLabel('Modalità di lavoro').selectOption('hybrid');
     await panel.getByLabel('Minima').fill('1800');
     await panel.getByLabel('Valuta').fill('EUR');
     // Fase ed etichette stanno in Panoramica.
-    await panel.getByRole('tab', { name: 'Panoramica' }).click();
+    await openTab(panel, 'Panoramica');
     await transitionPipeline(panel, 'advance', 'applied');
     // Etichetta creata al volo.
     await panel.getByRole('button', { name: 'Aggiungi etichetta' }).click();
@@ -311,7 +311,9 @@ test.describe('app reale sotto la CSP di produzione', () => {
     const box = (await panel.boundingBox())!;
     expect(box.width).toBeLessThanOrEqual(1000.5);
 
-    await panel.getByRole('tab', { name: 'Colloqui' }).click();
+    // L'URL cambia prima che il pannello sia attivo: si attende la selezione ARIA, altrimenti il
+    // locator può agganciarsi al pulsante omonimo della Panoramica, ormai nascosto (CI 42334739111).
+    await openTab(panel, 'Colloqui');
     await expect(page).toHaveURL(/#colloqui$/);
     await panel.getByRole('button', { name: 'Aggiungi colloquio' }).click();
     const form = panel
@@ -322,7 +324,7 @@ test.describe('app reale sotto la CSP di produzione', () => {
     await expect(panel.getByRole('article', { name: /^Round 1:/ })).toContainText('Programmato');
 
     // Guardia delle modifiche non salvate (AlertDialog annidato) e chiusura.
-    await panel.getByRole('tab', { name: 'Panoramica' }).click();
+    await openTab(panel, 'Panoramica');
     await panel.getByLabel('Azienda o ente').fill('Bozza');
     await page.keyboard.press('Escape');
     await expect(
