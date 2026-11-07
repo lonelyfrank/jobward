@@ -426,3 +426,42 @@ test('M3-C3: pipeline, note, documenti e timeline lazy nella build con CSP reale
   );
   expect(await watch.collect()).toEqual([]);
 });
+
+test('M3 Tasks: pagina, dialog, sezione nella candidatura e Timeline nella build con CSP reale', async ({
+  page,
+}) => {
+  const watch = await watchViolations(page);
+  await page.goto('/tasks');
+  await expect(page.getByRole('heading', { level: 1, name: 'Attività' })).toBeVisible();
+  await page.getByRole('button', { name: 'Nuova attività' }).first().click();
+  const dialog = page.getByRole('dialog', { name: 'Nuova attività' });
+  await dialog.getByLabel('Titolo').fill('Attività sotto CSP');
+  await dialog.getByRole('button', { name: 'Domani' }).click();
+  await dialog.getByRole('button', { name: 'Crea attività' }).click();
+  await expect(dialog).toBeHidden();
+  const row = page.locator('[data-task-row]').filter({ hasText: 'Attività sotto CSP' });
+  await expect(row).toBeVisible();
+  await page.getByRole('button', { name: 'Da fare', exact: true }).click();
+  await expect(page).toHaveURL(/vista=da-fare/);
+  await row.getByRole('button', { name: 'Segna come completata: Attività sotto CSP' }).click();
+  await expect(row).toHaveCount(0);
+
+  // Sezione nella candidatura (modale + dialog annidato) e voce derivata nella Timeline.
+  await page.goto('/boards');
+  await page.getByRole('main').getByRole('link', { name: 'Anteprima Kanban' }).click();
+  await page.getByRole('link', { name: 'Uno', exact: true }).click();
+  const panel = page.getByRole('dialog', { name: 'Uno' });
+  const section = panel.getByRole('region', { name: 'Attività della candidatura' });
+  await section.getByRole('button', { name: 'Aggiungi attività' }).click();
+  const nested = page.getByRole('dialog', { name: 'Nuova attività' });
+  await expect(nested.getByTestId('task-linked-card')).toContainText('Uno');
+  await nested.getByLabel('Titolo').fill('Legata sotto CSP');
+  await nested.getByRole('button', { name: 'Crea attività' }).click();
+  await expect(nested).toBeHidden();
+  await expect(
+    section.getByRole('button', { name: 'Legata sotto CSP', exact: true }),
+  ).toBeVisible();
+  await openTab(panel, 'Timeline');
+  await expect(panel.getByText('Attività creata').first()).toBeVisible();
+  expect(await watch.collect()).toEqual([]);
+});
