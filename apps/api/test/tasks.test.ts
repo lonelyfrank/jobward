@@ -18,7 +18,7 @@ const create = (api: Api, over: Record<string, unknown> = {}) => api.post('/task
 const make = async (api: Api, over: Record<string, unknown> = {}) => {
   const res = await create(api, over);
   if (res.status !== 201) throw new Error(`creazione fallita: ${JSON.stringify(res.body)}`);
-  return res.body.task as any;
+  return res.body.task;
 };
 const rowOf = async (id: string) =>
   env.DB.prepare('SELECT * FROM tasks WHERE id = ?1').bind(id).first<any>();

@@ -101,8 +101,8 @@ describe('pagina Attività', () => {
     renderApp('/tasks');
     expect(await screen.findByRole('heading', { level: 1, name: 'Attività' })).toBeInTheDocument();
     // Riepilogo = dati dell'API, mai valori fissi.
-    expect(await screen.findByRole('button', { name: 'Da fare: 4' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'In ritardo: 1' })).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /^Da fare\s*4$/ })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^In ritardo\s*1$/ })).toBeInTheDocument();
     expect(within(screen.getByTestId('summary-today')).getByText('1')).toBeInTheDocument();
     // Sezioni derivate dalla classificazione, con testi comprensibili (nessun timestamp tecnico).
     for (const name of [/In ritardo/, /^Oggi/, /Prossime/, /Senza scadenza/, /Completate/])
@@ -120,7 +120,7 @@ describe('pagina Attività', () => {
     const user = userEvent.setup();
     const calls = tasksApi(sample);
     const { router } = renderApp('/tasks');
-    await screen.findByRole('button', { name: 'Da fare: 4' });
+    await screen.findByRole('button', { name: /^Da fare\s*4$/ });
     await user.click(screen.getByRole('button', { name: 'Completate' }));
     await waitFor(() => expect(router.state.location.search).toBe('?vista=completate'));
     await waitFor(() => expect(calls.some((c) => c.path.includes('view=done'))).toBe(true));
@@ -139,7 +139,7 @@ describe('pagina Attività', () => {
     renderApp('/tasks');
     expect(await screen.findByText('Nessuna attività, per ora')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Aggiungi la prima attività' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'In ritardo: 0' }));
+    await user.click(screen.getByRole('button', { name: /^In ritardo\s*0$/ }));
     expect(await screen.findByText('Nessuna attività in ritardo')).toBeInTheDocument();
     expect(screen.getByText('Niente in scadenza oggi')).toBeInTheDocument();
   });

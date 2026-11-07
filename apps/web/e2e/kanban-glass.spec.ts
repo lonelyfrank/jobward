@@ -117,7 +117,7 @@ for (const theme of ['dark', 'light'] as const) {
       { name: 'Overview', path: () => '/', ready: 'Opportunità recenti' },
       { name: 'elenco Bacheche', path: () => '/boards', ready: BOARD },
       { name: 'Opportunità', path: () => '/opportunities', ready: 'Scheda vetro A' },
-      { name: 'Attività', path: () => '/tasks', ready: 'Nessuna attività, per ora' },
+      { name: 'Attività', path: () => '/tasks', ready: 'Nuova attività' },
       { name: 'Insights', path: () => '/insights', ready: 'Le statistiche nascono dai tuoi dati' },
       {
         name: 'bacheca in modalità Tabella',

@@ -296,21 +296,17 @@ function SummaryButton({
     <button
       type="button"
       aria-pressed={active}
-      aria-label={`${label}: ${value ?? 'non disponibile'}`}
       onClick={onClick}
       className={cn(
         'min-h-11 rounded-lg border bg-surface p-3 text-left outline-none hover:bg-hover-soft focus-visible:ring-2 focus-visible:ring-primary sm:p-4',
         active ? 'border-primary' : 'border-border',
       )}
     >
-      <span
-        aria-hidden="true"
-        className="block text-xs font-semibold tracking-wide text-muted-foreground uppercase"
-      >
+      {/* Nome accessibile = testo visibile («Da fare 4»): nessuna etichetta che lo contraddica (WCAG 2.5.3). */}
+      <span className="block text-xs font-semibold tracking-wide text-muted-foreground uppercase">
         {label}
-      </span>
+      </span>{' '}
       <span
-        aria-hidden="true"
         className={cn('mt-1 block text-2xl font-extrabold', tone === 'danger' && 'text-danger')}
       >
         {value ?? '–'}

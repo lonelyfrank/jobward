@@ -273,7 +273,7 @@ export async function listTasks(
     // Prima le aperte (ordine operativo), poi le completate (più recenti prima).
     let combined: { row: Row; cursor: Cursor }[] = [];
     if (!cursor || cursor.phase === 'o') {
-      const open = await fetchOpen(cursor as Extract<Cursor, { phase: 'o' }> | null, limit + 1);
+      const open = await fetchOpen(cursor, limit + 1);
       combined = asOpen(open);
       if (open.length <= limit) {
         const done = await fetchStamped('completed_at', null, limit + 1 - open.length);
@@ -282,7 +282,7 @@ export async function listTasks(
     } else {
       const done = await fetchStamped(
         'completed_at',
-        cursor as Extract<Cursor, { phase: 'd' }>,
+        cursor,
         limit + 1,
       );
       combined = asDone(done, 'd');
