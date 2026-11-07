@@ -1,3 +1,4 @@
+import { PipelineStatusBadge } from '@/features/pipeline/status-badge';
 import type { Label, Opportunity } from '@jobward/schemas';
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -11,8 +12,6 @@ import {
   OUTCOME_LABELS,
   PRIORITY_LABELS,
   PRIORITY_TONE,
-  STAGE_LABELS,
-  STAGE_TONE,
   WORK_MODE_LABELS,
 } from '@/lib/labels';
 import { formatSalary } from '@/lib/salary';
@@ -69,7 +68,7 @@ function renderCell(column: ColumnDef, item: Opportunity, ctx: ResultContext): R
     case 'salary':
       return orMissing(formatSalary(item));
     case 'stage':
-      return orMissing(item.stage ? STAGE_LABELS[item.stage] : null);
+      return <PipelineStatusBadge state={item} />;
     case 'outcome':
       return orMissing(item.outcome ? OUTCOME_LABELS[item.outcome] : null);
     case 'labels': {
@@ -254,9 +253,7 @@ export function ResultsList({
                   Priorità {PRIORITY_LABELS[item.priority].toLowerCase()}
                 </Badge>
               ) : null}
-              {item.stage ? (
-                <Badge tone={STAGE_TONE[item.stage]}>{STAGE_LABELS[item.stage]}</Badge>
-              ) : null}
+              <PipelineStatusBadge state={item} />
               {item.outcome ? <Badge>{OUTCOME_LABELS[item.outcome]}</Badge> : null}
               {item.appliedOn ? (
                 <span className="text-xs text-muted-foreground">

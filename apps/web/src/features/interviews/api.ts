@@ -5,9 +5,10 @@ import {
   type CreateInterviewInput,
   type UpdateInterviewInput,
 } from '@jobward/schemas';
-import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
-import { invalidateSummaries, keys, scoped } from '@/features/boards/api';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keys, scoped } from '@/features/boards/api';
 import { useWorkspace } from '@/features/workspace/context';
+import { refreshWorkflow } from '@/features/cards/workflow-cache';
 import { apiRequest } from '@/lib/api';
 
 export function useInterviews(cardId: string) {
@@ -24,17 +25,10 @@ export function useInterviews(cardId: string) {
  * Un colloquio cambia l'elenco, il riepilogo della scheda (Kanban, tabella, pannello) e la
  * cronologia: tutto si riallinea al server, senza dati provvisori da annullare.
  */
-function refresh(queryClient: QueryClient, ws: string, cardId: string) {
-  void queryClient.invalidateQueries({ queryKey: keys.interviews(ws, cardId) });
-  void queryClient.invalidateQueries({ queryKey: keys.card(ws, cardId) });
-  void queryClient.invalidateQueries({ queryKey: ['board', ws] });
-  invalidateSummaries(queryClient, ws);
-}
-
-export function useInterviewActions(cardId: string) {
+export function useInterviewActions(cardId: string, boardId: string) {
   const { workspace } = useWorkspace();
   const queryClient = useQueryClient();
-  const onSuccess = () => refresh(queryClient, workspace.id, cardId);
+  const onSuccess = () => refreshWorkflow(queryClient, workspace.id, cardId, boardId, 'interviews');
   return {
     create: useMutation({
       mutationFn: (input: CreateInterviewInput) =>

@@ -12,6 +12,7 @@ import { useNotify } from '@/components/ui/notices';
 import { invalidateSummaries, keys, scoped } from '@/features/boards/api';
 import { useWorkspace } from '@/features/workspace/context';
 import { apiRequest, ApiRequestError } from '@/lib/api';
+import { useNavigate } from 'react-router';
 import { STAGE_LABELS } from '@/lib/labels';
 import {
   appendCard,
@@ -64,7 +65,7 @@ function settleWhenIdle(
 export function useMoveCard(boardId: string) {
   const cache = useBoardCache(boardId);
   const notify = useNotify();
-  const updateCard = useUpdateCard(boardId);
+  const navigate = useNavigate();
   const mutationKey = ['move-card', cache.workspaceId, boardId] as const;
 
   return useMutation({
@@ -100,16 +101,8 @@ export function useMoveCard(boardId: string) {
           'success',
           `La colonna “${target?.name}” corrisponde alla fase “${STAGE_LABELS[category]}”.`,
           {
-            label: 'Imposta fase',
-            onClick: () =>
-              updateCard.mutate(
-                { cardId: card.id, input: { stage: category } },
-                {
-                  onSuccess: () =>
-                    notify('success', `Fase impostata su “${STAGE_LABELS[category]}”.`),
-                  onError: () => notify('error', 'Non siamo riusciti a impostare la fase.'),
-                },
-              ),
+            label: 'Gestisci candidatura',
+            onClick: () => void navigate(`/boards/${boardId}/cards/${card.id}`),
           },
         );
       }
@@ -127,6 +120,9 @@ export function useMoveCard(boardId: string) {
       });
       settleWhenIdle(cache.queryClient, mutationKey, () => {
         void cache.queryClient.invalidateQueries({ queryKey: cache.key });
+        void cache.queryClient.invalidateQueries({
+          queryKey: keys.timeline(cache.workspaceId, move.cardId),
+        });
         invalidateSummaries(cache.queryClient, cache.workspaceId);
       });
     },
@@ -180,6 +176,9 @@ export function useCreateCard(boardId: string) {
     onSuccess: ({ card }) => {
       const current = cache.get();
       if (current) cache.set(appendCard(current, card));
+      void cache.queryClient.invalidateQueries({
+        queryKey: keys.timeline(cache.workspaceId, card.id),
+      });
       invalidateSummaries(cache.queryClient, cache.workspaceId);
     },
   });
@@ -202,6 +201,9 @@ export function useUpdateCard(boardId: string) {
       );
       // La cronologia può essere cambiata (es. priorità): si ricarica il dettaglio.
       void cache.queryClient.invalidateQueries({ queryKey: keys.card(cache.workspaceId, card.id) });
+      void cache.queryClient.invalidateQueries({
+        queryKey: keys.timeline(cache.workspaceId, card.id),
+      });
       invalidateSummaries(cache.queryClient, cache.workspaceId);
     },
   });
@@ -222,6 +224,9 @@ export function useArchiveCard(boardId: string) {
         queryKey: keys.archived(cache.workspaceId, boardId),
       });
       void cache.queryClient.invalidateQueries({ queryKey: keys.card(cache.workspaceId, card.id) });
+      void cache.queryClient.invalidateQueries({
+        queryKey: keys.timeline(cache.workspaceId, card.id),
+      });
       invalidateSummaries(cache.queryClient, cache.workspaceId);
     },
   });
@@ -241,6 +246,9 @@ export function useRestoreCard(boardId: string) {
         queryKey: keys.archived(cache.workspaceId, boardId),
       });
       void cache.queryClient.invalidateQueries({ queryKey: keys.card(cache.workspaceId, card.id) });
+      void cache.queryClient.invalidateQueries({
+        queryKey: keys.timeline(cache.workspaceId, card.id),
+      });
       invalidateSummaries(cache.queryClient, cache.workspaceId);
     },
   });

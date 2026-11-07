@@ -1,18 +1,15 @@
-import type { ActivityEvent, Card, Column } from '@jobward/schemas';
+import type { Card, Column } from '@jobward/schemas';
 import {
   CONTRACT_TYPES,
   LIMITS,
-  OUTCOMES,
   PRIORITIES,
   SALARY_BASES,
   SALARY_PERIODS,
-  STAGES,
   WORK_MODES,
   type Priority,
-  type Stage,
 } from '@jobward/shared';
 import { ExternalLink, Plus } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
+import { lazy, Suspense, useContext, useState, type FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { DialogBody, DialogCloseButton, DialogFooter } from '@/components/ui/dialog';
@@ -26,7 +23,6 @@ import { CardFieldsSection } from '@/features/custom-fields/card-fields-section'
 import { sameValue, valueFromDraft, type FieldDraft } from '@/features/custom-fields/values';
 import { LabelPicker } from '@/features/labels/label-picker';
 import { ApiRequestError } from '@/lib/api';
-import { formatDateTime } from '@/lib/format';
 import {
   BASIS_LABELS,
   CONTRACT_LABELS,
@@ -52,11 +48,22 @@ import {
   type DraftErrors,
 } from './card-form';
 import { InterviewsTab } from '@/features/interviews/interviews-tab';
-import { CardHistory } from './card-history';
-import { useDirtyReporter } from './dirty-guard';
+import { PipelinePanel } from '@/features/pipeline/pipeline-panel';
+import { PipelineStatusBadge } from '@/features/pipeline/status-badge';
+import { DirtyGuardContext, useDirtyReporter } from './dirty-guard';
 import { DetailSection } from './detail-section';
 import { SmartSummary } from './smart-summary';
 import { CARD_TABS, type CardTab } from './workspace-tabs';
+
+const NotesTab = lazy(() =>
+  import('@/features/notes/notes-tab').then((m) => ({ default: m.NotesTab })),
+);
+const DocumentsTab = lazy(() =>
+  import('@/features/documents/documents-tab').then((m) => ({ default: m.DocumentsTab })),
+);
+const TimelineTab = lazy(() =>
+  import('@/features/timeline/timeline-tab').then((m) => ({ default: m.TimelineTab })),
+);
 
 const filled = (...values: string[]) => values.filter((v) => v.trim() !== '').length;
 const plural = (n: number) => (n === 1 ? '1 campo compilato' : `${n} campi compilati`);
@@ -69,7 +76,6 @@ const plural = (n: number) => (n === 1 ? '1 campo compilato' : `${n} campi compi
 export function CardDetailForm({
   boardId,
   card,
-  history,
   columns,
   lastCardIdOf,
   timeZone,
@@ -79,7 +85,6 @@ export function CardDetailForm({
 }: {
   boardId: string;
   card: Card;
-  history: ActivityEvent[];
   columns: Column[];
   /** Ultima scheda di una colonna: serve a spostare "in fondo" dal selettore Colonna. */
   lastCardIdOf: (columnId: string) => string | null;
@@ -89,6 +94,10 @@ export function CardDetailForm({
   onArchived: () => void;
 }) {
   const notify = useNotify();
+  const dirtyRegistry = useContext(DirtyGuardContext);
+  const [pipelineSignal, setPipelineSignal] = useState(0);
+  const [visited, setVisited] = useState<Set<CardTab>>(() => new Set([tab]));
+  if (!visited.has(tab)) setVisited(new Set([...visited, tab]));
   const update = useUpdateCard(boardId);
   const move = useMoveCard(boardId);
   const archive = useArchiveCard(boardId);
@@ -142,24 +151,16 @@ export function CardDetailForm({
   useDirtyReporter('card-form', dirty);
   const formTab = tab === 'overview' || tab === 'details';
 
-  /** Aggiornamento esplicito e immediato della fase (non passa dal «Salva» del modulo). */
-  const setStageNow = (stage: Stage) =>
-    update.mutate(
-      { cardId: card.id, input: { stage } },
-      {
-        onSuccess: () => notify('success', `Fase impostata su “${STAGE_LABELS[stage]}”.`),
-        onError: (e) =>
-          notify('error', userMessage(e, 'Non siamo riusciti ad aggiornare la fase.')),
-      },
-    );
+  const managePipeline = () => {
+    onTabChange('overview');
+    setPipelineSignal((n) => n + 1);
+  };
   const requestInterview = () => {
     onTabChange('interviews');
     setCreateSignal((n) => n + 1);
   };
 
   const column = columns.find((c) => c.id === card.columnId);
-  const suggestedStage =
-    column?.category && column.category !== draft.stage ? column.category : null;
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -338,9 +339,7 @@ export function CardDetailForm({
             className="mt-2 flex flex-wrap items-center gap-1.5"
           >
             <li>
-              <Badge tone={card.stage ? 'primary' : 'neutral'}>
-                {card.stage ? STAGE_LABELS[card.stage] : 'Fase non indicata'}
-              </Badge>
+              <PipelineStatusBadge state={card} />
             </li>
             {card.outcome ? (
               <li>
@@ -421,11 +420,21 @@ export function CardDetailForm({
               card={card}
               timeZone={timeZone}
               disabled={archived}
-              stagePending={update.isPending}
-              onSetStage={setStageNow}
               onOpenInterviews={() => onTabChange('interviews')}
               onAddInterview={requestInterview}
             />
+            <PipelinePanel card={card} signal={pipelineSignal} />
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" onClick={() => onTabChange('notes')}>
+                Apri note
+              </Button>
+              <Button variant="secondary" onClick={() => onTabChange('documents')}>
+                Apri documenti
+              </Button>
+              <Button variant="secondary" onClick={() => onTabChange('timeline')}>
+                Apri timeline
+              </Button>
+            </div>
             <div className="space-y-4 rounded-lg border border-border p-4">
               <h3 className="text-sm font-semibold">Dati principali</h3>
               <Field id="card-title" label="Titolo" error={errors.title}>
@@ -469,8 +478,20 @@ export function CardDetailForm({
                     ))}
                   </Select>
                 </Field>
-                {choice('stage', 'Fase', labelled(STAGES, STAGE_LABELS), 'Non indicata')}
-                {choice('outcome', 'Esito', labelled(OUTCOMES, OUTCOME_LABELS), 'Non indicato')}
+                <Field id="card-stage" label="Fase">
+                  <Input
+                    id="card-stage"
+                    readOnly
+                    value={card.stage ? STAGE_LABELS[card.stage] : 'Non indicata'}
+                  />
+                </Field>
+                <Field id="card-outcome" label="Esito">
+                  <Input
+                    id="card-outcome"
+                    readOnly
+                    value={card.outcome ? OUTCOME_LABELS[card.outcome] : 'Non indicato'}
+                  />
+                </Field>
               </div>
               <p className="text-xs text-muted-foreground">
                 La colonna organizza la bacheca; fase ed esito descrivono la candidatura. Spostare
@@ -482,20 +503,6 @@ export function CardDetailForm({
                 labelIds={card.labelIds}
                 disabled={archived}
               />
-              {suggestedStage && !archived ? (
-                <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                  La colonna “{column?.name}” corrisponde alla fase “{STAGE_LABELS[suggestedStage]}
-                  ”.
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => set('stage', suggestedStage)}
-                  >
-                    Usa questa fase
-                  </Button>
-                </p>
-              ) : null}
             </div>
           </TabsContent>
 
@@ -628,20 +635,28 @@ export function CardDetailForm({
             card={card}
             archived={archived}
             createSignal={createSignal}
-            stagePending={update.isPending}
-            onSetStage={() => setStageNow('interviewing')}
+            stagePending={false}
+            onSetStage={managePipeline}
           />
         </TabsContent>
 
-        <TabsContent value="history" className="space-y-4">
-          <CardHistory events={history} timeZone={timeZone} />
-          <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs text-muted-foreground">
-            <dt>Creata</dt>
-            <dd>{formatDateTime(card.createdAt, timeZone)}</dd>
-            <dt>Aggiornata</dt>
-            <dd>{formatDateTime(card.updatedAt, timeZone)}</dd>
-          </dl>
-        </TabsContent>
+        <Suspense fallback={<p role="status">Caricamento della sezione…</p>}>
+          <TabsContent value="timeline">
+            {visited.has('timeline') ? (
+              <TimelineTab cardId={card.id} timeZone={timeZone} active={tab === 'timeline'} />
+            ) : null}
+          </TabsContent>
+          <TabsContent value="notes">
+            {visited.has('notes') ? (
+              <NotesTab card={card} timeZone={timeZone} active={tab === 'notes'} />
+            ) : null}
+          </TabsContent>
+          <TabsContent value="documents">
+            {visited.has('documents') ? (
+              <DocumentsTab card={card} active={tab === 'documents'} />
+            ) : null}
+          </TabsContent>
+        </Suspense>
 
         {formError ? (
           <p
@@ -674,7 +689,11 @@ export function CardDetailForm({
               variant="secondary"
               className="mr-auto"
               disabled={archive.isPending}
-              onClick={() =>
+              onClick={() => {
+                if (dirtyRegistry?.current.size) {
+                  setFormError('Salva o annulla le bozze prima di archiviare.');
+                  return;
+                }
                 archive.mutate(card.id, {
                   onSuccess: () => {
                     notify('success', `Scheda “${card.title}” archiviata.`, {
@@ -685,8 +704,8 @@ export function CardDetailForm({
                   },
                   onError: (e) =>
                     setFormError(userMessage(e, 'Non siamo riusciti ad archiviare la scheda.')),
-                })
-              }
+                });
+              }}
             >
               Archivia
             </Button>

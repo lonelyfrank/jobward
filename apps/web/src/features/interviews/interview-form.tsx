@@ -13,6 +13,9 @@ import {
   type InterviewType,
 } from '@jobward/shared';
 import { useState, type FormEvent } from 'react';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { useCreationOperation } from '@/features/cards/creation-operation';
+import { workflowError } from '@/features/cards/workflow-feedback';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
 import { Input, Select } from '@/components/ui/input';
@@ -108,6 +111,7 @@ export function InterviewForm({
   suggestedTitle,
   onSave,
   onCancel,
+  onRefresh,
 }: {
   mode: 'create' | 'edit';
   interview: Interview | null;
@@ -116,13 +120,16 @@ export function InterviewForm({
   suggestedTitle: string;
   onSave: (payload: CreateInterviewInput | UpdateInterviewInput) => Promise<void>;
   onCancel: () => void;
+  onRefresh?: () => Promise<unknown>;
 }) {
   const [draft, setDraft] = useState<Draft>(() => initial(interview, workspaceZone));
   const [base] = useState<Draft>(draft);
   const [errors, setErrors] = useState<Errors>({});
   const [pending, setPending] = useState(false);
+  const [discard, setDiscard] = useState(false);
+  const operation = useCreationOperation<CreateInterviewInput>();
   const lockSchedule = mode === 'edit' && interview?.status === 'completed';
-  const dirty = JSON.stringify(draft) !== JSON.stringify(base);
+  const dirty = JSON.stringify(draft) !== JSON.stringify(base) || pending || operation.locked;
   useDirtyReporter(`interview-form:${interview?.id ?? 'new'}`, dirty);
 
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => {
@@ -137,6 +144,7 @@ export function InterviewForm({
     let payload: CreateInterviewInput | UpdateInterviewInput;
     if (mode === 'create') {
       const candidate = {
+        id: operation.id,
         ...(draft.title.trim() ? { title: draft.title.trim() } : {}),
         type: draft.type,
         ...(t.scheduledAt !== null ? { scheduledAt: t.scheduledAt, timezone: draft.timezone } : {}),
@@ -190,8 +198,11 @@ export function InterviewForm({
     }
     setPending(true);
     try {
-      await onSave(payload);
+      await onSave(
+        mode === 'create' ? operation.capture(payload as CreateInterviewInput) : payload,
+      );
     } catch (error) {
+      if (mode === 'create') operation.failed(error);
       if (error instanceof ApiRequestError && error.status === 400 && error.issues?.length) {
         const mapped: Errors = {};
         for (const issue of error.issues) {
@@ -201,10 +212,7 @@ export function InterviewForm({
         setErrors(Object.keys(mapped).length ? mapped : { form: error.message });
       } else {
         setErrors({
-          form:
-            error instanceof ApiRequestError && error.status >= 400 && error.status < 500
-              ? error.message
-              : 'Non siamo riusciti a salvare. Riprova.',
+          form: workflowError(error),
         });
       }
     } finally {
@@ -241,117 +249,122 @@ export function InterviewForm({
       noValidate
       className="space-y-4 rounded-lg border border-border-strong bg-surface-muted/40 p-4"
     >
-      <h4 className="text-sm font-semibold">
-        {mode === 'create'
-          ? followUpOf
-            ? 'Nuova fase successiva'
-            : 'Nuovo colloquio'
-          : 'Modifica il colloquio'}
-      </h4>
-      <div className="grid gap-4 md:grid-cols-2">
-        {text('title', 'Titolo', {
-          placeholder: suggestedTitle,
-          hint: 'Facoltativo: se vuoto sarà «' + suggestedTitle + '».',
-        })}
-        <Field id={`${id}-type`} label="Tipo di colloquio">
-          <Select
-            id={`${id}-type`}
-            value={draft.type}
-            onChange={(e) => set('type', e.target.value as InterviewType)}
-          >
-            {INTERVIEW_TYPES.map((t) => (
-              <option key={t} value={t}>
-                {INTERVIEW_TYPE_LABELS[t]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-      </div>
-
-      <fieldset className="space-y-3" disabled={lockSchedule}>
-        <legend className="text-sm font-medium">Quando</legend>
-        <div className="grid gap-4 md:grid-cols-3">
-          {text('local', 'Data e ora', {
-            type: 'datetime-local',
-            hint: 'Lascia vuoto se non è ancora fissato.',
+      <fieldset
+        disabled={pending || (mode === 'create' && operation.locked)}
+        className="min-w-0 space-y-4"
+      >
+        <legend className="sr-only">Dati del colloquio</legend>
+        <h4 className="text-sm font-semibold">
+          {mode === 'create'
+            ? followUpOf
+              ? 'Nuova fase successiva'
+              : 'Nuovo colloquio'
+            : 'Modifica il colloquio'}
+        </h4>
+        <div className="grid gap-4 md:grid-cols-2">
+          {text('title', 'Titolo', {
+            placeholder: suggestedTitle,
+            hint: 'Facoltativo: se vuoto sarà «' + suggestedTitle + '».',
           })}
-          <Field id={`${id}-timezone`} label="Fuso orario">
+          <Field id={`${id}-type`} label="Tipo di colloquio">
             <Select
-              id={`${id}-timezone`}
-              value={draft.timezone}
-              onChange={(e) => set('timezone', e.target.value)}
+              id={`${id}-type`}
+              value={draft.type}
+              onChange={(e) => set('type', e.target.value as InterviewType)}
             >
-              {timeZoneOptions(workspaceZone).map((z) => (
-                <option key={z} value={z}>
-                  {z}
+              {INTERVIEW_TYPES.map((t) => (
+                <option key={t} value={t}>
+                  {INTERVIEW_TYPE_LABELS[t]}
                 </option>
               ))}
             </Select>
           </Field>
-          {text('duration', 'Durata (minuti)', { max: 4, placeholder: '45' })}
         </div>
-        {lockSchedule ? (
-          <p className="text-xs text-muted-foreground">
-            La data di un colloquio completato non si cambia.
-          </p>
-        ) : null}
-      </fieldset>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field id={`${id}-modality`} label="Modalità">
-          <Select
-            id={`${id}-modality`}
-            value={draft.modality}
-            onChange={(e) => set('modality', e.target.value)}
-          >
-            <option value="">Non indicata</option>
-            {INTERVIEW_MODALITIES.map((m) => (
-              <option key={m} value={m}>
-                {INTERVIEW_MODALITY_LABELS[m]}
-              </option>
-            ))}
-          </Select>
-        </Field>
-        {text('location', 'Luogo', { placeholder: 'Sede, indirizzo…' })}
-      </div>
-      {text('meetingUrl', 'Collegamento alla riunione', {
-        type: 'url',
-        max: LIMITS.urlMax,
-        placeholder: 'https://',
-        hint: 'Solo indirizzi http o https.',
-      })}
+        <fieldset className="space-y-3" disabled={lockSchedule}>
+          <legend className="text-sm font-medium">Quando</legend>
+          <div className="grid gap-4 md:grid-cols-3">
+            {text('local', 'Data e ora', {
+              type: 'datetime-local',
+              hint: 'Lascia vuoto se non è ancora fissato.',
+            })}
+            <Field id={`${id}-timezone`} label="Fuso orario">
+              <Select
+                id={`${id}-timezone`}
+                value={draft.timezone}
+                onChange={(e) => set('timezone', e.target.value)}
+              >
+                {timeZoneOptions(workspaceZone).map((z) => (
+                  <option key={z} value={z}>
+                    {z}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            {text('duration', 'Durata (minuti)', { max: 4, placeholder: '45' })}
+          </div>
+          {lockSchedule ? (
+            <p className="text-xs text-muted-foreground">
+              La data di un colloquio completato non si cambia.
+            </p>
+          ) : null}
+        </fieldset>
 
-      <Field
-        id={`${id}-interviewers`}
-        label="Chi conduce il colloquio"
-        hint="Un nome per riga (massimo 10)."
-        error={errors.interviewers}
-      >
-        <Textarea
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field id={`${id}-modality`} label="Modalità">
+            <Select
+              id={`${id}-modality`}
+              value={draft.modality}
+              onChange={(e) => set('modality', e.target.value)}
+            >
+              <option value="">Non indicata</option>
+              {INTERVIEW_MODALITIES.map((m) => (
+                <option key={m} value={m}>
+                  {INTERVIEW_MODALITY_LABELS[m]}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          {text('location', 'Luogo', { placeholder: 'Sede, indirizzo…' })}
+        </div>
+        {text('meetingUrl', 'Collegamento alla riunione', {
+          type: 'url',
+          max: LIMITS.urlMax,
+          placeholder: 'https://',
+          hint: 'Solo indirizzi http o https.',
+        })}
+
+        <Field
           id={`${id}-interviewers`}
-          value={draft.interviewers}
-          className="min-h-20"
-          aria-invalid={errors.interviewers ? true : undefined}
-          aria-describedby={
-            errors.interviewers ? `${id}-interviewers-error` : `${id}-interviewers-hint`
-          }
-          onChange={(e) => set('interviewers', e.target.value)}
-        />
-      </Field>
-      <Field
-        id={`${id}-preparationNotes`}
-        label="Note di preparazione"
-        error={errors.preparationNotes}
-      >
-        <Textarea
+          label="Chi conduce il colloquio"
+          hint="Un nome per riga (massimo 10)."
+          error={errors.interviewers}
+        >
+          <Textarea
+            id={`${id}-interviewers`}
+            value={draft.interviewers}
+            className="min-h-20"
+            aria-invalid={errors.interviewers ? true : undefined}
+            aria-describedby={
+              errors.interviewers ? `${id}-interviewers-error` : `${id}-interviewers-hint`
+            }
+            onChange={(e) => set('interviewers', e.target.value)}
+          />
+        </Field>
+        <Field
           id={`${id}-preparationNotes`}
-          value={draft.preparationNotes}
-          maxLength={LIMITS.descriptionMax}
-          className="min-h-24"
-          onChange={(e) => set('preparationNotes', e.target.value)}
-        />
-      </Field>
-
+          label="Note di preparazione"
+          error={errors.preparationNotes}
+        >
+          <Textarea
+            id={`${id}-preparationNotes`}
+            value={draft.preparationNotes}
+            maxLength={LIMITS.descriptionMax}
+            className="min-h-24"
+            onChange={(e) => set('preparationNotes', e.target.value)}
+          />
+        </Field>
+      </fieldset>
       {errors.form ? (
         <p
           role="alert"
@@ -360,14 +373,53 @@ export function InterviewForm({
           {errors.form}
         </p>
       ) : null}
+      {operation.conflict && onRefresh ? (
+        <Button
+          variant="secondary"
+          className="h-auto min-h-11 w-full whitespace-normal"
+          onClick={() => {
+            void onRefresh()
+              .then(() => {
+                operation.restart();
+                setErrors({});
+              })
+              .catch((e: unknown) => setErrors({ form: workflowError(e) }));
+          }}
+        >
+          Aggiorna dati e prepara nuova richiesta
+        </Button>
+      ) : null}
       <div className="flex flex-wrap justify-end gap-2">
-        <Button variant="secondary" onClick={onCancel} disabled={pending}>
+        <Button
+          variant="secondary"
+          onClick={() => (dirty ? setDiscard(true) : onCancel())}
+          disabled={pending}
+        >
           Annulla
         </Button>
-        <Button type="submit" disabled={pending}>
-          {pending ? 'Salvataggio…' : mode === 'create' ? 'Aggiungi colloquio' : 'Salva modifiche'}
+        <Button type="submit" disabled={pending || operation.conflict}>
+          {pending
+            ? 'Salvataggio…'
+            : operation.locked
+              ? 'Riprova la stessa richiesta'
+              : mode === 'create'
+                ? 'Aggiungi colloquio'
+                : 'Salva modifiche'}
         </Button>
       </div>
+      <ConfirmDialog
+        open={discard}
+        onOpenChange={setDiscard}
+        title="Abbandonare il colloquio?"
+        description={
+          <p>
+            Le modifiche non salvate andranno perse. Se la risposta non è arrivata, aggiorna i round
+            prima di creare un altro colloquio.
+          </p>
+        }
+        confirmLabel="Abbandona bozza"
+        onConfirm={onCancel}
+      />
     </form>
   );
 }

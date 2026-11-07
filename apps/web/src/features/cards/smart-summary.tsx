@@ -1,11 +1,10 @@
 import type { Card } from '@jobward/schemas';
-import { STAGES, type Stage } from '@jobward/shared';
 import { CalendarClock, ListTodo, Plus } from 'lucide-react';
-import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Select } from '@/components/ui/input';
 import { formatInterviewDate } from '@/features/interviews/time';
+import { PipelineStatusBadge } from '@/features/pipeline/status-badge';
+import { formatDateTime } from '@/lib/format';
 import { formatCalendarDate } from '@/lib/format';
 import {
   INTERVIEW_MODALITY_LABELS,
@@ -30,23 +29,19 @@ export function SmartSummary({
   card,
   timeZone,
   disabled,
-  stagePending,
-  onSetStage,
   onOpenInterviews,
   onAddInterview,
 }: {
   card: Card;
   timeZone: string;
   disabled: boolean;
-  stagePending: boolean;
-  onSetStage: (stage: Stage) => void;
   onOpenInterviews: () => void;
   onAddInterview: () => void;
 }) {
-  const [nextStage, setNextStage] = useState<string>('');
   const { next, action, total, completed } = card.interviewSummary;
   const salary = formatSalary(card);
   const facts = [
+    { label: 'Ultimo aggiornamento', value: formatDateTime(card.updatedAt, timeZone) },
     salary ? { label: 'Retribuzione', value: salary } : null,
     card.location || card.workMode
       ? {
@@ -65,38 +60,13 @@ export function SmartSummary({
     <section aria-label="Riepilogo" className="grid gap-3 md:grid-cols-2">
       <div className="rounded-lg border border-border p-3">
         <h3 className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          Fase
+          Stato candidatura
         </h3>
         <p className="mt-1 flex flex-wrap items-center gap-2 text-sm font-medium">
-          {card.stage ? STAGE_LABELS[card.stage] : 'Non indicata'}
+          <PipelineStatusBadge state={card} />
+          {card.stage ? STAGE_LABELS[card.stage] : 'Fase non indicata'}
           {card.outcome ? <Badge>{OUTCOME_LABELS[card.outcome]}</Badge> : null}
         </p>
-        {!disabled ? (
-          <div className="mt-2 flex items-center gap-2">
-            <Select
-              aria-label="Passaggio del percorso (aggiornamento rapido)"
-              value={nextStage}
-              onChange={(e) => setNextStage(e.target.value)}
-            >
-              <option value="">Aggiorna fase…</option>
-              {STAGES.filter((s) => s !== card.stage).map((s) => (
-                <option key={s} value={s}>
-                  {STAGE_LABELS[s]}
-                </option>
-              ))}
-            </Select>
-            <Button
-              variant="secondary"
-              disabled={!nextStage || stagePending}
-              onClick={() => {
-                onSetStage(nextStage as Stage);
-                setNextStage('');
-              }}
-            >
-              {stagePending ? 'Salvataggio…' : 'Aggiorna'}
-            </Button>
-          </div>
-        ) : null}
       </div>
 
       <div className="rounded-lg border border-border p-3">

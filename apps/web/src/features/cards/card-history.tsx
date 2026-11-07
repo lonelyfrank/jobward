@@ -64,6 +64,8 @@ export function describeEvent(event: ActivityEvent, timeZone = 'UTC'): string {
     }
     case 'application_closed':
       return `Esito registrato: ${outcome(m['outcome'])}`;
+    case 'application_reopened':
+      return 'Candidatura riaperta';
     case 'interview_created':
     case 'interview_next_round_created': {
       const n = round(m['sequence']);

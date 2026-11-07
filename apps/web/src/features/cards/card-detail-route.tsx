@@ -53,11 +53,21 @@ export function CardDetailRoute() {
   // Si chiude tornando alla vista sotto cui si è aperta, con la stessa ricerca e gli stessi filtri.
   const close = () => void navigate(`${basePath}${location.search}`);
   const tab = tabFromHash(location.hash);
-  const setTab = (next: CardTab) =>
+  // Radix attiva al focus e al mouse-down: prima del render successivo entrambi possono
+  // chiedere la stessa navigazione. Una sola voce per gesto, altrimenti Back resta sulla scheda.
+  const requestedHash = useRef(location.hash);
+  useEffect(() => {
+    requestedHash.current = location.hash;
+  }, [location.hash]);
+  const setTab = (next: CardTab) => {
+    const hash = hashFromTab(next);
+    if (hash === location.hash || hash === requestedHash.current) return;
+    requestedHash.current = hash;
     void navigate(
       { pathname: location.pathname, search: location.search, hash: hashFromTab(next) },
-      { replace: true },
+      { replace: false },
     );
+  };
   const title = detail.data?.card.title ?? 'Scheda';
   const notFound = detail.error && 'status' in detail.error && detail.error.status === 404;
 
@@ -67,7 +77,7 @@ export function CardDetailRoute() {
         open
         variant="workspace"
         title={title}
-        description="Dettagli, colloqui e cronologia della candidatura"
+        description="Panoramica, colloqui, timeline, note, documenti e dettagli della candidatura"
         onOpenChange={(open) => !open && close()}
         onCloseAutoFocus={(event) => {
           // Il pulsante che ha aperto la modale (la scheda o la riga) non è più un «trigger»
@@ -95,7 +105,7 @@ export function CardDetailRoute() {
               </div>
             </DialogBody>
           </>
-        ) : detail.isError || board.isError ? (
+        ) : (!detail.data && detail.isError) || (!board.data && board.isError) ? (
           <>
             <div className="flex items-center justify-end border-b border-border px-5 py-3">
               <DialogCloseButton />
@@ -129,7 +139,6 @@ export function CardDetailRoute() {
             key={detail.data.card.id}
             boardId={boardId}
             card={detail.data.card}
-            history={detail.data.history}
             columns={board.data.columns}
             lastCardIdOf={(columnId) => groups[columnId]?.at(-1)?.id ?? null}
             timeZone={workspace.timezone}

@@ -1,3 +1,4 @@
+import { PipelineStatusBadge } from '@/features/pipeline/status-badge';
 import type { Card } from '@jobward/schemas';
 import { CalendarClock, Link2, ListTodo } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -8,14 +9,7 @@ import { LabelChip } from '@/features/labels/label-chip';
 import { formatInterviewDate } from '@/features/interviews/time';
 import { useWorkspace } from '@/features/workspace/context';
 import { cn } from '@/lib/cn';
-import {
-  OUTCOME_LABELS,
-  PRIORITY_LABELS,
-  PRIORITY_TONE,
-  STAGE_LABELS,
-  STAGE_TONE,
-  WORK_MODE_LABELS,
-} from '@/lib/labels';
+import { OUTCOME_LABELS, PRIORITY_LABELS, PRIORITY_TONE, WORK_MODE_LABELS } from '@/lib/labels';
 import { useDensity } from './density';
 
 const ACTION_TEXT = {
@@ -92,11 +86,9 @@ export function CardView({
             ) : null}
           </ul>
         ) : null}
-        {card.priority !== 'none' || card.stage || showOutcome || (!compact && card.sourceUrl) ? (
+        {
           <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {card.stage ? (
-              <Badge tone={STAGE_TONE[card.stage]}>{STAGE_LABELS[card.stage]}</Badge>
-            ) : null}
+            <PipelineStatusBadge state={card} />
             {showOutcome && card.outcome ? (
               <Badge tone={card.outcome === 'accepted' ? 'primary' : 'neutral'}>
                 {OUTCOME_LABELS[card.outcome]}
@@ -114,7 +106,7 @@ export function CardView({
               </Badge>
             ) : null}
           </div>
-        ) : null}
+        }
         {next ? (
           <p className="mt-1.5 flex items-center gap-1 text-xs font-medium">
             <CalendarClock aria-hidden="true" className="size-3.5 shrink-0 text-primary" />

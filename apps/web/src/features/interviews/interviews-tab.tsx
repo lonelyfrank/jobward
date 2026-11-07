@@ -1,4 +1,6 @@
 import type { Card, Interview } from '@jobward/schemas';
+import { pipelineOptions, WARNING_TEXT } from '@/features/pipeline/presentation';
+import { derivePipelineStatus, pipelineConsistency } from '@jobward/shared';
 import { INTERVIEW_RESULTS, LIMITS, type InterviewResult } from '@jobward/shared';
 import { Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
@@ -69,23 +71,21 @@ export function InterviewsTab({
   const { workspace } = useWorkspace();
   const notify = useNotify();
   const interviews = useInterviews(card.id);
-  const actions = useInterviewActions(card.id);
+  const actions = useInterviewActions(card.id, card.boardId);
   const [panel, setPanel] = useState<Panel>(null);
   const [seenSignal, setSeenSignal] = useState(createSignal);
   const [cancelling, setCancelling] = useState<Interview | null>(null);
 
   if (createSignal !== seenSignal) {
     setSeenSignal(createSignal);
-    if (!archived) setPanel({ kind: 'create' });
+    if (!archived && panel === null) setPanel({ kind: 'create' });
   }
 
   const list = interviews.data ?? [];
   const nextSeq = (list.at(-1)?.sequence ?? 0) + 1;
   const live = list.filter((i) => i.status !== 'cancelled');
   const suggestStage =
-    live.length > 0 &&
-    !archived &&
-    (!card.stage || ['saved', 'preparing', 'applied', 'in_contact'].includes(card.stage));
+    live.length > 0 && !archived && pipelineOptions(card, 'advance').includes('interviewing');
 
   const close = () => setPanel(null);
   const done = (message: string) => () => {
@@ -102,7 +102,7 @@ export function InterviewsTab({
             : `${live.length} ${live.length === 1 ? 'round' : 'round'} attiv${live.length === 1 ? 'o' : 'i'}${list.length > live.length ? `, ${list.length - live.length} annullat${list.length - live.length === 1 ? 'o' : 'i'}` : ''}.`}
         </p>
         {!archived ? (
-          <Button onClick={() => setPanel({ kind: 'create' })}>
+          <Button disabled={panel !== null} onClick={() => setPanel({ kind: 'create' })}>
             <Plus aria-hidden="true" />
             Aggiungi colloquio
           </Button>
@@ -119,6 +119,13 @@ export function InterviewsTab({
         </p>
       ) : null}
 
+      {pipelineConsistency(derivePipelineStatus(card), { summary: card.interviewSummary })
+        .filter((w) => w.code === 'future_interviews_on_closed')
+        .map((w) => (
+          <p role="status" key={w.code} className="text-sm text-warning-soft-foreground">
+            {WARNING_TEXT[w.code]}
+          </p>
+        ))}
       {suggestStage ? (
         <div className="flex flex-wrap items-center gap-2 rounded-md border border-border px-3 py-2 text-sm">
           <span>
@@ -146,6 +153,7 @@ export function InterviewsTab({
             done(panel.followUpOf ? 'Fase successiva aggiunta.' : 'Colloquio aggiunto.')();
           }}
           onCancel={close}
+          onRefresh={() => interviews.refetch({ throwOnError: true })}
         />
       ) : null}
 
@@ -177,7 +185,10 @@ export function InterviewsTab({
             <li key={interview.id}>
               <InterviewItem
                 interview={interview}
-                cardArchived={archived}
+                cardArchived={
+                  archived ||
+                  (panel !== null && (panel.kind === 'create' || panel.id !== interview.id))
+                }
                 zone={workspace.timezone}
                 panel={panel?.kind !== 'create' && panel?.id === interview.id ? panel.kind : null}
                 onPanel={(kind) => setPanel(kind ? { kind, id: interview.id } : null)}
