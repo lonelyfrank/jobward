@@ -90,3 +90,5 @@ per una race nel test preview 302 (nessun difetto di prodotto); la correzione è
 
 **Attività e follow-up** (progettazione, nessuna implementazione): checkpoint proposti M3-T0…T3 fra C3 e C4, con C4/C5 come verifica e consegna dell'intero M3.
 Non sono milestone approvate. [Indice](../m3/tasks-index.md) · [roadmap](../m3/tasks-roadmap.md) · [decisioni](../m3/tasks-decision-register.md).
+
+**Politica di perimetro:** [scope-policy.md](scope-policy.md) — nessuna funzionalità fuori roadmap (AI, recruiter/ATS, marketplace) senza una nuova decisione esplicita; il backlog non implica approvazione.

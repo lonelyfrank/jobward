@@ -49,3 +49,18 @@ Voci note, non pianificate in una milestone specifica o da rivalutare. Priorità
 | B   | Token di versione nella modifica delle schede (ultima scrittura vince)                                          | L-01; utile solo con più dispositivi/utenti            |
 | B   | Pulizia della cronologia scollegata dopo l'eliminazione di una bacheca                                          | L-07; M4/M5                                            |
 | B   | Paginazione/virtualizzazione per bacheche molto grandi (tetto attuale 2000 schede)                              | L-03                                                   |
+
+## Candidate per sviluppi futuri — non approvate
+
+Elenco della [politica di perimetro](scope-policy.md): **la presenza qui non implica approvazione né assegnazione a una milestone**.
+
+| Voce                                 | Note             |
+| ------------------------------------ | ---------------- |
+| Acquisizione assistita delle offerte | solo valutazione |
+| Integrazioni email e calendari       | solo valutazione |
+| Notifiche                            | solo valutazione |
+| Analisi deterministica del CV        | solo valutazione |
+| Confronto economico delle offerte    | solo valutazione |
+| Strumenti avanzati per i candidati   | solo valutazione |
+
+Fuori roadmap (**non pianificati**): funzioni basate su AI/LLM, dashboard e account per aziende/recruiter, sistemi ATS, marketplace di annunci.
