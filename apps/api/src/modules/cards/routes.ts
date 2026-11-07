@@ -16,6 +16,8 @@ import {
   moveCardInput,
   noteResponse,
   notesResponse,
+  notesQuery,
+  notesPageResponse,
   pipelineTransitionInput,
   pipelineTransitionResponse,
   putCustomFieldValueInput,
@@ -30,7 +32,7 @@ import { parseJsonBody, parseQuery } from '../../lib/validate';
 import { idParam, workspaceScope } from '../../middleware/workspace';
 import { createDocument, listDocuments } from '../../services/documents';
 import { createInterview, listInterviews } from '../../services/interviews';
-import { createNote, listNotes } from '../../services/notes';
+import { createNote, listNotes, listNotesPage } from '../../services/notes';
 import { transitionCard } from '../../services/pipeline';
 import { getTimeline } from '../../services/timeline';
 import { listCardFields, putCardFieldValue } from '../../services/custom-fields';
@@ -207,6 +209,11 @@ export const cardRoutes = new Hono<AppEnv>()
   })
 
   .get('/:id/notes', async (c) => {
+    const query = parseQuery(c, notesQuery);
+    if (query.limit !== undefined || query.before !== undefined) {
+      const page = await listNotesPage(c.get('db'), c.get('workspaceId'), idParam(c), query);
+      return c.json(notesPageResponse.parse(page));
+    }
     const notes = await listNotes(c.get('db'), c.get('workspaceId'), idParam(c));
     return c.json(notesResponse.parse({ notes }));
   })

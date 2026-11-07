@@ -7,6 +7,7 @@ import { getCard } from './cards';
 import { touchBoard } from './events';
 import { requestFingerprint } from './idempotency';
 import { isConstraintError } from './ordering';
+import { decodeCursor, encodeCursor } from './timeline';
 
 /**
  * Note manuali (M3-C2). Regole (docs/m3/plan.md §4):
@@ -56,6 +57,34 @@ export async function listNotes(
         ORDER BY created_at DESC, id DESC`,
   );
   return rows.map(toNote);
+}
+
+/** Paginazione opt-in, su indice (card_id, created_at); mai scaricare 500 testi per una pagina. */
+export async function listNotesPage(
+  db: Database,
+  workspaceId: string,
+  cardId: string,
+  query: { before?: string | undefined; limit?: number | undefined },
+): Promise<{ notes: Note[]; nextCursor: string | null }> {
+  await getCard(db, workspaceId, cardId);
+  const cursor = query.before ? decodeCursor(query.before) : null;
+  const limit = query.limit ?? 25;
+  const after = cursor
+    ? sql`AND (created_at < ${cursor.occurredAt} OR (created_at = ${cursor.occurredAt} AND id < ${cursor.id}))`
+    : sql``;
+  const rows = await db.all<Row>(
+    sql`${SELECT} WHERE workspace_id = ${workspaceId} AND card_id = ${cardId} AND deleted_at IS NULL ${after}
+        ORDER BY created_at DESC, id DESC LIMIT ${limit + 1}`,
+  );
+  const page = rows.slice(0, limit);
+  const last = page.at(-1);
+  return {
+    notes: page.map(toNote),
+    nextCursor:
+      rows.length > limit && last
+        ? encodeCursor({ occurredAt: last.createdAt, id: last.id, source: 'note' })
+        : null,
+  };
 }
 
 async function findRow(db: Database, workspaceId: string, noteId: string) {

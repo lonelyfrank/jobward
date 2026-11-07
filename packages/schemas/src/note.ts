@@ -21,3 +21,10 @@ export const noteSchema = z.object({
 export type Note = z.infer<typeof noteSchema>;
 export const noteResponse = z.object({ note: noteSchema });
 export const notesResponse = z.object({ notes: z.array(noteSchema) });
+
+/** Opt-in: le chiamate C2 senza parametri conservano la risposta completa. */
+export const notesQuery = z.object({
+  before: z.string().min(1).max(200).optional(),
+  limit: z.coerce.number().int().min(1).max(50).optional(),
+});
+export const notesPageResponse = notesResponse.extend({ nextCursor: z.string().nullable() });
