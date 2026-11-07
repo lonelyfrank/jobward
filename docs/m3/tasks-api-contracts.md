@@ -171,10 +171,20 @@ Nessuno di questi comandi tocca la pipeline della candidatura.
 
 Senza cancellazione definitiva non esiste il caso «retry tardivo che ricrea una task eliminata».
 
-## 5. Compatibilità con Overview
+## 5. Compatibilità con Overview (vincolo approvato: retrocompatibile)
 
-`GET /overview` mantiene la forma, con `counts.openTasks`, `counts.overdueTasks` e `upcomingTasks` ora calcolati dallo **stesso servizio** del riepilogo.
-Cambio **di contratto** (T1, additivo-incompatibile solo per `upcomingTasks[].dueAt` → `dueOn`): documentato e coperto da test; il client web si aggiorna nello stesso checkpoint.
+`GET /overview` **non perde né rinomina alcun campo e non cambia alcun tipo**: `counts.openTasks`, `counts.overdueTasks` e `upcomingTasks[] = { id, title, dueAt, cardId }` restano validi per qualunque client attuale.
+
+| Campo                                       | Regola                                                                                                                                                                 |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `upcomingTasks[].dueAt`                     | **resta un intero**: il **primo istante** (ms UTC) del giorno di scadenza nel fuso del workspace (`startOfLocalDay`). Deprecato: la UI nuova non lo mostra come orario |
+| `upcomingTasks[].dueOn`                     | **nuovo, additivo**: `YYYY-MM-DD`                                                                                                                                      |
+| `counts.openTasks / overdueTasks`           | stessi nomi e tipi; **semantica** allineata al modello (escluse annullate e task di card archiviate; scaduta = `dueOn < oggi`)                                         |
+| `counts.dueTodayTasks`, `counts.noDueTasks` | **nuovi, additivi** (opzionali per i client vecchi)                                                                                                                    |
+
+**Cambio di semantica dichiarato** (non di forma): «scaduta» passa da «istante < ora» a «giorno < oggi». Non c'è impatto su dati reali: la tabella non ha alcun percorso di scrittura, quindi i contatori valgono 0 ovunque.
+**Prova obbligatoria in T1:** un test di contratto che valida le risposte del nuovo servizio con lo **schema `overviewResponse` attuale (snapshot di `5a0d056`)** e con quello esteso; il test non viene modificato quando si estende il contratto. Se la prova fallisce, T1 non è completato.
+Il servizio è **condiviso** con `GET /tasks/summary` (nessuna logica duplicata).
 
 ## 6. Decisioni e limiti dei contratti
 

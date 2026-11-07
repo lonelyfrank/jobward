@@ -23,7 +23,7 @@ C3 collega pipeline, note, riferimenti documentali e timeline alle sei schede de
 ([consegna](docs/m3/c3-delivery.md) · [verifiche](docs/m3/c3-testing-report.md), documenti storici).
 La **CI remota di `main` è rossa** ([run 42334739111](https://github.com/lonelyfrank/jobward/actions/runs/42334739111)):
 typecheck/lint/test/build e 176 E2E verdi, **un test della suite preview in timeout** per una race di sincronizzazione del test (nessun difetto di prodotto).
-La correzione è pronta e provata in locale sul branch `m3-c3-closure-tasks-design`; **la conferma in CI richiede un push da autorizzare**.
+La correzione è nella [PR #8](https://github.com/lonelyfrank/jobward/pull/8) con **CI verde** (Quality, E2E 176, preview 13/13); **`main` resta rossa fino al merge**.
 Causa, prova e stato: [chiusura C3](docs/m3/c3-closure.md).
 
 **Prossimo sviluppo (solo progettazione, nessuna implementazione):** Attività, follow-up e scadenze — [pacchetto di progettazione](docs/m3/tasks-index.md), in attesa di approvazione.

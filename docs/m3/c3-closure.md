@@ -89,11 +89,11 @@ I numeri di test della consegna (1.179 unit/integrazione, 176 E2E, 13 preview) *
 
 ## 7. Problemi
 
-| ID    | Priorità | Stato                                            | Descrizione                                                                                                                                     |
-| ----- | -------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| C3-01 | P2       | **Eseguita: rossa** (era «da eseguire»)          | CI remota di C3 su `main`: rossa per C3-07. Vedi [registro](c3-issue-register.md)                                                               |
-| C3-07 | **P1**   | **Corretto in locale; conferma remota pendente** | Race di sincronizzazione nel preview 302 (§3–§4). P1 perché tiene **rossa `main`**; non è una regressione di prodotto                           |
-| C3-08 | P3       | Aperto                                           | `main` non è protetta e C3 vi è entrata senza PR né CI preventiva (è così che un rosso è arrivato in `main`). Decisione di processo dell'utente |
+| ID    | Priorità | Stato                                                   | Descrizione                                                                                                                                     |
+| ----- | -------- | ------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| C3-01 | P2       | **Eseguita: rossa** (era «da eseguire»)                 | CI remota di C3 su `main`: rossa per C3-07. Vedi [registro](c3-issue-register.md)                                                               |
+| C3-07 | **P1**   | **Corretto; CI verde sulla PR #8; in attesa del merge** | Race di sincronizzazione nel preview 302 (§3–§4). P1 perché tiene **rossa `main`**; non è una regressione di prodotto                           |
+| C3-08 | P3       | Aperto                                                  | `main` non è protetta e C3 vi è entrata senza PR né CI preventiva (è così che un rosso è arrivato in `main`). Decisione di processo dell'utente |
 
 ## 8. Esito della Parte A
 
@@ -105,6 +105,8 @@ I numeri di test della consegna (1.179 unit/integrazione, 176 E2E, 13 preview) *
 | Documentazione coerente con il repository | ✅ (questo documento, README, roadmap, registro, note storiche)                   |
 | Modifiche con test pertinenti superati    | ✅ vedi §4 e §5                                                                   |
 
-**M3-C3 NON è dichiarato definitivamente chiuso.** La correzione è locale e provata, ma la **CI remota del commit corretto non è stata eseguita**: non va considerata superata.
+**Aggiornamento successivo (PR #8):** la correzione, pubblicata con il solo commit `f359630`, ha **CI verde sulla PR** (Quality 1.179 test, E2E 176 + 1 saltato, preview 13/13, nessun retry): [readiness §1](m3-t1-readiness.md). `main` resta rossa fino al merge, che non è stato eseguito.
+
+**M3-C3 NON è dichiarato definitivamente chiuso** (chiusura formale = merge della PR #8 + run di `main` verde). La correzione è locale e provata, ma la **CI remota del commit corretto non è stata eseguita**: non va considerata superata.
 Per chiudere: push autorizzato → run di GitHub Actions verde sul commit `f359630` (o successivo).
 La Parte B (progettazione di Attività e follow-up) procede **come analisi separata** e **non** afferma la chiusura di C3: [tasks-index.md](tasks-index.md).

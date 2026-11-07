@@ -1,7 +1,24 @@
 # Attività e follow-up — Registro e matrice delle decisioni
 
-**Stato:** tutte le decisioni sono **raccomandazioni in attesa di approvazione**: nessuna è stata applicata al codice. · **Baseline:** `5a0d056eda`.
+**Stato:** le decisioni sotto sono **raccomandazioni; quelle elencate in «Approvazioni» sono state approvate dall'utente il 2026-11-07** (alcune con condizioni). Nessuna è stata applicata al codice. · **Baseline:** `5a0d056eda`.
 Indice: [tasks-index.md](tasks-index.md). Ogni decisione riporta la **reversibilità**: quelle «onerose» vanno approvate prima di M3-T1, perché toccano dati o contratti pubblici.
+
+## Approvazioni del 2026-11-07
+
+| ID   | Esito                     | Condizione dell'utente                                      | Stato della condizione                                                                                                 |
+| ---- | ------------------------- | ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| D-01 | Approvata con condizione  | previa verifica di schema e dati                            | locale verificata; **D1 remoto non verificabile** (nessun database nell'account accessibile) → **in sospeso**          |
+| D-03 | Approvata                 | —                                                           | —                                                                                                                      |
+| D-05 | Approvata                 | —                                                           | —                                                                                                                      |
+| D-06 | Approvata con condizione  | dichiarare i limiti rispetto a un registro storico completo | **soddisfatta**: sei limiti elencati in [readiness §4](m3-t1-readiness.md)                                             |
+| D-13 | Approvata con condizione  | subordinata alla verifica su D1                             | runtime D1 locale (workerd) **verificato**; remoto **in sospeso**: comandi in [readiness §3.3](m3-t1-readiness.md)     |
+| —    | Estensione Overview       | obbligatoriamente retrocompatibile                          | **proposta corretta**: `dueAt` resta intero (derivato), `dueOn` e due contatori solo additivi; test di contratto in T1 |
+| —    | Roadmap T0→T1→T2→T3→C4→C5 | —                                                           | confermata                                                                                                             |
+
+Le altre decisioni (D-02, D-04, D-07…D-12, D-14) **non sono state oggetto di approvazione esplicita**: restano raccomandazioni, ma non sono fra quelle indicate come bloccanti.
+**Correzione emersa alla verifica:** D-03 prevedeva `dueAt → dueOn` nell'Overview (breaking): **ritirato**. Vedi [readiness §5](m3-t1-readiness.md).
+
+---
 
 ## Sintesi
 
@@ -49,14 +66,14 @@ Indice: [tasks-index.md](tasks-index.md). Ogni decisione riporta la **reversibil
 
 ## D-03 — Scadenze: solo data o anche data-ora?
 
-|                      |                                                                                                                                                                                                    |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Alternative**      | (a) **data di calendario** `YYYY-MM-DD` (`due_on`) · (b) istante (`due_at` esistente) · (c) entrambi                                                                                               |
-| **Vantaggi di (a)**  | concetto naturale («entro venerdì»); nessuna ambiguità di fuso/DST; classificazione = confronto fra date; ordinamento indipendente da «oggi» (cursore stabile); precedente nel repo (`applied_on`) |
-| **Svantaggi di (a)** | niente orario (es. «richiama alle 15»)                                                                                                                                                             |
-| **Rischi**           | (b) «scaduta» cambia a seconda di ora e fuso per un concetto che è un giorno; senza promemoria l'ora non ha consumatori. (c) raddoppia le regole                                                   |
-| **Scelta**           | **(a)**. `due_at` resta come colonna **legacy non usata** (nessuna ricostruzione per rimuoverla). L'orario si può aggiungere **dopo** come colonna `due_time` nullable, senza toccare `due_on`     |
-| **Impatto**          | T1: `due_on` + CHECK; `OverviewResponse.upcomingTasks[].dueAt` → `dueOn` (cambio di contratto controllato); test API dei contatori riscritti; T2: `formatCalendarDate`                             |
+|                      |                                                                                                                                                                                                                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Alternative**      | (a) **data di calendario** `YYYY-MM-DD` (`due_on`) · (b) istante (`due_at` esistente) · (c) entrambi                                                                                                                            |
+| **Vantaggi di (a)**  | concetto naturale («entro venerdì»); nessuna ambiguità di fuso/DST; classificazione = confronto fra date; ordinamento indipendente da «oggi» (cursore stabile); precedente nel repo (`applied_on`)                              |
+| **Svantaggi di (a)** | niente orario (es. «richiama alle 15»)                                                                                                                                                                                          |
+| **Rischi**           | (b) «scaduta» cambia a seconda di ora e fuso per un concetto che è un giorno; senza promemoria l'ora non ha consumatori. (c) raddoppia le regole                                                                                |
+| **Scelta**           | **(a)**. `due_at` resta come colonna **legacy non usata** (nessuna ricostruzione per rimuoverla). L'orario si può aggiungere **dopo** come colonna `due_time` nullable, senza toccare `due_on`                                  |
+| **Impatto**          | T1: `due_on` + CHECK; **Overview retrocompatibile** (`dueAt` resta come primo istante del giorno, si aggiunge `dueOn`; vedi [contratti §5](tasks-api-contracts.md)); test API dei contatori riscritti; T2: `formatCalendarDate` |
 
 ## D-04 — Collegamento alla card facoltativo?
 
@@ -187,6 +204,6 @@ Indice: [tasks-index.md](tasks-index.md). Ogni decisione riporta la **reversibil
 1. **D-01 + D-03 + D-13** insieme: riuso della tabella, date-only e migrazione additiva — definiscono lo schema.
 2. **D-05**: nessuna cancellazione definitiva.
 3. **D-06**: nessun nuovo evento / nessuna terza ricostruzione di `activity_events`.
-4. Nuovo contratto di `OverviewResponse.upcomingTasks` (`dueAt` → `dueOn`).
+4. ~~Cambio di contratto di `upcomingTasks`~~ **ritirato**: l'estensione di Overview deve essere retrocompatibile (v. §Approvazioni).
 
 Tutte le altre sono reversibili con modifiche additive.

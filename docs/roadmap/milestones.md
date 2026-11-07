@@ -85,7 +85,7 @@ Nessun push, PR o deploy C3.
 
 Il blocco precedente descrive lo stato **al momento della consegna C3**. Fatti verificati dopo:
 C3 è in `main` (`5a0d056eda`, push diretto, nessuna PR); la CI remota ([run 42334739111](https://github.com/lonelyfrank/jobward/actions/runs/42334739111)) è **rossa**
-per una race nel test preview 302 (nessun difetto di prodotto); la correzione è pronta in locale e **non ancora confermata in CI** (push non autorizzato).
+per una race nel test preview 302 (nessun difetto di prodotto); la correzione è nella [PR #8](https://github.com/lonelyfrank/jobward/pull/8) con **CI verde**; `main` resta rossa fino al merge.
 **M3-C3 non è definitivamente chiuso.** Dettagli: [chiusura C3](../m3/c3-closure.md).
 
 **Attività e follow-up** (progettazione, nessuna implementazione): checkpoint proposti M3-T0…T3 fra C3 e C4, con C4/C5 come verifica e consegna dell'intero M3.

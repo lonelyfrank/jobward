@@ -39,6 +39,7 @@ addDays(date: string, n: number): string                    // aritmetica su gio
 daysBetween(from: string, to: string): number               // differenza intera di giorni di calendario
 classifyDue(dueOn: string | null, status: TaskStatus, today: string): TaskDue   // solo `open`; altrimenti 'none'
 completedLate(dueOn, completedAt, timeZone): boolean
+startOfLocalDay(dueOn, timeZone): number                    // primo istante (ms UTC) di quella data locale: serve SOLO alla retrocompatibilità di Overview (`dueAt`)
 compareTasks(a, b): number                                  // ordine operativo: dueOn ASC (null ultimo), priorità DESC, createdAt ASC, id ASC
 summarizeTasks(rows, today): { open, today, overdue, noDue, done }   // usata dai test come oracolo dell'SQL
 taskDueLabel(...)                                           // NON qui: i testi italiani stanno nel web
@@ -186,16 +187,16 @@ suggestTasks({ status, appliedOn, interviews: { id, sequence, status, scheduledA
 
 ## 9. Impatto su moduli esistenti
 
-| Modulo                                     | Cambiamento                                                                                                                   | Checkpoint         |
-| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| `services/overview.ts`, `OverviewResponse` | `openTasks`/`overdueTasks`/`upcomingTasks` da `due_on`, `cancelled_at`, card non archiviate; `dueAt` → `dueOn` nella risposta | T1 (API) + T2 (UI) |
-| `routes/overview.tsx`                      | «Prossime scadenze» usa `formatCalendarDate`; contatore invariato nella forma                                                 | T2                 |
-| `createTaskInput` + test                   | riscritto                                                                                                                     | T1                 |
-| `routes/coming-soon.tsx`                   | `TasksPage` rimossa                                                                                                           | T2                 |
-| `quickActions.prepare_followup`            | da «nota con intestazione» a «pianifica follow-up» (apre il modulo task)                                                      | T3                 |
-| `timeline.ts` + UI Timeline                | terza fonte `task`                                                                                                            | T3                 |
-| `refreshWorkflow` (cache web)              | invalida `tasks` e riepilogo dopo mutazioni; **pipeline/archiviazione** invalidano anche le task della card                   | T2/T3              |
-| Test API contatori                         | riscritti                                                                                                                     | T1                 |
+| Modulo                                     | Cambiamento                                                                                                                                                                                                                                                                        | Checkpoint         |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `services/overview.ts`, `OverviewResponse` | contatori e prossime scadenze da `due_on`, `cancelled_at`, card non archiviate. **Retrocompatibile:** nessun campo rimosso o rinominato; `upcomingTasks[].dueAt` resta un intero (primo istante del giorno di scadenza nel fuso del workspace, derivato) e si **aggiunge** `dueOn` | T1 (API) + T2 (UI) |
+| `routes/overview.tsx`                      | «Prossime scadenze» usa `formatCalendarDate`; contatore invariato nella forma                                                                                                                                                                                                      | T2                 |
+| `createTaskInput` + test                   | riscritto                                                                                                                                                                                                                                                                          | T1                 |
+| `routes/coming-soon.tsx`                   | `TasksPage` rimossa                                                                                                                                                                                                                                                                | T2                 |
+| `quickActions.prepare_followup`            | da «nota con intestazione» a «pianifica follow-up» (apre il modulo task)                                                                                                                                                                                                           | T3                 |
+| `timeline.ts` + UI Timeline                | terza fonte `task`                                                                                                                                                                                                                                                                 | T3                 |
+| `refreshWorkflow` (cache web)              | invalida `tasks` e riepilogo dopo mutazioni; **pipeline/archiviazione** invalidano anche le task della card                                                                                                                                                                        | T2/T3              |
+| Test API contatori                         | riscritti                                                                                                                                                                                                                                                                          | T1                 |
 
 ## 10. Cache e coerenza lato web
 

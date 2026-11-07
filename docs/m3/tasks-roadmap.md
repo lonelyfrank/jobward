@@ -26,12 +26,12 @@ C3 ──► T0 ──► T1 ──► T2 ──► T3 ──► C4 (affidabilit
 
 ## 2. Prerequisiti (prima di T1)
 
-| #   | Prerequisito                                                                                      | Chi / come                                                                                           |
-| --- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| P1  | **CI di `main` verde** con la correzione della race preview (vedi [c3-closure.md](c3-closure.md)) | richiede **push autorizzato**; non è stato eseguito                                                  |
-| P2  | Approvazione delle decisioni «da non assumere» (D-01/03/13, D-05, D-06, contratto Overview)       | utente, sul [registro](tasks-decision-register.md)                                                   |
-| P3  | **Conteggio in sola lettura** di `tasks` sul D1 remoto (atteso 0) e versione di SQLite di D1      | utente (nessun accesso remoto da qui); `wrangler d1 execute … --remote "select count(*) from tasks"` |
-| P4  | Conferma che M3-C4/C5 seguono T3 (o scelta dell'alternativa)                                      | utente                                                                                               |
+| #   | Prerequisito                                                                                                                                                                                        | Chi / come                                                                                           |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| P1  | **CI di `main` verde** con la correzione della race preview (vedi [c3-closure.md](c3-closure.md))                                                                                                   | richiede **push autorizzato**; non è stato eseguito                                                  |
+| P2  | Approvazione delle decisioni «da non assumere» (D-01/03/13, D-05, D-06, contratto Overview)                                                                                                         | utente, sul [registro](tasks-decision-register.md)                                                   |
+| P3  | **Conteggio in sola lettura** di `tasks` sul D1 remoto (atteso 0) e verifica dello schema e delle migrazioni remote (la versione di SQLite non è interrogabile: `sqlite_version()` è vietata su D1) | utente (nessun accesso remoto da qui); `wrangler d1 execute … --remote "select count(*) from tasks"` |
+| P4  | Conferma che M3-C4/C5 seguono T3 (o scelta dell'alternativa)                                                                                                                                        | utente                                                                                               |
 
 ## 3. M3-T0 — Tasks Architecture (questo pacchetto)
 
@@ -51,7 +51,7 @@ C3 ──► T0 ──► T1 ──► T2 ──► T3 ──► C4 (affidabilit
 | **Perimetro**               | migrazione `0006` additiva; `shared`: `tasks.ts`, `task-dates.ts` (+ test completi); `schemas/task.ts` riscritto; `LIMITS` e `TASK_KINDS`; `services/tasks.ts`; `modules/tasks/routes.ts`; `overview` riallineato (stesso servizio del riepilogo); test                                                                                                                                                                             |
 | **Commit**                  | 1) dominio puro e test · 2) schemi Zod e costanti · 3) `0006` + schema TS + snapshot + `db:upgrade-test` esteso · 4) servizio e rotte + test API · 5) Overview riallineata · 6) documentazione di consegna                                                                                                                                                                                                                          |
 | **Criteri di accettazione** | tutti i casi di [piano test §1–§3](tasks-testing-plan.md): vincoli rifiutati dal motore; migrazione da DB popolato **con task legacy** conserva ogni riga; isolamento fra workspace; limiti atomici; idempotenza e concorrenza; cursore stabile; archiviazione ed esclusione; pipeline ↔ task indipendenti; contatori = oracolo puro; `db:check` verde; **nessun nuovo `ApiErrorCode`**; **nessuna** scrittura in `activity_events` |
-| **Gate**                    | gate completo, inclusi `db:upgrade-test`, E2E e preview **invariati e verdi** (la UI non cambia, tranne il formato della data in Overview)                                                                                                                                                                                                                                                                                          |
+| **Gate**                    | gate completo, inclusi `db:upgrade-test`, E2E e preview **invariati e verdi** (la UI non cambia, tranne il formato della data in Overview, additivo)                                                                                                                                                                                                                                                                                |
 | **Dipendenze**              | P1–P3                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | **Rischi**                  | deriva SQL↔TS dei vincoli (test di presenza); SQLite di D1 remoto; contratto Overview                                                                                                                                                                                                                                                                                                                                               |
 | **Fuori perimetro**         | UI della pagina, suggerimenti, Timeline                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -92,17 +92,17 @@ C3 ──► T0 ──► T1 ──► T2 ──► T3 ──► C4 (affidabilit
 
 ## 8. Rischi e dipendenze trasversali
 
-| Rischio / dipendenza                              | Impatto                               | Mitigazione                                                                        |
-| ------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------- |
-| `main` rosso per la race preview                  | blocca T1 (P1)                        | correzione già pronta in locale; serve push autorizzato                            |
-| SQLite/tabella remota non verificate              | migrazione additiva potrebbe fallire  | P3; guardia naturale dei CHECK; backup/Time Travel prima di qualsiasi apply remoto |
-| Cambio di contratto Overview (`dueAt` → `dueOn`)  | client e API devono procedere insieme | stesso checkpoint (T1) e test di contratto                                         |
-| Complessità della Timeline a tre fonti            | cursore e ordine                      | test di ordine totale con tre fonti prima della UI                                 |
-| «Suggerimento ignorato» non sincronizzato         | UX incoerente fra dispositivi         | dichiarato; evoluzione additiva (tabella) se necessario                            |
-| Flake E2E (storia: PR #6, PR #7, run 42334739111) | CI rossa                              | regola di processo del piano test; prova con CPU limitata                          |
-| Fuso del workspace non modificabile oggi          | nessuno ora                           | dati a data di calendario: robusti a un futuro cambio                              |
-| Nessun deploy, nessun D1 remoto in questa serie   | verifiche solo locali/CI              | dichiararlo in ogni consegna                                                       |
+| Rischio / dipendenza                                  | Impatto                               | Mitigazione                                                                        |
+| ----------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------- |
+| `main` rosso per la race preview                      | blocca T1 (P1)                        | correzione già pronta in locale; serve push autorizzato                            |
+| SQLite/tabella remota non verificate                  | migrazione additiva potrebbe fallire  | P3; guardia naturale dei CHECK; backup/Time Travel prima di qualsiasi apply remoto |
+| Estensione Overview (solo additiva; `dueAt` derivato) | client e API devono procedere insieme | stesso checkpoint (T1) e test di contratto                                         |
+| Complessità della Timeline a tre fonti                | cursore e ordine                      | test di ordine totale con tre fonti prima della UI                                 |
+| «Suggerimento ignorato» non sincronizzato             | UX incoerente fra dispositivi         | dichiarato; evoluzione additiva (tabella) se necessario                            |
+| Flake E2E (storia: PR #6, PR #7, run 42334739111)     | CI rossa                              | regola di processo del piano test; prova con CPU limitata                          |
+| Fuso del workspace non modificabile oggi              | nessuno ora                           | dati a data di calendario: robusti a un futuro cambio                              |
+| Nessun deploy, nessun D1 remoto in questa serie       | verifiche solo locali/CI              | dichiararlo in ogni consegna                                                       |
 
 ## 9. Criterio di readiness per M3-T1
 
-T1 può partire quando: **P1** (CI di `main` verde), **P2** (decisioni approvate), **P3** (conteggio remoto di `tasks` e versione di SQLite) e **P4** (collocazione di C4/C5) sono soddisfatti. Fino ad allora la raccomandazione è **«non ancora»**.
+T1 può partire quando: **P1** (CI di `main` verde), **P2** (decisioni approvate: ✅ 2026-11-07, con condizioni), **P3** (schema, migrazioni e conteggio remoti di `tasks`, o conferma che non esiste un D1 remoto) e **P4** (collocazione di C4/C5) sono soddisfatti. Fino ad allora la raccomandazione è **«non ancora»**.

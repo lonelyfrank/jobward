@@ -8,17 +8,18 @@ senza notifiche, scheduler, automatismi opachi, integrazioni esterne o funzioni 
 
 ## Documenti
 
-| Documento                                                | Contenuto                                                                                              |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| [c3-closure.md](c3-closure.md)                           | **Parte A** — esito della CI remota di M3-C3 (rossa), causa, correzione, stato di chiusura             |
-| [tasks-audit.md](tasks-audit.md)                         | Cosa esiste davvero (tabella `tasks`, contatori, eventi) e cosa no                                     |
-| [tasks-product-spec.md](tasks-product-spec.md)           | Modello, stati, scadenze, rapporto con le candidature, follow-up, suggerimenti, pagina, limiti         |
-| [tasks-architecture.md](tasks-architecture.md)           | Dominio puro, schema D1/Drizzle, migrazione additiva, concorrenza, eventi/Timeline, impatto sui moduli |
-| [tasks-api-contracts.md](tasks-api-contracts.md)         | Endpoint REST, input Zod, errori, idempotenza, paginazione, ordinamento                                |
-| [tasks-ux-spec.md](tasks-ux-spec.md)                     | Pagina, riga, modulo, responsive 320–1920, accessibilità, terminologia                                 |
-| [tasks-testing-plan.md](tasks-testing-plan.md)           | Dominio, database, API, UI, E2E, accessibilità, gate per checkpoint                                    |
-| [tasks-decision-register.md](tasks-decision-register.md) | Matrice delle 12 decisioni richieste + 2 (alternative, rischi, scelta, impatto, reversibilità)         |
-| [tasks-roadmap.md](tasks-roadmap.md)                     | Checkpoint M3-T0…T3, rapporto con C4/C5, prerequisiti, rischi, readiness per T1                        |
+| Documento                                                | Contenuto                                                                                                                      |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| [m3-t1-readiness.md](m3-t1-readiness.md)                 | Esito CI della PR #8, protezione di `main` (proposta), verifica D1 (comandi), approvazioni, incompatibilità, condizioni per T1 |
+| [c3-closure.md](c3-closure.md)                           | **Parte A** — esito della CI remota di M3-C3 (rossa), causa, correzione, stato di chiusura                                     |
+| [tasks-audit.md](tasks-audit.md)                         | Cosa esiste davvero (tabella `tasks`, contatori, eventi) e cosa no                                                             |
+| [tasks-product-spec.md](tasks-product-spec.md)           | Modello, stati, scadenze, rapporto con le candidature, follow-up, suggerimenti, pagina, limiti                                 |
+| [tasks-architecture.md](tasks-architecture.md)           | Dominio puro, schema D1/Drizzle, migrazione additiva, concorrenza, eventi/Timeline, impatto sui moduli                         |
+| [tasks-api-contracts.md](tasks-api-contracts.md)         | Endpoint REST, input Zod, errori, idempotenza, paginazione, ordinamento                                                        |
+| [tasks-ux-spec.md](tasks-ux-spec.md)                     | Pagina, riga, modulo, responsive 320–1920, accessibilità, terminologia                                                         |
+| [tasks-testing-plan.md](tasks-testing-plan.md)           | Dominio, database, API, UI, E2E, accessibilità, gate per checkpoint                                                            |
+| [tasks-decision-register.md](tasks-decision-register.md) | Matrice delle 12 decisioni richieste + 2 (alternative, rischi, scelta, impatto, reversibilità)                                 |
+| [tasks-roadmap.md](tasks-roadmap.md)                     | Checkpoint M3-T0…T3, rapporto con C4/C5, prerequisiti, rischi, readiness per T1                                                |
 
 ## In breve
 
@@ -43,5 +44,5 @@ L'unica modifica al codice è la correzione, motivata e provata, di un test E2E 
 
 ## Raccomandazione di readiness per M3-T1
 
-**Non ancora.** Prerequisiti: (P1) CI di `main` verde con la correzione, che richiede un push da autorizzare; (P2) approvazione delle decisioni D-01/03/13, D-05, D-06 e del contratto Overview;
-(P3) conteggio in sola lettura di `tasks` sul D1 remoto e versione di SQLite; (P4) conferma della collocazione di C4/C5. Dettagli: [roadmap §9](tasks-roadmap.md).
+**Pronta con riserva** (aggiornata dopo l'approvazione del 2026-11-07 e la PR #8 verde). Prima di scrivere la migrazione `0006`: integrare la PR #8 con run di `main` verde, e verificare il D1 remoto
+(o confermare che non esiste). Condizioni, comandi e stato: [m3-t1-readiness.md](m3-t1-readiness.md).
