@@ -1,0 +1,108 @@
+# Attività e follow-up — Roadmap in checkpoint
+
+**Stato:** **proposta da validare**: i nomi M3-T0…T3 **non** sono milestone approvate. · **Baseline:** `5a0d056eda`.
+Indice: [tasks-index.md](tasks-index.md). Nessuna milestone già consegnata viene riscritta: gli esiti di C1–C3 restano quelli dei loro report.
+
+## 1. Rapporto con il piano M3 esistente
+
+Il [piano M3](plan.md) §10 definisce C0–C5. **Le Attività non vi comparivano**: «attività e scadenze nei checkpoint successivi» ([milestones](../roadmap/milestones.md)).
+
+| Checkpoint originale | Contenuto originale                                     | Stato                                                                                                                    |
+| -------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| C0–C2                | audit, dominio, API/persistenza                         | integrati in `main` (PR #7)                                                                                              |
+| C3                   | modale: stato, azioni, Timeline, Note, Documenti        | consegnato su `main` (`5a0d056`); **CI remota rossa** (E2E preview); chiusura in [c3-closure.md](c3-closure.md)          |
+| **C4**               | E2E desktop/mobile, accessibilità, chiusura/riapertura  | **non avviato**; C3 ha già consegnato i propri E2E e l'accessibilità del flusso. Resta la **verifica trasversale di M3** |
+| **C5**               | documentazione `docs/m3`, registro, `pnpm check` finale | **non avviato**: resta la consegna **complessiva** di M3                                                                 |
+
+**Proposta di collocazione** (la numerazione originale di C4/C5 è rispettata):
+
+```
+C3 ──► T0 ──► T1 ──► T2 ──► T3 ──► C4 (affidabilità di tutto M3, Attività incluse) ──► C5 (consegna M3, readiness M4)
+```
+
+- **T0–T3** sono l'**estensione funzionale** (Attività e follow-up), da approvare.
+- Il «**M3-T4 — Reliability & Delivery**» proposto **non diventa un checkpoint a sé**: il suo contenuto (E2E completi, accessibilità, regressioni, documentazione, readiness M4) è **C4 + C5**, estesi alle Attività. Motivo: due cancelli di chiusura paralleli duplicherebbero test e documenti. Se si preferisce un T4 separato, C4/C5 restano come sono e il costo è la ripetizione dei gate.
+- **Alternativa**: Attività in una milestone propria (es. M3.5) dopo la consegna completa di M3. Più pulita come storia, ma ritarda C4/C5 e lascia la pagina «In arrivo» più a lungo. **Non raccomandata.**
+
+## 2. Prerequisiti (prima di T1)
+
+| #   | Prerequisito                                                                                      | Chi / come                                                                                           |
+| --- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| P1  | **CI di `main` verde** con la correzione della race preview (vedi [c3-closure.md](c3-closure.md)) | richiede **push autorizzato**; non è stato eseguito                                                  |
+| P2  | Approvazione delle decisioni «da non assumere» (D-01/03/13, D-05, D-06, contratto Overview)       | utente, sul [registro](tasks-decision-register.md)                                                   |
+| P3  | **Conteggio in sola lettura** di `tasks` sul D1 remoto (atteso 0) e versione di SQLite di D1      | utente (nessun accesso remoto da qui); `wrangler d1 execute … --remote "select count(*) from tasks"` |
+| P4  | Conferma che M3-C4/C5 seguono T3 (o scelta dell'alternativa)                                      | utente                                                                                               |
+
+## 3. M3-T0 — Tasks Architecture (questo pacchetto)
+
+|                             |                                                                                                                                                                                                                             |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Obiettivo**               | dominio, decisioni, contratti, UX e piano **approvabili**                                                                                                                                                                   |
+| **Consegna**                | i documenti di [tasks-index.md](tasks-index.md) + correzione/chiusura M3-C3 ([c3-closure.md](c3-closure.md))                                                                                                                |
+| **Criteri di accettazione** | specifica coerente e implementabile; ogni decisione con alternative e impatto; checkpoint con criteri verificabili; **nessun codice, migrazione o endpoint di Attività**; nessuna regressione P0/P1 nota sul già consegnato |
+| **Gate**                    | `typecheck`, `lint`, `format:check` sui file toccati; la suite preview con la correzione                                                                                                                                    |
+| **Esito**                   | in attesa di approvazione                                                                                                                                                                                                   |
+
+## 4. M3-T1 — Persistence & API
+
+|                             |                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Obiettivo**               | persistenza, contratti e API delle attività, **senza interfaccia**                                                                                                                                                                                                                                                                                                                                                                  |
+| **Perimetro**               | migrazione `0006` additiva; `shared`: `tasks.ts`, `task-dates.ts` (+ test completi); `schemas/task.ts` riscritto; `LIMITS` e `TASK_KINDS`; `services/tasks.ts`; `modules/tasks/routes.ts`; `overview` riallineato (stesso servizio del riepilogo); test                                                                                                                                                                             |
+| **Commit**                  | 1) dominio puro e test · 2) schemi Zod e costanti · 3) `0006` + schema TS + snapshot + `db:upgrade-test` esteso · 4) servizio e rotte + test API · 5) Overview riallineata · 6) documentazione di consegna                                                                                                                                                                                                                          |
+| **Criteri di accettazione** | tutti i casi di [piano test §1–§3](tasks-testing-plan.md): vincoli rifiutati dal motore; migrazione da DB popolato **con task legacy** conserva ogni riga; isolamento fra workspace; limiti atomici; idempotenza e concorrenza; cursore stabile; archiviazione ed esclusione; pipeline ↔ task indipendenti; contatori = oracolo puro; `db:check` verde; **nessun nuovo `ApiErrorCode`**; **nessuna** scrittura in `activity_events` |
+| **Gate**                    | gate completo, inclusi `db:upgrade-test`, E2E e preview **invariati e verdi** (la UI non cambia, tranne il formato della data in Overview)                                                                                                                                                                                                                                                                                          |
+| **Dipendenze**              | P1–P3                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| **Rischi**                  | deriva SQL↔TS dei vincoli (test di presenza); SQLite di D1 remoto; contratto Overview                                                                                                                                                                                                                                                                                                                                               |
+| **Fuori perimetro**         | UI della pagina, suggerimenti, Timeline                                                                                                                                                                                                                                                                                                                                                                                             |
+
+## 5. M3-T2 — Tasks Workspace
+
+|                             |                                                                                                                                                                                                                                                                                                                                            |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Obiettivo**               | pagina **Attività** operativa e utilizzabile **senza candidatura**                                                                                                                                                                                                                                                                         |
+| **Perimetro**               | `features/tasks`, `routes/tasks.tsx` al posto di `ComingSoon`; riepilogo, filtri (URL), creazione rapida, riga, modulo crea/modifica con `useCreationOperation` e dirty guard, completa/riapri/annulla, stati vuoti/errore, «Carica altre»; Overview con scadenze a data di calendario; cache e invalidazioni                              |
+| **Commit**                  | 1) adapter/hook/cache · 2) riga, elenco, filtri, riepilogo · 3) modulo, dirty guard, creazione rapida · 4) comandi di stato, vuoti/errori · 5) Overview · 6) test RTL, E2E, preview · 7) documentazione                                                                                                                                    |
+| **Criteri di accettazione** | tutti i casi UI e E2E «attività indipendente», «scadenza passata», responsive 6×2 temi, tastiera/focus/ARIA/contrasto/touch/reduced-motion di [piano test §4–§6](tasks-testing-plan.md); la UI classifica con `asOf.today` del server; scelta documentata fra `Dialog` `center`/`workspace` provata a 320 px; **nessun dato dimostrativo** |
+| **Gate**                    | gate completo + **CI remota** del commit (se push autorizzato)                                                                                                                                                                                                                                                                             |
+| **Dipendenze**              | T1                                                                                                                                                                                                                                                                                                                                         |
+| **Rischi**                  | race di sincronizzazione nei test (regola di processo del piano test); densità su 320 px                                                                                                                                                                                                                                                   |
+| **Fuori perimetro**         | sezione nella candidatura, suggerimenti, Timeline                                                                                                                                                                                                                                                                                          |
+
+## 6. M3-T3 — Contextual Follow-ups
+
+|                             |                                                                                                                                                                                                                                                                                                                                                                                                 |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Obiettivo**               | collegare le attività alle candidature e proporre follow-up **senza automatismi**                                                                                                                                                                                                                                                                                                               |
+| **Perimetro**               | sezione «Attività» nella Panoramica (creazione con card precompilata, completamento); link riga → card; riga **suggerimento** S1–S3 (`task-suggestions.ts`, «Non ora» per dispositivo); terza fonte `task` nella Timeline (voci creata/completata/annullata); avviso di attività aperte nella conferma di chiusura; `prepare_followup` → «pianifica follow-up»; card archiviata in sola lettura |
+| **Commit**                  | 1) suggerimenti puri e test · 2) sezione nella candidatura · 3) Timeline (fonte `task`) · 4) avviso di chiusura e quick action · 5) test RTL/E2E/preview · 6) documentazione                                                                                                                                                                                                                    |
+| **Criteri di accettazione** | casi S1–S3 e «non crea nulla»; E2E «attività collegata», «follow-up», «archiviazione», «cambio di stato»; ordine totale della Timeline con tre fonti; completare una task non tocca la pipeline e viceversa; Panoramica e «Prossima azione» dei colloqui invariate                                                                                                                              |
+| **Gate**                    | gate completo + CI remota                                                                                                                                                                                                                                                                                                                                                                       |
+| **Dipendenze**              | T2                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Rischi**                  | ripetizione dei suggerimenti (proxy di D-09/D-11); cursore Timeline con tre fonti                                                                                                                                                                                                                                                                                                               |
+| **Fuori perimetro**         | notifiche, e-mail, scheduler, `interview_id`, audit eventi                                                                                                                                                                                                                                                                                                                                      |
+
+## 7. M3-C4 / M3-C5 — affidabilità e consegna di tutto M3
+
+|             |                                                                                                                                                                                                                     |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **C4**      | E2E completi desktop/mobile, accessibilità, regressioni e **stabilità sotto CPU limitata** per l'intero M3 (colloqui, pipeline, note, documenti, **Attività**); chiusura/riapertura; 3 giri consecutivi senza flake |
+| **C5**      | documentazione `docs/m3` complessiva, registro dei problemi, `pnpm check` finale, **readiness M4** (Insights, export, deploy privato)                                                                               |
+| **Criteri** | quelli del piano M3 §9 + le righe «Attività» del [piano test](tasks-testing-plan.md); CI remota verde sull'ultimo commit                                                                                            |
+
+## 8. Rischi e dipendenze trasversali
+
+| Rischio / dipendenza                              | Impatto                               | Mitigazione                                                                        |
+| ------------------------------------------------- | ------------------------------------- | ---------------------------------------------------------------------------------- |
+| `main` rosso per la race preview                  | blocca T1 (P1)                        | correzione già pronta in locale; serve push autorizzato                            |
+| SQLite/tabella remota non verificate              | migrazione additiva potrebbe fallire  | P3; guardia naturale dei CHECK; backup/Time Travel prima di qualsiasi apply remoto |
+| Cambio di contratto Overview (`dueAt` → `dueOn`)  | client e API devono procedere insieme | stesso checkpoint (T1) e test di contratto                                         |
+| Complessità della Timeline a tre fonti            | cursore e ordine                      | test di ordine totale con tre fonti prima della UI                                 |
+| «Suggerimento ignorato» non sincronizzato         | UX incoerente fra dispositivi         | dichiarato; evoluzione additiva (tabella) se necessario                            |
+| Flake E2E (storia: PR #6, PR #7, run 42334739111) | CI rossa                              | regola di processo del piano test; prova con CPU limitata                          |
+| Fuso del workspace non modificabile oggi          | nessuno ora                           | dati a data di calendario: robusti a un futuro cambio                              |
+| Nessun deploy, nessun D1 remoto in questa serie   | verifiche solo locali/CI              | dichiararlo in ogni consegna                                                       |
+
+## 9. Criterio di readiness per M3-T1
+
+T1 può partire quando: **P1** (CI di `main` verde), **P2** (decisioni approvate), **P3** (conteggio remoto di `tasks` e versione di SQLite) e **P4** (collocazione di C4/C5) sono soddisfatti. Fino ad allora la raccomandazione è **«non ancora»**.
