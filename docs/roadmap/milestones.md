@@ -1,15 +1,15 @@
 # Milestone
 
-| Milestone                                             | Obiettivo                                                                              | Stato                                                                                                 |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| **M0** Foundation & Initial Workspace                 | Fondamenta solide e primo ambiente navigabile                                          | ✅ Completata (vedi [consegna](m0-delivery.md))                                                       |
-| **M0.H** Hardening & merge readiness                  | Verifica di M0, audit di sicurezza/DB/frontend, correzioni, readiness Cloudflare       | ✅ Pronta per revisione (vedi [consegna](../m0h/delivery.md)) — **non** "production ready"            |
-| **M1** Boards & Cards                                 | Il nucleo operativo: bacheche, colonne, schede, Kanban                                 | ✅ Integrata (PR #3; vedi [consegna](../m1/delivery.md))                                              |
-| **M2** Job Information & Customization                | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella          | ✅ Pronta per revisione (vedi [consegna](../m2/delivery.md))                                          |
-| **M2.5** Smart Application Modal & Interview Tracking | Modale ampia della candidatura, colloqui a round, riepilogo e card Kanban intelligenti | ✅ Pronta per revisione (vedi [consegna](../m25/delivery.md)) — **dopo** l'integrazione di M2 / PR #4 |
-| **M3** Tasks & Activity                               | Attività, follow-up, scadenze, cronologia, dashboard operativa                         | ⏳                                                                                                    |
-| **M4** Insights & Private Release                     | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato              | ⏳                                                                                                    |
-| **M5** Public Readiness                               | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi          | 🔮 Futuro, fuori incarico                                                                             |
+| Milestone                                             | Obiettivo                                                                                      | Stato                                                                                                 |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| **M0** Foundation & Initial Workspace                 | Fondamenta solide e primo ambiente navigabile                                                  | ✅ Completata (vedi [consegna](m0-delivery.md))                                                       |
+| **M0.H** Hardening & merge readiness                  | Verifica di M0, audit di sicurezza/DB/frontend, correzioni, readiness Cloudflare               | ✅ Pronta per revisione (vedi [consegna](../m0h/delivery.md)) — **non** "production ready"            |
+| **M1** Boards & Cards                                 | Il nucleo operativo: bacheche, colonne, schede, Kanban                                         | ✅ Integrata (PR #3; vedi [consegna](../m1/delivery.md))                                              |
+| **M2** Job Information & Customization                | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella                  | ✅ Pronta per revisione (vedi [consegna](../m2/delivery.md))                                          |
+| **M2.5** Smart Application Modal & Interview Tracking | Modale ampia della candidatura, colloqui a round, riepilogo e card Kanban intelligenti         | ✅ Pronta per revisione (vedi [consegna](../m25/delivery.md)) — **dopo** l'integrazione di M2 / PR #4 |
+| **M3** Application Workflow                           | Pipeline, colloqui, note, documenti, cronologia; attività e scadenze nei checkpoint successivi | ⏳                                                                                                    |
+| **M4** Insights & Private Release                     | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato                      | ⏳                                                                                                    |
+| **M5** Public Readiness                               | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi                  | 🔮 Futuro, fuori incarico                                                                             |
 
 ## M1 — Boards & Cards (piano originale; esito in [docs/m1](../m1/delivery.md))
 
@@ -72,3 +72,11 @@ Decisioni: [ADR-0012](../architecture/decisions/0012-interview-tracking-and-work
 ### Rinviato (nessuna funzione finta)
 
 Attività e «attività aperte» (M3: non esiste ancora un modo di crearle) · inviti, email, calendari, notifiche (fuori incarico) · eliminazione e riordino manuale dei round · rubrica degli intervistatori · Firefox/WebKit e screen reader reali.
+
+## Stato M3 aggiornato — 2026-11-07
+
+M3-C1 (dominio) e M3-C2 (API/persistenza) integrati in main `8071759b6d`, PR #7 e CI verde.
+M3-C3 (sei schede, pipeline, note, documenti come riferimenti, timeline) implementato nel branch
+`m3-c3-application-workflow-ui`, quality gate locale superato (1.179 unit/integration, 176 E2E e 13 preview). [Consegna](../m3/c3-delivery.md) ·
+[test](../m3/c3-testing-report.md). Attività/scadenze e checkpoint successivi restano fuori perimetro.
+Nessun push, PR o deploy C3.

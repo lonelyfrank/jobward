@@ -18,11 +18,15 @@ ATS per recruiter e non invia candidature al posto tuo. Funziona per qualsiasi s
 
 ## Stato effettivo del progetto
 
-**Checkpoint corrente: M3-C1 — Domain & Pipeline e rebranding tecnico**, sul branch locale `m3-application-workflow`, sopra M2.5 e la baseline `0000550`. Il dominio puro e il rebranding sono completati e verificati; API, persistenza e UI pipeline di C2–C5 non sono ancora avviate. [Consegna e risultati C1](docs/m3/c1-delivery.md).
+**Checkpoint corrente: M3-C3 — Application Workflow UI & Integration**, verificato localmente sul branch
+`m3-c3-application-workflow-ui`. M3-C2 è integrata in `main` alla baseline `8071759b6d`
+(PR #7, CI verde). C3 collega pipeline, note, riferimenti documentali e timeline alle sei schede
+della modale. [Consegna C3](docs/m3/c3-delivery.md) · [verifiche](docs/m3/c3-testing-report.md).
+Nessun push, PR o deploy di C3; la CI del branch non è ancora verificata.
 
 M2 trasforma il Kanban in uno strumento da **confrontare e personalizzare**: dati professionali completi, fase ed esito indipendenti dalla colonna, campi personalizzati per bacheca, etichette, ricerca e filtri, vista Tabella ([`docs/m2/delivery.md`](docs/m2/delivery.md)). M1 aveva reso l'app **utilizzabile**: si creano bacheche da template, si personalizzano le colonne, si registrano opportunità con il solo titolo, si modificano e si spostano (trascinamento con mouse, tastiera e touch, oppure da menu), si archiviano e si ripristinano, e tutto persiste: [`docs/m1/delivery.md`](docs/m1/delivery.md).
 
-M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend e deployabilità, e corretto i difetti trovati (isolamento tra workspace nel database, header e cache degli asset, accessibilità del drawer e del menu, e altri): [`docs/m0h/delivery.md`](docs/m0h/delivery.md). **Non è "production ready"**: Cloudflare Access reale e la CI su GitHub non sono ancora stati provati.
+M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend e deployabilità, e corretto i difetti trovati (isolamento tra workspace nel database, header e cache degli asset, accessibilità del drawer e del menu, e altri): [`docs/m0h/delivery.md`](docs/m0h/delivery.md). **Non è "production ready"**: Cloudflare Access reale e deploy privato restano da configurare e provare. La CI della baseline main è verde; la CI di C3 richiederà un futuro push autorizzato.
 
 | Area                                                                                                | Stato                                                       |
 | --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
@@ -42,7 +46,8 @@ M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend 
 | **Campi personalizzati** (8 tipi, per bacheca) ed **etichette**                                     | ✅ **M2** — funzionanti                                     |
 | **Ricerca, filtri e vista Tabella** (anche da telefono), Kanban ↔ Tabella                           | ✅ **M2** — funzionanti                                     |
 | **Modale della candidatura e colloqui** (più round, feedback, prossimo colloquio sulla card Kanban) | ✅ **M2.5** — funzionanti                                   |
-| Attività, scadenze e timeline unificata                                                             | ⏳ M3                                                       |
+| **Pipeline, note, documenti e timeline paginata**                                                   | ✅ **M3-C3** — implementati, quality gate locale verde      |
+| Attività e scadenze                                                                                 | ⏳ M3                                                       |
 | Insights, esportazione dati, deploy privato                                                         | ⏳ M4                                                       |
 
 Le funzioni non ancora disponibili (M3–M4) sono mostrate come tali nell'interfaccia (badge _"In arrivo · Mx"_ e
@@ -179,7 +184,7 @@ jobward/
 
 ### M3-C1 — Dominio e rebranding tecnico
 
-Disponibili in `@jobward/shared` le funzioni pure di pipeline, transizioni, coerenza dei colloqui, timeline e azioni contestuali. C1 non aggiunge API, scritture o UI pipeline: integrazione e idempotenza backend restano a C2, non avviato. Pacchetti, Worker configurati, logo e favicon seguono il nome Jobward; dati e migrazioni storiche sono preservati.
+Disponibili in `@jobward/shared` le funzioni pure di pipeline, transizioni, coerenza dei colloqui, timeline e azioni contestuali. Il backend C2 è integrato in main; la UI C3 è implementata e verificata localmente nel branch dedicato. Pacchetti, Worker configurati, logo e favicon seguono il nome Jobward; dati e migrazioni storiche sono preservati.
 
 - [Consegna C1](docs/m3/c1-delivery.md) · [test](docs/m3/c1-testing-report.md) · [problemi e limiti](docs/m3/c1-issue-register.md).
 - `pnpm check:brand` verifica scope e riferimenti attivi; `pnpm test:identity` prova su database temporanei la procedura conservativa dell'identità locale. Entrambi fanno parte di `pnpm check` e della CI.
