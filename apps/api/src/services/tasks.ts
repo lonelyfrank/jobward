@@ -280,11 +280,7 @@ export async function listTasks(
         combined = combined.concat(asDone(done, 'd'));
       }
     } else {
-      const done = await fetchStamped(
-        'completed_at',
-        cursor,
-        limit + 1,
-      );
+      const done = await fetchStamped('completed_at', cursor, limit + 1);
       combined = asDone(done, 'd');
     }
     more = combined.length > limit;
