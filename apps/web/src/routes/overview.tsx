@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Surface } from '@/components/ui/surface';
 import { useOverview } from '@/features/overview/api';
 import { useWorkspace } from '@/features/workspace/context';
-import { formatDateTime, greetingFor } from '@/lib/format';
+import { formatCalendarDate, greetingFor } from '@/lib/format';
 
 function StatCard({
   icon: Icon,
@@ -118,7 +118,12 @@ export function OverviewPage() {
       milestone: null,
       to: counts.boards > 0 && recentBoards[0] ? `/boards/${recentBoards[0].id}` : '/boards',
     },
-    { label: 'Pianifica un promemoria per ricontattare un’azienda', done: false, milestone: 'M3' },
+    {
+      label: 'Aggiungi la tua prima attività',
+      done: counts.openTasks > 0,
+      milestone: null,
+      to: '/tasks',
+    },
   ] as const;
 
   return (
@@ -157,7 +162,7 @@ export function OverviewPage() {
               ? `${counts.overdueTasks} scadute`
               : counts.openTasks > 0
                 ? 'Nessuna scaduta'
-                : 'Arrivano con M3'
+                : 'Aggiungi la prima'
           }
         />
         <StatCard icon={SquareKanban} label="Bacheche" value={counts.boards} hint="Nel workspace" />
@@ -275,12 +280,11 @@ export function OverviewPage() {
           <ul className="mt-3 divide-y divide-border">
             {upcomingTasks.map((task) => (
               <li key={task.id} className="flex items-center justify-between gap-3 py-2 text-sm">
-                <span className="truncate">{task.title}</span>
-                <time
-                  className="shrink-0 text-muted-foreground"
-                  dateTime={new Date(task.dueAt).toISOString()}
-                >
-                  {formatDateTime(task.dueAt, workspace.timezone)}
+                <Link to="/tasks" className="truncate hover:underline">
+                  {task.title}
+                </Link>
+                <time className="shrink-0 text-muted-foreground" dateTime={task.dueOn}>
+                  {formatCalendarDate(task.dueOn)}
                 </time>
               </li>
             ))}

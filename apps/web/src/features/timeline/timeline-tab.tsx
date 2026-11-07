@@ -5,8 +5,24 @@ import { LoadError } from '@/features/cards/workflow-feedback';
 import { formatDateTime } from '@/lib/format';
 import { uniqueEntries, useTimeline } from './api';
 
+const TASK_ENTRY_TEXT = {
+  general: { noun: 'Attività', f: true },
+  follow_up: { noun: 'Follow-up', f: false },
+  preparation: { noun: 'Preparazione', f: true },
+} as const;
+const TASK_ENTRY_VERB = {
+  task_created: 'creat',
+  task_completed: 'completat',
+  task_cancelled: 'annullat',
+} as const;
+
 export function describeTimelineEntry(entry: TimelineEntryDto, zone: string): string {
   if (entry.source === 'note') return 'Nota aggiunta';
+  if (entry.source === 'task') {
+    // Solo ID e tipo nella cronologia: il titolo non è nei metadati (D-06).
+    const { noun, f } = TASK_ENTRY_TEXT[entry.data.taskKind];
+    return `${noun} ${TASK_ENTRY_VERB[entry.kind]}${f ? 'a' : 'o'}`;
+  }
   return describeEvent(
     {
       id: entry.id,

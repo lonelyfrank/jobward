@@ -3,6 +3,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { useRef, type ReactNode } from 'react';
+import { MemoryRouter } from 'react-router';
 import { describe, expect, it } from 'vitest';
 import { Providers } from '@/app/providers';
 import { NoticeProvider } from '@/components/ui/notices';
@@ -28,7 +29,10 @@ function setup(children: ReactNode) {
       <Providers client={client}>
         <WorkspaceContext.Provider value={{ user: USER, workspace: WORKSPACE }}>
           <DirtyGuardContext.Provider value={registry}>
-            <NoticeProvider>{children}</NoticeProvider>
+            {/* I link (es. «Vedile» nell'avviso di chiusura) richiedono un router. */}
+            <MemoryRouter>
+              <NoticeProvider>{children}</NoticeProvider>
+            </MemoryRouter>
           </DirtyGuardContext.Provider>
         </WorkspaceContext.Provider>
       </Providers>
@@ -239,8 +243,11 @@ describe('pipeline e timeline — integrazione frontend', () => {
     await within(dialog).findByText(/l’operazione potrebbe essere riuscita/);
     await user.click(within(dialog).getByRole('button', { name: 'Riprova la stessa richiesta' }));
     await screen.findByText('Operazione già registrata: dati aggiornati.');
-    expect(calls[1]?.body).toEqual(calls[0]?.body);
-    expect(calls[0]?.body).toMatchObject({
+    // Le attività collegate si leggono con un GET (solo avviso): il confronto riguarda i POST.
+    const posts = calls.filter((call) => call.method === 'POST');
+    expect(posts).toHaveLength(2);
+    expect(posts[1]?.body).toEqual(posts[0]?.body);
+    expect(posts[0]?.body).toMatchObject({
       futureInterviews: 'keep',
       expectedFrom: 'interviewing',
     });
@@ -248,6 +255,49 @@ describe('pipeline e timeline — integrazione frontend', () => {
     expect(client.getQueryState(keys.timeline('w1', 'k1'))?.isInvalidated).toBe(true);
     expect(client.getQueryState(keys.board('w1', 'unrelated'))?.isInvalidated).toBe(false);
     expect(screen.getByText(/chiusa ma ha colloqui futuri/)).toBeVisible();
+  });
+  it('la chiusura informa delle attività aperte collegate ma non le completa né le annulla', async () => {
+    const user = userEvent.setup();
+    const original: Card = { ...c(), stage: 'applied' };
+    const task = (id: string) => ({
+      id,
+      cardId: 'k1',
+      card: { id: 'k1', boardId: 'b1', title: 'Infermiere', company: null, archived: false },
+      title: `Task ${id}`,
+      description: null,
+      kind: 'follow_up',
+      priority: 'none',
+      dueOn: null,
+      status: 'open',
+      completedAt: null,
+      cancelledAt: null,
+      createdAt: 1,
+      updatedAt: 1,
+    });
+    const calls = mockApi({
+      'GET /tasks': () => ({
+        body: {
+          tasks: [task('a'), task('b')],
+          nextCursor: null,
+          asOf: { today: '2026-11-07', timeZone: 'Europe/Rome' },
+        },
+      }),
+    });
+    setup(<PipelinePanel card={original} />);
+    await user.selectOptions(screen.getByLabelText('Azione'), 'close');
+    await user.selectOptions(screen.getByLabelText('Stato di destinazione'), 'rejected');
+    await user.click(screen.getByRole('button', { name: 'Registra un esito' }));
+    const dialog = await screen.findByRole('alertdialog');
+    const notice = await within(dialog).findByTestId('linked-tasks-notice');
+    expect(notice).toHaveTextContent('Hai 2 attività aperte collegate');
+    expect(notice).toHaveTextContent('non le completa né le annulla');
+    expect(within(dialog).getByRole('link', { name: 'Vedile' })).toHaveAttribute(
+      'href',
+      '/tasks?candidatura=k1',
+    );
+    expect(calls.some((call) => call.path.startsWith('/tasks') && call.method !== 'GET')).toBe(
+      false,
+    );
   });
   it('timeline usa il cursore, conserva l’ordine e non duplica sovrapposizioni; errore di pagina ritentabile', async () => {
     const user = userEvent.setup();

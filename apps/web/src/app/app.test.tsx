@@ -185,9 +185,12 @@ describe('Overview', () => {
     const summary = screen.getByRole('region', { name: 'Riepilogo' });
     expect(within(summary).getAllByText('0')).toHaveLength(5);
     expect(screen.getByText(/Nessuna scadenza in arrivo/)).toBeInTheDocument();
-    // M1 è operativa: restano segnalati solo i passi che dipendono da milestone future.
-    expect(screen.queryByText(/In arrivo · M1/)).not.toBeInTheDocument();
-    expect(screen.getByText(/In arrivo · M3/)).toBeInTheDocument();
+    // Bacheche, schede e attività sono operative: nessun passo dichiarato «in arrivo».
+    expect(screen.queryByText(/In arrivo · M[13]/)).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Aggiungi la tua prima attività' })).toHaveAttribute(
+      'href',
+      '/tasks',
+    );
     expect(
       screen.getByRole('link', { name: 'Crea la prima bacheca da un template' }),
     ).toHaveAttribute('href', '/boards');
@@ -204,10 +207,18 @@ describe('Overview', () => {
           interviews: 2,
           openTasks: 4,
           overdueTasks: 1,
+          dueTodayTasks: 1,
+          noDueTasks: 0,
         },
-        // 2026-11-10T08:00:00Z = 09:00 a Roma
+        // Scadenza = data di calendario; `dueAt` (primo istante del giorno) resta per retrocompatibilità.
         upcomingTasks: [
-          { id: 't1', title: 'Richiama HR', dueAt: Date.UTC(2026, 10, 10, 8, 0), cardId: null },
+          {
+            id: 't1',
+            title: 'Richiama HR',
+            dueAt: Date.UTC(2026, 10, 9, 23, 0),
+            dueOn: '2026-11-10',
+            cardId: null,
+          },
         ],
         recentBoards: [
           { id: 'b1', name: 'Ricerca autunno', color: null, icon: null, updatedAt: 1 },
@@ -231,8 +242,10 @@ describe('Overview', () => {
     expect(within(summary).getByText('1 scadute')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Inizia da qui' })).not.toBeInTheDocument();
 
-    expect(screen.getByText('Richiama HR')).toBeInTheDocument();
-    expect(screen.getByText(/10 nov 2026.*09:00/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Richiama HR' })).toHaveAttribute('href', '/tasks');
+    // Un giorno, non un istante: nessun orario a vista.
+    expect(screen.getByText('10 nov 2026')).toBeInTheDocument();
+    expect(screen.queryByText(/\d{2}:\d{2}/)).not.toBeInTheDocument();
     expect(screen.getAllByRole('link', { name: 'Ricerca autunno' }).length).toBeGreaterThan(0);
     // Opportunità recenti: apre il dettaglio della scheda nella sua bacheca.
     expect(screen.getByRole('link', { name: /Barista part-time/ })).toHaveAttribute(

@@ -21,6 +21,8 @@ export const EMPTY_OVERVIEW = {
     interviews: 0,
     openTasks: 0,
     overdueTasks: 0,
+    dueTodayTasks: 0,
+    noDueTasks: 0,
   },
   upcomingTasks: [],
   recentBoards: [],

@@ -34,6 +34,8 @@ export const keys = {
   timeline: (ws: string, cardId: string) => ['timeline', ws, cardId] as const,
   boardFields: (ws: string, boardId: string) => ['board-fields', ws, boardId] as const,
   cardFields: (ws: string, cardId: string) => ['card-fields', ws, cardId] as const,
+  /** Prefisso di elenchi, riepilogo e sezioni di card delle attività (si invalida in blocco). */
+  tasks: (ws: string) => ['tasks', ws] as const,
   /** Prefisso di tutte le ricerche del workspace (si invalida in blocco dopo una modifica). */
   opportunities: (ws: string) => ['opportunities', ws] as const,
 };
@@ -48,6 +50,8 @@ export function invalidateSummaries(queryClient: QueryClient, ws: string) {
   void queryClient.invalidateQueries({ queryKey: keys.boards(ws) });
   // Elenchi e tabella derivano dalle stesse schede: restano coerenti col Kanban.
   void queryClient.invalidateQueries({ queryKey: keys.opportunities(ws) });
+  // Archiviare/ripristinare una card cambia le attività visibili: elenchi e contatori si riallineano.
+  void queryClient.invalidateQueries({ queryKey: keys.tasks(ws) });
 }
 
 // ---------------------------------------------------------------------------

@@ -5,7 +5,7 @@ import type { RouteHandle } from '@/layouts/nav';
 import { CardDetailRoute } from '@/features/cards/card-detail-route';
 import { BoardPage } from '@/routes/board';
 import { BoardsPage } from '@/routes/boards';
-import { InsightsPage, TasksPage } from '@/routes/coming-soon';
+import { InsightsPage } from '@/routes/coming-soon';
 import { NotFoundPage } from '@/routes/not-found';
 import { OverviewPage } from '@/routes/overview';
 import { SettingsPage } from '@/routes/settings';
@@ -53,7 +53,7 @@ export const appRoutes: RouteObject[] = [
             handle: handle('Opportunità'),
             children: [{ path: 'cards/:cardId', element: <CardDetailRoute /> }],
           },
-          { path: 'tasks', element: <TasksPage />, handle: handle('Attività') },
+          { path: 'tasks', lazy: () => import('@/routes/tasks'), handle: handle('Attività') },
           { path: 'insights', element: <InsightsPage />, handle: handle('Insights') },
           { path: 'settings', element: <SettingsPage />, handle: handle('Impostazioni') },
           { path: '*', element: <NotFoundPage />, handle: handle('Pagina non trovata') },

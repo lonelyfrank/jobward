@@ -52,6 +52,7 @@ import { PipelinePanel } from '@/features/pipeline/pipeline-panel';
 import { PipelineStatusBadge } from '@/features/pipeline/status-badge';
 import { DirtyGuardContext, useDirtyReporter } from './dirty-guard';
 import { DetailSection } from './detail-section';
+import { CardTasksSection } from '@/features/tasks/card-tasks-section';
 import { SmartSummary } from './smart-summary';
 import { CARD_TABS, type CardTab } from './workspace-tabs';
 
@@ -423,6 +424,7 @@ export function CardDetailForm({
               onOpenInterviews={() => onTabChange('interviews')}
               onAddInterview={requestInterview}
             />
+            <CardTasksSection card={card} archived={archived} />
             <PipelinePanel card={card} signal={pipelineSignal} />
             <div className="flex flex-wrap gap-2">
               <Button variant="secondary" onClick={() => onTabChange('notes')}>

@@ -7,8 +7,9 @@ import {
   type PipelineStatus,
   type PipelineTransitionKind,
 } from '@jobward/shared';
-import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
+import { Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Field } from '@/components/ui/field';
@@ -18,6 +19,7 @@ import { useCreationOperation } from '@/features/cards/creation-operation';
 import { useDirtyReporter } from '@/features/cards/dirty-guard';
 import { refreshWorkflow } from '@/features/cards/workflow-cache';
 import { workflowError } from '@/features/cards/workflow-feedback';
+import { useTasks } from '@/features/tasks/api';
 import { useWorkspace } from '@/features/workspace/context';
 import { usePipeline } from './api';
 import { KIND_LABELS, STATUS_LABELS, WARNING_TEXT, pipelineOptions } from './presentation';
@@ -146,6 +148,8 @@ function PipelineConfirmation({
   const { workspace } = useWorkspace();
   const notify = useNotify();
   const [handling, setHandling] = useState<'keep' | 'cancel'>('keep');
+  const linkedTasks = useTasks({ view: 'open', cardId: card.id }, kind === 'close');
+  const linkedCount = linkedTasks.data?.pages.reduce((n, p) => n + p.tasks.length, 0) ?? 0;
   const [appliedOn, setAppliedOn] = useState('');
   const [validation, setValidation] = useState<string | null>(null);
   const from = derivePipelineStatus(original);
@@ -232,6 +236,22 @@ function PipelineConfirmation({
                 <p key={w.code}>{WARNING_TEXT[w.code] ?? 'Controlla i dati della candidatura.'}</p>
               ))
             : null}
+          {kind === 'close' && linkedCount > 0 ? (
+            <p data-testid="linked-tasks-notice">
+              Hai {linkedCount}
+              {linkedTasks.hasNextPage ? ' o più' : ''}{' '}
+              {linkedCount === 1 && !linkedTasks.hasNextPage
+                ? 'attività aperta collegata'
+                : 'attività aperte collegate'}
+              . Restano valide: la chiusura non le completa né le annulla.{' '}
+              <Link
+                to={`/tasks?candidatura=${encodeURIComponent(card.id)}`}
+                className="font-medium text-primary underline"
+              >
+                Vedile
+              </Link>
+            </p>
+          ) : null}
           {decision.allowed && decision.confirmation.manageFutureInterviews ? (
             <fieldset disabled={operation.locked || mutation.isPending} className="space-y-2">
               <legend className="font-medium">Colloqui futuri</legend>

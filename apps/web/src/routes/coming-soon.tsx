@@ -1,4 +1,4 @@
-import { BarChart3, ListChecks, type LucideIcon } from 'lucide-react';
+import { BarChart3, type LucideIcon } from 'lucide-react';
 import { EmptyState } from '@/components/ui/empty-state';
 import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
 
@@ -24,17 +24,6 @@ function ComingSoon({
     </>
   );
 }
-
-export const TasksPage = () => (
-  <ComingSoon
-    title="Attività"
-    description="Promemoria, follow-up e scadenze della tua ricerca."
-    icon={ListChecks}
-    milestone="M3"
-    emptyTitle="Nessuna attività, per ora"
-    emptyText="Potrai collegare attività e scadenze a ogni scheda, per non dimenticare di ricontattare un’azienda."
-  />
-);
 
 export const InsightsPage = () => (
   <ComingSoon
