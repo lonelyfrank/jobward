@@ -5,6 +5,7 @@ import {
   seedApi,
   smallTouchTargets,
   tableTitles,
+  transitionPipeline,
 } from './helpers';
 
 /** M2.3 — ricerca, filtri, Tabella e Opportunità. Stack reale; i dati si preparano via API. */
@@ -300,7 +301,7 @@ test('7. dal dettaglio nella tabella: si apre sulla stessa rotta, le modifiche c
   await expect(panel).toBeVisible();
   await expect(page.locator('table')).toBeVisible(); // la tabella resta visibile dietro il pannello (modale: nascosta solo alle tecnologie assistive)
 
-  await panel.getByLabel('Fase').selectOption('applied');
+  await transitionPipeline(panel, 'advance', 'applied');
   await panel.getByLabel('Priorità').selectOption('urgent');
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();

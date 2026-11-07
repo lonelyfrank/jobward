@@ -7,6 +7,7 @@ import {
   expectNoA11yViolations,
   openSection,
   openTab,
+  transitionPipeline,
   quickAdd,
   smallTouchTargets,
 } from './helpers';
@@ -71,8 +72,8 @@ test('1. una scheda si crea con il solo titolo; i dettagli sono opzionali e le s
   );
   await expect(panel.getByLabel('Sede')).toBeHidden();
   await openTab(panel, 'Panoramica');
-  await expect(panel.getByLabel('Fase')).toHaveValue('');
-  await expect(panel.getByLabel('Esito')).toHaveValue('');
+  await expect(panel.getByLabel('Fase')).toHaveValue('Non indicata');
+  await expect(panel.getByLabel('Esito')).toHaveValue('Non indicato');
   await expectNoA11yViolations(page, 'pannello 2.0 (sezioni chiuse)');
 });
 
@@ -100,13 +101,12 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   await panel.getByLabel('Data di candidatura').fill('2026-10-25');
   await expectNoA11yViolations(page, 'modale — Dettagli con tutte le sezioni aperte');
   await openTab(panel, 'Panoramica');
-  await panel.getByLabel('Fase').selectOption('applied');
-  await panel.getByLabel('Esito').selectOption('pending');
 
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
   await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
-  await openTab(panel, 'Cronologia');
+  await transitionPipeline(panel, 'advance', 'applied');
+  await openTab(panel, 'Timeline');
   await expect(panel.getByText('Candidatura registrata (25 ott 2026)')).toBeVisible();
   await expect(panel.getByText('Fase impostata su “Inviata”')).toBeVisible();
 
@@ -122,8 +122,8 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   await expect(again.getByLabel('Lordo o netto')).toHaveValue('net');
   await expect(again.getByLabel('Data di candidatura')).toHaveValue('2026-10-25');
   await openTab(again, 'Panoramica');
-  await expect(again.getByLabel('Fase')).toHaveValue('applied');
-  await expect(again.getByLabel('Esito')).toHaveValue('pending');
+  await expect(again.getByLabel('Fase')).toHaveValue('Inviata');
+  await expect(again.getByLabel('Esito')).toHaveValue('In attesa');
 });
 
 test('3. la scheda del Kanban mostra azienda, sede, modalità e fase', async ({ page }) => {
@@ -222,11 +222,9 @@ test('6. spostare la scheda NON cambia fase né esito; con una colonna che ha un
   await expect(column(page, 'Completate').getByText('Inviata', { exact: true })).toBeVisible();
   await cardLink(page, 'Infermiere di reparto').click();
   const panel = panelOf(page, 'Infermiere di reparto');
-  await expect(panel.getByLabel('Fase')).toHaveValue('applied');
-  await expect(panel.getByLabel('Esito')).toHaveValue('pending');
-  await expect(
-    panel.getByText(/La colonna “Completate” corrisponde alla fase “Colloquio”/),
-  ).toBeVisible();
+  await expect(panel.getByLabel('Fase')).toHaveValue('Inviata');
+  await expect(panel.getByLabel('Esito')).toHaveValue('In attesa');
+  await expect(panel.getByLabel('Fase')).toHaveAttribute('readonly', '');
 });
 
 test('7. il suggerimento si accetta con un clic e non compare quando la fase coincide già', async ({
@@ -240,18 +238,17 @@ test('7. il suggerimento si accetta con un clic e non compare quando la fase coi
   ).toBeVisible();
   await page.getByRole('button', { name: 'Azioni per la scheda “Infermiere di reparto”' }).click();
   await page.getByRole('menuitem', { name: /Completate/ }).click();
-  await page.getByRole('button', { name: 'Imposta fase' }).click();
-  await expect(page.getByText('Fase impostata su “Colloquio”.')).toBeVisible();
-  await expect(
-    column(page, 'Completate').getByText('Colloquio', { exact: true }).nth(1),
-  ).toBeVisible();
+  await page.getByRole('button', { name: 'Gestisci candidatura' }).click();
+  await transitionPipeline(panelOf(page, 'Infermiere di reparto'), 'advance', 'interviewing');
+  await page.keyboard.press('Escape');
+  await expect(column(page, 'Completate').getByText('In colloquio', { exact: true })).toBeVisible();
 
   // Ora la fase coincide con la colonna: un nuovo spostamento avanti-indietro non propone nulla.
   await page.getByRole('button', { name: 'Azioni per la scheda “Infermiere di reparto”' }).click();
   await page.getByRole('menuitem', { name: /Da fare/ }).click();
   await page.getByRole('button', { name: 'Azioni per la scheda “Infermiere di reparto”' }).click();
   await page.getByRole('menuitem', { name: /Completate/ }).click();
-  await expect(page.getByRole('button', { name: 'Imposta fase' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Gestisci candidatura' })).toHaveCount(0);
 });
 
 test('8. Overview: "in colloquio" esclude le candidature concluse; "inviate" usa data o fase', async ({
@@ -261,10 +258,9 @@ test('8. Overview: "in colloquio" esclude le candidature concluse; "inviate" usa
   await openBoard(page);
   await cardLink(page, 'Infermiere di reparto').click();
   const panel = panelOf(page, 'Infermiere di reparto');
-  await expect(panel.getByLabel('Fase')).toHaveValue('interviewing');
-  await panel.getByLabel('Esito').selectOption('rejected');
-  await panel.getByRole('button', { name: 'Salva' }).click();
-  await openTab(panel, 'Cronologia');
+  await expect(panel.getByLabel('Fase')).toHaveValue('Colloquio');
+  await transitionPipeline(panel, 'close', 'rejected');
+  await openTab(panel, 'Timeline');
   await expect(panel.getByText('Esito registrato: “Rifiutata”')).toBeVisible();
   await page.keyboard.press('Escape');
 

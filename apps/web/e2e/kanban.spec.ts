@@ -71,8 +71,8 @@ test('mouse: sposta tra colonne (in mezzo, in colonna vuota) e persiste', async 
   // Lo spostamento tra colonne è registrato nella cronologia.
   await cardLink(page, 'Alfa').click();
   const panel = page.getByRole('dialog', { name: 'Alfa' });
-  await openTab(panel, 'Cronologia');
-  await expect(panel.getByText('Spostata da “Da fare” a “Completate”')).toBeVisible();
+  await openTab(panel, 'Timeline');
+  await expect(panel.getByText('Scheda spostata')).toBeVisible();
 });
 
 test('mouse: riordina le colonne trascinando la maniglia; persiste', async ({ page }) => {

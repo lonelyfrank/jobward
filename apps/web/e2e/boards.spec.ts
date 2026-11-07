@@ -184,8 +184,8 @@ test('7. pannello di dettaglio: si apre sulla bacheca, modifica i dati, mostra l
   // La bacheca resta visibile dietro il pannello (per le tecnologie assistive è nascosta: modale).
   await expect(page.locator('[data-column-id]').first()).toBeVisible();
   await expectNoA11yViolations(page, 'modale della candidatura (Panoramica)');
-  await openTab(panel, 'Cronologia');
-  await expect(panel.getByText('Scheda creata in “Salvate”')).toBeVisible();
+  await openTab(panel, 'Timeline');
+  await expect(panel.getByText('Scheda creata')).toBeVisible();
   await openTab(panel, 'Panoramica');
 
   // "Salva" è disattivato finché non c'è una modifica.
@@ -194,14 +194,14 @@ test('7. pannello di dettaglio: si apre sulla bacheca, modifica i dati, mostra l
   await panel.getByLabel('Azienda').fill('Caffè Roma');
   await panel.getByLabel('Priorità').selectOption('high');
   await openSection(panel, 'Opportunità');
-  await panel.getByLabel('Note').fill('Turni dalle 18 alle 24.');
+  await panel.getByRole('textbox', { name: 'Note', exact: true }).fill('Turni dalle 18 alle 24.');
   await panel.getByLabel('Indirizzo dell’annuncio').fill('non un url');
   await panel.getByRole('button', { name: 'Salva' }).click();
   await expect(panel.getByRole('alert')).toContainText('indirizzo web valido');
 
   await panel.getByLabel('Indirizzo dell’annuncio').fill('https://example.com/annunci/42');
   await panel.getByRole('button', { name: 'Salva' }).click();
-  await openTab(panel, 'Cronologia');
+  await openTab(panel, 'Timeline');
   await expect(panel.getByText('Priorità cambiata da nessuna a alta')).toBeVisible();
   await openTab(panel, 'Dettagli');
   await expect(panel.getByRole('link', { name: /Apri l’annuncio/ })).toHaveAttribute(
@@ -221,8 +221,11 @@ test('7. pannello di dettaglio: si apre sulla bacheca, modifica i dati, mostra l
   await page.reload();
   await expect(column(page, 'Salvate').getByText('Caffè Roma')).toBeVisible();
   await cardLink(page, 'Barista part-time serale').click();
-  // Ora la sezione contiene dati: si apre da sola.
-  await expect(page.getByRole('dialog').getByLabel('Note')).toHaveValue('Turni dalle 18 alle 24.');
+  // La sezione contiene dati e resta espansa; si seleziona la scheda che la ospita.
+  await openTab(page.getByRole('dialog'), 'Dettagli');
+  await expect(
+    page.getByRole('dialog').getByRole('textbox', { name: 'Note', exact: true }),
+  ).toHaveValue('Turni dalle 18 alle 24.');
 });
 
 test('indirizzo del pannello condivisibile: aprendolo direttamente si vede bacheca e scheda', async ({
@@ -247,8 +250,8 @@ test('sposta dal selettore Colonna del pannello; la cronologia registra lo spost
   await cardLink(page, 'Magazziniere').click();
   const panel = page.getByRole('dialog', { name: 'Magazziniere' });
   await panel.getByLabel('Colonna').selectOption({ label: 'Inviate' });
-  await openTab(panel, 'Cronologia');
-  await expect(panel.getByText('Spostata da “Salvate” a “Inviate”')).toBeVisible();
+  await openTab(panel, 'Timeline');
+  await expect(panel.getByText('Scheda spostata')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect.poll(() => titlesIn(page, 'Inviate')).toEqual(['Magazziniere']);
   await expect

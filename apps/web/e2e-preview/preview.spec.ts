@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
+import { openTab, transitionPipeline } from '../e2e/helpers';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -236,7 +237,7 @@ test.describe('app reale sotto la CSP di produzione', () => {
     await panel.getByLabel('Valuta').fill('EUR');
     // Fase ed etichette stanno in Panoramica.
     await panel.getByRole('tab', { name: 'Panoramica' }).click();
-    await panel.getByLabel('Fase', { exact: true }).selectOption('applied');
+    await transitionPipeline(panel, 'advance', 'applied');
     // Etichetta creata al volo.
     await panel.getByRole('button', { name: 'Aggiungi etichetta' }).click();
     await panel.getByLabel('Nuova etichetta').fill('Interessante');
@@ -281,7 +282,7 @@ test.describe('app reale sotto la CSP di produzione', () => {
     );
     await page.getByRole('link', { name: 'Uno', exact: true }).click();
     await expect(page.getByRole('dialog', { name: 'Uno' }).getByLabel('Fase')).toHaveValue(
-      'applied',
+      'Inviata',
     );
     await page.keyboard.press('Escape');
 
@@ -381,5 +382,45 @@ test('M3.UI.1: ricerca globale e menu nella build con CSP reale', async ({ page 
   await expect(page.getByRole('menuitem', { name: 'Nuova scheda' })).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(page.getByRole('banner')).toHaveCount(0);
+  expect(await watch.collect()).toEqual([]);
+});
+
+test('M3-C3: pipeline, note, documenti e timeline lazy nella build con CSP reale', async ({
+  page,
+}) => {
+  const watch = await watchViolations(page);
+  await page.goto('/boards');
+  await page.getByRole('main').getByRole('link', { name: 'Anteprima Kanban' }).click();
+  await page.getByRole('link', { name: 'Uno', exact: true }).click();
+  const panel = page.getByRole('dialog', { name: 'Uno' });
+  await transitionPipeline(panel, 'advance', 'interviewing');
+  await openTab(panel, 'Note');
+  await panel.getByRole('button', { name: 'Aggiungi nota' }).click();
+  await panel.getByLabel('Testo della nota').fill('Nota sotto CSP');
+  await panel.getByRole('button', { name: 'Salva nota' }).click();
+  await expect(panel.getByText('Nota sotto CSP', { exact: true })).toBeVisible();
+  await openTab(panel, 'Documenti');
+  await panel.getByRole('button', { name: 'Aggiungi riferimento' }).click();
+  await panel.getByLabel('Titolo del documento').fill('CV sotto CSP');
+  await panel.getByLabel('URL (facoltativo)').fill('https://example.com/cv');
+  await panel.getByRole('button', { name: 'Salva riferimento' }).click();
+  await expect(panel.getByRole('link', { name: /Apri documento/ })).toHaveAttribute(
+    'rel',
+    'noopener noreferrer',
+  );
+  await transitionPipeline(panel, 'close', 'rejected');
+  await transitionPipeline(panel, 'reopen', 'interviewing');
+  await openTab(panel, 'Timeline');
+  await expect(
+    panel
+      .getByRole('tabpanel', { name: 'Timeline', exact: true })
+      .getByText('Nota sotto CSP', { exact: true }),
+  ).toBeVisible();
+  await expect(panel.getByText('Candidatura riaperta')).toBeVisible();
+  await page.reload();
+  await expect(panel.getByRole('tab', { name: 'Timeline', exact: true })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
   expect(await watch.collect()).toEqual([]);
 });

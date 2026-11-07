@@ -32,7 +32,9 @@ export async function expectNoA11yViolations(page: Page, label: string) {
 export async function ensureWorkspace(page: Page, name = 'Ricerca E2E') {
   await page.goto('/');
   const onboarding = page.getByRole('heading', { name: 'Crea il tuo spazio di lavoro' });
-  const shell = page.getByRole('navigation', { name: 'Navigazione principale' });
+  const shell = page
+    .getByRole('navigation', { name: 'Navigazione principale' })
+    .or(page.getByRole('button', { name: 'Apri il menu di navigazione' }));
   await expect(onboarding.or(shell)).toBeVisible();
   if (await onboarding.isVisible()) {
     await page.getByLabel('Nome dello spazio').fill(name);
@@ -226,4 +228,25 @@ export async function smallTouchTargets(page: Page, rootSelector: string) {
     }
     return out;
   }, rootSelector);
+}
+
+/** Unico percorso UI per fase/esito: pipeline con conferma, anche per le regressioni M2/M2.5. */
+export async function transitionPipeline(
+  panel: Locator,
+  kind: 'advance' | 'close' | 'reopen' | 'correction',
+  to: string,
+) {
+  await openTab(panel, 'Panoramica');
+  await panel.getByLabel('Azione', { exact: true }).selectOption(kind);
+  await panel.getByLabel('Stato di destinazione').selectOption(to);
+  const labels = {
+    advance: to === 'applied' ? 'Segna come candidata' : 'Avanza nel processo',
+    close: 'Registra un esito',
+    reopen: 'Riapri candidatura',
+    correction: 'Correggi stato',
+  };
+  await panel.getByRole('button', { name: labels[kind], exact: true }).click();
+  const dialog = panel.page().getByRole('alertdialog');
+  await dialog.getByRole('button', { name: 'Conferma passaggio' }).click();
+  await expect(dialog).toBeHidden();
 }

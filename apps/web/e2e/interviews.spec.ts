@@ -5,6 +5,7 @@ import {
   ensureWorkspace,
   expectNoA11yViolations,
   openTab,
+  transitionPipeline,
   seedApi,
   smallTouchTargets,
 } from './helpers';
@@ -59,11 +60,11 @@ test('1. desktop: modale centrata, larga al massimo 1000 px, con intestazione, s
   // Intestazione: azienda, stato corrente; schede; riepilogo con soli dati registrati.
   await expect(panel.getByText('Clinica Nord')).toBeVisible();
   await expect(panel.getByRole('list', { name: 'Stato della candidatura' })).toContainText(
-    'Fase non indicata',
+    'Salvata',
   );
   await expect(
     panel.getByRole('tablist', { name: 'Sezioni della candidatura' }).getByRole('tab'),
-  ).toHaveText(['Panoramica', 'Colloqui', 'Dettagli', 'Cronologia']);
+  ).toHaveText(['Panoramica', 'Colloqui', 'Timeline', 'Note', 'Documenti', 'Dettagli']);
   const summary = panel.getByRole('region', { name: 'Riepilogo' });
   await expect(summary.getByText('Nessun colloquio programmato.')).toBeVisible();
   await expect(summary.getByText('Nessuna azione in sospeso.')).toBeVisible();
@@ -83,13 +84,13 @@ test("2. schede: la scheda attiva è nell'indirizzo, la tastiera le scorre, Esc 
   // Frecce: spostano la selezione tra le schede (Radix), con l'indirizzo che le segue.
   await panel.getByRole('tab', { name: 'Colloqui' }).focus();
   await page.keyboard.press('ArrowRight');
-  await expect(panel.getByRole('tab', { name: 'Dettagli' })).toHaveAttribute(
+  await expect(panel.getByRole('tab', { name: 'Timeline' })).toHaveAttribute(
     'aria-selected',
     'true',
   );
   await page.reload();
   await expect(
-    panelOf(page, 'Infermiere Colloqui').getByRole('tab', { name: 'Dettagli' }),
+    panelOf(page, 'Infermiere Colloqui').getByRole('tab', { name: 'Timeline' }),
   ).toHaveAttribute('aria-selected', 'true');
 
   // Escape: chiude (nessuna modifica) e il focus torna al link della scheda.
@@ -121,8 +122,8 @@ test('3. aggiunge un colloquio senza data: «da programmare», prossima azione d
   await expect(r1).toContainText('Primo contatto / screening');
   // Nessun automatismo: fase ed esito generali restano non indicati.
   await openTab(panel, 'Panoramica');
-  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('');
-  await expect(panel.getByLabel('Esito', { exact: true })).toHaveValue('');
+  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('Non indicata');
+  await expect(panel.getByLabel('Esito', { exact: true })).toHaveValue('Non indicato');
   const summary = panel.getByRole('region', { name: 'Riepilogo' });
   await expect(summary.getByText('Programma “Round 1”')).toBeVisible();
   await expect(panel.getByRole('list', { name: 'Stato della candidatura' })).not.toContainText(
@@ -161,7 +162,7 @@ test('4. programma e riprogramma: stato «programmato», prossimo colloquio su r
   await expect(
     panel.getByRole('region', { name: 'Riepilogo' }).getByText(/12 marzo 2027/),
   ).toBeVisible();
-  await openTab(panel, 'Cronologia');
+  await openTab(panel, 'Timeline');
   await expect(panel.getByText(/Round 1 riprogrammato per 12 mar/)).toBeVisible();
   await expect(panel.getByText(/Round 1 programmato per 10 mar/)).toBeVisible();
   await page.keyboard.press('Escape');
@@ -187,8 +188,8 @@ test("5. completa con esito e feedback: nessuna modifica automatica dell'esito d
   await expect(r1).toContainText('Buona intesa con la coordinatrice.');
 
   await openTab(panel, 'Panoramica');
-  await expect(panel.getByLabel('Esito', { exact: true })).toHaveValue(''); // l'esito generale non si muove
-  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('');
+  await expect(panel.getByLabel('Esito', { exact: true })).toHaveValue('Non indicato'); // l'esito generale non si muove
+  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('Non indicata');
   await expect(
     panel.getByRole('region', { name: 'Riepilogo' }).getByText('Nessun colloquio programmato.'),
   ).toBeVisible();
@@ -262,14 +263,16 @@ test('7. suggerimento di fase esplicito; fase e colonna non cambiano da sole', a
     'Colloquio',
   );
   await panel.getByRole('button', { name: 'Imposta la fase «Colloquio»' }).click();
-  await expect(page.getByText('Fase impostata su “Colloquio”.')).toBeVisible();
+  await panel.getByRole('button', { name: 'Avanza nel processo', exact: true }).click();
+  await page.getByRole('alertdialog').getByRole('button', { name: 'Conferma passaggio' }).click();
+  await expect(page.getByText('Stato della candidatura aggiornato.')).toBeVisible();
   await expect(panel.getByRole('list', { name: 'Stato della candidatura' })).toContainText(
-    'Colloquio',
+    'In colloquio',
   );
   await expect(hint).toHaveCount(0);
   await openTab(panel, 'Panoramica');
-  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('interviewing');
-  await expect(panel.getByLabel('Esito', { exact: true })).toHaveValue('');
+  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('Colloquio');
+  await expect(panel.getByLabel('Esito', { exact: true })).toHaveValue('In attesa');
 });
 
 test('8. aggiornamento rapido della fase dal riepilogo; la bozza di un campo in modifica non viene sovrascritta', async ({
@@ -277,17 +280,14 @@ test('8. aggiornamento rapido della fase dal riepilogo; la bozza di un campo in 
 }) => {
   const panel = await openCard(page, 'Infermiere Colloqui');
   await panel.getByLabel('Azienda o ente').fill('Clinica Nord SpA'); // bozza non salvata
-  await panel.getByLabel('Passaggio del percorso').selectOption('offer');
-  await panel.getByRole('button', { name: 'Aggiorna', exact: true }).click();
-  await expect(page.getByText('Fase impostata su “Offerta”.')).toBeVisible();
-  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('offer'); // segue il valore salvato
+  await transitionPipeline(panel, 'advance', 'offer');
+  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('Offerta'); // segue il valore salvato
   await expect(panel.getByLabel('Azienda o ente')).toHaveValue('Clinica Nord SpA'); // la bozza resta
   await expect(panel.getByText('Modifiche non salvate')).toBeVisible();
   await panel.getByRole('button', { name: 'Annulla modifiche' }).click();
   await expect(panel.getByLabel('Azienda o ente')).toHaveValue('Clinica Nord');
-  await panel.getByLabel('Passaggio del percorso').selectOption('interviewing');
-  await panel.getByRole('button', { name: 'Aggiorna', exact: true }).click();
-  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('interviewing');
+  await transitionPipeline(panel, 'correction', 'interviewing');
+  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('Colloquio');
 });
 
 test('9. feedback aggiunto e modificato dopo il completamento; tutto persiste dopo il refresh', async ({
@@ -325,7 +325,7 @@ test('9. feedback aggiunto e modificato dopo il completamento; tutto persiste do
   await expect(
     again.getByRole('region', { name: 'Riepilogo' }).getByText('Nessuna azione in sospeso.'),
   ).toBeVisible();
-  await openTab(again, 'Cronologia');
+  await openTab(again, 'Timeline');
   for (const text of [
     /Colloquio aggiunto: Round 1/,
     /Fase successiva aggiunta: Round 2/,
@@ -506,6 +506,6 @@ test('16. tema scuro: modale con schede e colloqui senza violazioni di accessibi
   const panel = await openCard(page, 'Infermiere Colloqui', 'Colloqui');
   await expect(round(panel, 1)).toBeVisible();
   await expectNoA11yViolations(page, 'modale — Colloqui (scuro)');
-  await openTab(panel, 'Cronologia');
+  await openTab(panel, 'Timeline');
   await expectNoA11yViolations(page, 'modale — Cronologia (scuro)');
 });
