@@ -29,24 +29,30 @@ Tema chiaro e scuro ridefiniscono gli stessi nomi. Colori scelti dall'utente (ba
 
 ## Tipografia e spaziatura
 
-Inter variabile (self-hosted). Titolo pagina 30/800; titolo sezione 17/700; numero chiave 32/700; corpo 14–15; meta-dati 13; etichette di campo 11/600 maiuscolo con interlettera. Forme: controlli e navigazione 12 px (`rounded-md`), card 16 px (`rounded-lg`), colonne e modali 20 px (`rounded-xl`), badge a pillola 26 px. Altezza dei controlli 44 px. Ritmo di spaziatura multiplo di 4 px; sidebar 220 px, topbar 86 px, margini del contenuto 44 px, contenuto max 80 rem.
+Inter variabile (self-hosted). Titolo pagina 24/800; titolo sezione 17/700; numero chiave 32/700; corpo 14–15; meta-dati 13; etichette di campo 11/600 maiuscolo con interlettera. Forme: controlli e navigazione 12 px (`rounded-md`), card 16 px (`rounded-lg`), colonne e modali 20 px (`rounded-xl`), badge a pillola 26 px. Altezza dei controlli 44 px. Ritmo di spaziatura multiplo di 4 px; sidebar 220 px, topbar 86 px, margini laterali del contenuto 16 px su mobile, 24 px da `sm` e 32 px da `lg`, senza limite di larghezza massimo. Il contenuto parte a 20 px dall’alto; `WorkspacePageHeader` mantiene titolo, ricerca e azioni nella stessa posizione fra le viste, con descrizione compatta e toolbar a 8 px dalla testata.
 
 ## Componenti (`apps/web/src/components`)
 
-La sidebar desktop passa da 220 a 52 px con il [collapse e bulge derivati da Sensei](sidebar.md).
-La transizione di larghezza dura 200 ms; su mobile resta il drawer di navigazione.
+La sidebar desktop passa da 220 px aderenti al lato a 60 px fluttuanti con il [collapse e bulge derivati da Sensei](sidebar.md).
+La transizione fluttuante dura 300 ms; su mobile resta il drawer di navigazione.
 
-| Componente                         | Note                                                                              |
-| ---------------------------------- | --------------------------------------------------------------------------------- |
-| `Button`                           | Varianti `primary/secondary/ghost/danger`, taglie `sm/md/icon`; ≥ 44 px su mobile |
-| `Input`, `Select`, `Field`         | Etichetta sempre presente; errore con `role="alert"` e `aria-invalid`             |
-| `Badge`                            | Toni `neutral/primary/warning/danger`                                             |
-| `Surface`, `PageHeader`            | Struttura delle pagine                                                            |
-| `EmptyState`                       | Icona, titolo, descrizione e, se serve, milestone prevista                        |
-| `PlannedAction`                    | Pulsante disabilitato **con motivo accessibile** per funzioni future              |
-| `Skeleton`                         | Caricamento discreto, nascosto agli screen reader                                 |
-| `Sheet`, `DropdownMenu`, `Tooltip` | Basati su Radix: focus trap, tastiera, ARIA                                       |
-| `LogoMark`, `Wordmark`             | Marchio a ruota a spicchi                                                         |
+| Componente                         | Note                                                                                  |
+| ---------------------------------- | ------------------------------------------------------------------------------------- |
+| `Button`                           | Varianti `primary/secondary/ghost/danger`, taglie `sm/md/icon`; ≥ 44 px su mobile     |
+| `Input`, `Select`, `Field`         | Etichetta sempre presente; errore con `role="alert"` e `aria-invalid`                 |
+| `Badge`                            | Toni `neutral/primary/warning/danger`                                                 |
+| `Surface`, `PageHeader`            | Struttura delle pagine                                                                |
+| `EmptyState`                       | Icona, titolo, descrizione e, se serve, milestone prevista                            |
+| `PlannedAction`                    | Pulsante disabilitato **con motivo accessibile** per funzioni future                  |
+| `Skeleton`                         | Caricamento discreto, nascosto agli screen reader                                     |
+| `Sheet`, `DropdownMenu`, `Tooltip` | Basati su Radix: focus trap, tastiera, ARIA                                           |
+| `LogoMark`, `Wordmark`             | Logo PNG originale nei due temi e doppio chevron compatto ricavato dagli stessi pixel |
+
+## Superficie delle bacheche
+
+Kanban e Tabella condividono una superficie delimitata con angoli da 20 px, bordo discreto e 12 px di distanza dall’intestazione. Su desktop i selettori Kanban/Tabella e Compatta/Informativa stanno nella stessa riga della ricerca, alla sua destra; sotto `lg` occupano una riga dedicata per restare accessibili senza comprimere il titolo. La board resta separata dalla sidebar e termina a 16 px dal fondo; lo scorrimento orizzontale è contenuto nella superficie. Il Kanban usa 12 px di padding e distanza fra le colonne; le colonne vuote non riservano spazio per schede assenti.
+
+“Cambia il background di [nome bacheca]” nel menu delle azioni in alto a destra apre il selettore di otto tinte unite e del fondo predefinito. Il valore usa la proprietà persistente `Board.color`, con gli stessi token validati già disponibili nella modifica della bacheca. Il colore si applica alla sola superficie della bacheca, in entrambe le viste, senza cambiare lo sfondo dell’applicazione. Le tinte sono miscelate con il fondo del tema (14% in chiaro, 28% in scuro) per mantenere il contrasto dei testi secondari; ogni risultato è un colore uniforme e opaco. Non sono previsti sfondi immagine in questa versione.
 
 ## Accessibilità implementata
 

@@ -39,13 +39,21 @@ export function UserMenu({
         <Button
           variant="ghost"
           className={cn(
-            'h-14 w-full min-w-0 justify-start gap-3 overflow-hidden rounded-lg px-2 text-left hover:bg-hover-soft data-[state=open]:bg-hover-soft',
-            collapsed && 'justify-center gap-0 px-0',
+            'w-full min-w-0 justify-start overflow-hidden rounded-lg px-2 text-left transition-[height,gap,background-color,color] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-hover-soft data-[state=open]:bg-hover-soft',
+            collapsed ? 'h-11 gap-0' : 'h-14 gap-3',
           )}
         >
           <span className="sr-only">Menu account </span>
           <UserAvatar email={user.email} className="size-7" />
-          <span className={cn('min-w-0 flex-1', collapsed && 'hidden')}>
+          <span
+            aria-hidden={collapsed}
+            className={cn(
+              'min-w-0 flex-1 overflow-hidden transition-[opacity,max-width] duration-[150ms,300ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+              collapsed
+                ? 'max-w-0 opacity-0 delay-0'
+                : 'max-w-[160px] opacity-100 delay-[80ms,0ms]',
+            )}
+          >
             <span className="block truncate text-sm font-medium">{name}</span>
             <span className="block truncate text-xs font-normal text-muted-foreground">
               {workspace.name}

@@ -75,8 +75,8 @@ export function AppShell() {
           <div className="relative flex h-dvh overflow-hidden">
             <aside
               className={cn(
-                'relative z-30 hidden shrink-0 bg-sidebar transition-[width] duration-200 ease-in-out md:block',
-                collapsed ? 'w-[52px]' : 'w-[220px]',
+                'relative z-30 hidden shrink-0 bg-sidebar transition-[width,margin,border-radius] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] md:block',
+                collapsed ? 'my-3 ml-3 w-15 rounded-xl' : 'm-0 w-[220px] rounded-none',
               )}
             >
               <Sidebar collapsed={collapsed} />
@@ -101,13 +101,13 @@ export function AppShell() {
                   'flex-1 outline-none',
                   fullBleed
                     ? 'min-h-0 overflow-hidden'
-                    : 'overflow-y-auto px-4 pt-6 pb-12 sm:px-8 lg:px-11 lg:pt-8',
+                    : 'overflow-y-auto px-4 pt-5 pb-8 sm:px-6 lg:px-8',
                 )}
               >
                 <div
                   className={cn(
                     'animate-[jobward-fade-in_0.15s_ease-out]',
-                    fullBleed ? 'h-full' : 'mx-auto max-w-[80rem]',
+                    fullBleed ? 'h-full' : 'w-full min-w-0',
                   )}
                 >
                   <Outlet />

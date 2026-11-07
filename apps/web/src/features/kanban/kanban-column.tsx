@@ -138,7 +138,7 @@ export function KanbanColumn({
       <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
         <ul
           aria-label={`Schede in ${column.name}`}
-          className="min-h-12 flex-1 space-y-3 overflow-y-auto px-3 py-1"
+          className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-1"
         >
           {cards.map((card, index) => (
             <KanbanCard

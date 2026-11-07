@@ -1,0 +1,39 @@
+/* Tinte unite della sola superficie della bacheca, basate sui colori salvati dal server. */
+.board-background {
+  --board-tint: var(--surface-muted);
+  --board-tint-strength: 14%;
+  background-color: color-mix(
+    in oklab,
+    var(--board-tint) var(--board-tint-strength),
+    var(--background)
+  );
+}
+
+.dark .board-background {
+  --board-tint-strength: 28%;
+}
+
+.board-background[data-board-color='slate'] {
+  --board-tint: var(--accent-slate);
+}
+.board-background[data-board-color='blue'] {
+  --board-tint: var(--accent-blue);
+}
+.board-background[data-board-color='green'] {
+  --board-tint: var(--accent-green);
+}
+.board-background[data-board-color='amber'] {
+  --board-tint: var(--accent-amber);
+}
+.board-background[data-board-color='violet'] {
+  --board-tint: var(--accent-violet);
+}
+.board-background[data-board-color='rose'] {
+  --board-tint: var(--accent-rose);
+}
+.board-background[data-board-color='teal'] {
+  --board-tint: var(--accent-teal);
+}
+.board-background[data-board-color='orange'] {
+  --board-tint: var(--accent-orange);
+}

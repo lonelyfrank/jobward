@@ -323,7 +323,7 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
           aria-label="Colonne della bacheca"
           data-testid="kanban"
           style={{ zoom, width: '100%', height: '100%' }}
-          className="relative flex min-h-0 snap-x snap-mandatory items-start gap-5 overflow-x-auto px-4 pb-4 sm:snap-none sm:px-8 lg:px-11"
+          className="relative flex min-h-0 snap-x snap-mandatory items-start gap-3 overflow-x-auto p-3 sm:snap-none"
         >
           <SortableContext
             items={columns.map((c) => c.id)}

@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { NavLink } from 'react-router';
 import { LogoMark, Wordmark } from '@/components/brand/logo';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -62,13 +61,18 @@ function SidebarLink({
           to={to}
           end={end}
           onClick={onNavigate}
-          className="flex h-11 items-center gap-3 overflow-hidden rounded-md px-[9px] text-[15px] font-medium text-muted-foreground transition-colors hover:bg-hover-soft hover:text-foreground aria-[current=page]:bg-primary-soft aria-[current=page]:font-semibold aria-[current=page]:text-primary-soft-foreground aria-[current=page]:hover:bg-primary-soft max-md:min-h-12"
+          className={cn(
+            'flex h-11 items-center overflow-hidden rounded-md text-[15px] font-medium text-muted-foreground transition-[background-color,color,padding,gap] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-hover-soft hover:text-foreground aria-[current=page]:bg-primary-soft aria-[current=page]:font-semibold aria-[current=page]:text-primary-soft-foreground aria-[current=page]:hover:bg-primary-soft max-md:min-h-12',
+            collapsed ? 'gap-0 px-[0.8125rem]' : 'gap-3 px-[9px]',
+          )}
         >
           <Icon aria-hidden="true" className="size-[1.125rem] shrink-0" />
           <span
             className={cn(
-              'overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-[100ms,220ms] ease-in-out',
-              collapsed ? 'max-w-0 opacity-0' : 'max-w-[160px] opacity-100',
+              'overflow-hidden whitespace-nowrap transition-[opacity,max-width] duration-[150ms,300ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+              collapsed
+                ? 'max-w-0 opacity-0 delay-0'
+                : 'max-w-[160px] opacity-100 delay-[80ms,0ms]',
             )}
           >
             {label}
@@ -86,33 +90,28 @@ export function Sidebar({
   collapsed?: boolean;
   onNavigate?: () => void;
 }) {
-  // Come in Sensei: il testo sfuma subito, la sezione secondaria si richiude
-  // dopo i 200 ms del restringimento. In apertura il contenuto torna subito.
-  const [settledCollapsed, setSettledCollapsed] = useState(collapsed);
-  useEffect(() => {
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const timer = window.setTimeout(
-      () => setSettledCollapsed(collapsed),
-      collapsed && !reduceMotion ? 210 : 0,
-    );
-    return () => window.clearTimeout(timer);
-  }, [collapsed]);
-  const contentCollapsed = collapsed && settledCollapsed;
-
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <div className="relative flex h-[86px] shrink-0 items-center px-6">
+      <div
+        className={cn(
+          'relative flex shrink-0 items-center transition-[height,padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+          collapsed ? 'h-18 px-4' : 'h-[86px] px-6',
+        )}
+      >
         <span
           aria-hidden={collapsed}
-          className={cn('transition-opacity duration-100', collapsed && 'opacity-0')}
+          className={cn(
+            'transition-opacity duration-150',
+            collapsed ? 'opacity-0 delay-0' : 'opacity-100 delay-[80ms]',
+          )}
         >
           <Wordmark className="w-[150px] max-w-none" />
         </span>
         <span
-          aria-hidden={!contentCollapsed}
+          aria-hidden={!collapsed}
           className={cn(
-            'absolute left-3 transition-opacity duration-100',
-            !contentCollapsed && 'opacity-0',
+            'absolute left-1/2 -translate-x-1/2 transition-opacity duration-150',
+            collapsed ? 'opacity-100 delay-[80ms]' : 'opacity-0 delay-0',
           )}
         >
           <LogoMark />
@@ -124,13 +123,20 @@ export function Sidebar({
           <p
             aria-hidden={collapsed}
             className={cn(
-              'px-6 pb-3 text-[11px] font-semibold tracking-[0.16em] whitespace-nowrap text-muted-foreground uppercase transition-opacity duration-100',
-              collapsed && 'opacity-0',
+              'overflow-hidden px-6 text-[11px] font-semibold tracking-[0.16em] whitespace-nowrap text-muted-foreground uppercase transition-[max-height,padding,opacity] duration-[300ms,300ms,150ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+              collapsed
+                ? 'max-h-0 pb-0 opacity-0 delay-0'
+                : 'max-h-8 pb-3 opacity-100 delay-[0ms,0ms,80ms]',
             )}
           >
             Workspace
           </p>
-          <ul className="space-y-2 px-2">
+          <ul
+            className={cn(
+              'flex flex-col px-2 transition-[gap] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              collapsed ? 'gap-1.5' : 'gap-2',
+            )}
+          >
             {NAV_ITEMS.map((item) => (
               <SidebarLink
                 key={item.to}
@@ -145,9 +151,10 @@ export function Sidebar({
             inert={collapsed}
             aria-hidden={collapsed}
             className={cn(
-              'grid transition-[grid-template-rows,opacity] duration-200 ease-in-out',
-              contentCollapsed ? 'grid-rows-[0fr]' : 'grid-rows-[1fr]',
-              collapsed ? 'opacity-0' : 'opacity-100',
+              'grid transition-[grid-template-rows,opacity] duration-[300ms,150ms] ease-[cubic-bezier(0.22,1,0.36,1)]',
+              collapsed
+                ? 'grid-rows-[0fr] opacity-0 delay-0'
+                : 'grid-rows-[1fr] opacity-100 delay-[0ms,80ms]',
             )}
           >
             <div className="overflow-hidden">
@@ -156,8 +163,8 @@ export function Sidebar({
           </div>
         </div>
 
-        <div className="mt-auto shrink-0 border-t border-border px-2 py-2">
-          <UserMenu key={String(collapsed)} collapsed={collapsed} onNavigate={onNavigate} />
+        <div className="mt-auto shrink-0 border-t border-border p-2">
+          <UserMenu collapsed={collapsed} onNavigate={onNavigate} />
         </div>
       </nav>
     </div>

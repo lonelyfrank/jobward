@@ -5,7 +5,7 @@ import { OpportunitiesView } from '@/features/opportunities/opportunities-view';
 export function Component() {
   const { boardId = '' } = useParams();
   return (
-    <div className="h-full overflow-y-auto px-4 pb-8 sm:px-8">
+    <div className="h-full overflow-y-auto p-3 sm:p-4">
       <OpportunitiesView fixedBoardId={boardId} />
       <Outlet />
     </div>

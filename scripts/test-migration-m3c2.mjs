@@ -595,6 +595,9 @@ try {
   console.log('5. API reale sul database aggiornato (wrangler dev): chiusura → riapertura');
   // `live` è la copia del database M2.5 popolato, aggiornata come farebbe un utente.
   live.put(target);
+  // Le prove SQL sopra isolano 0005; l'API corrente richiede anche le migrazioni successive
+  // (per esempio, la timeline legge i nuovi campi delle attività introdotti da 0006).
+  for (const file of allFiles.filter((file) => file > target)) live.put(file);
   live.migrate();
   const port = 8800 + Math.floor(Math.random() * 100);
   server = spawn(
@@ -639,7 +642,15 @@ try {
     const text = await res.text();
     return { status: res.status, body: text ? JSON.parse(text) : null };
   };
-  const timeline = async () => (await api('GET', '/cards/k2/timeline?limit=50')).body.entries;
+  const timeline = async () => {
+    const response = await api('GET', '/cards/k2/timeline?limit=50');
+    if (response.status !== 200 || !Array.isArray(response.body?.entries)) {
+      throw new Error(
+        `Timeline non valida: HTTP ${response.status}, ${JSON.stringify(response.body)}`,
+      );
+    }
+    return response.body.entries;
+  };
   const countKind = async (kind) => (await timeline()).filter((e) => e.kind === kind).length;
 
   const legacy = await timeline();

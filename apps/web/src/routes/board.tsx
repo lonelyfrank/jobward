@@ -1,6 +1,6 @@
-import { Archive, Plus, Star } from 'lucide-react';
+import { Archive, Palette, Plus, Star } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router';
+import { Link, NavLink, Outlet, useMatch, useNavigate, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
@@ -10,10 +10,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Surface } from '@/components/ui/surface';
 import { useBoardDetail, useDeleteBoard, useUpdateBoard } from '@/features/boards/api';
 import { BoardDialog } from '@/features/boards/board-dialog';
+import { BoardBackgroundDialog } from '@/features/boards/board-background-dialog';
 import { ArchivedDialog } from '@/features/cards/archived-dialog';
 import { setDensity, useDensity } from '@/features/kanban/density';
 import { userMessage } from '@/features/kanban/mutations';
 import { cn } from '@/lib/cn';
+import { isColorToken } from '@/lib/labels';
 
 // Il configuratore è usato di rado: non pesa sul caricamento della bacheca.
 const CustomFieldsDialog = lazy(() =>
@@ -24,7 +26,7 @@ const CustomFieldsDialog = lazy(() =>
 export function BoardPage() {
   const { boardId = '' } = useParams();
   const navigate = useNavigate();
-  const location = useLocation();
+  const tableView = useMatch('/boards/:boardId/table/*') !== null;
   const density = useDensity();
   const notify = useNotify();
   const board = useBoardDetail(boardId);
@@ -36,10 +38,11 @@ export function BoardPage() {
   const [deleting, setDeleting] = useState(false);
   const [showArchived, setShowArchived] = useState(false);
   const [configuringFields, setConfiguringFields] = useState(false);
+  const [changingBackground, setChangingBackground] = useState(false);
 
   if (board.isPending) {
     return (
-      <div className="px-4 py-6 sm:px-8">
+      <div className="px-4 pt-5 pb-4 sm:px-6 lg:px-8">
         <WorkspacePageHeader title="Bacheca" description="Caricamento…" />
         <div role="status" aria-label="Caricamento della bacheca" className="flex gap-4">
           {Array.from({ length: 3 }, (_, i) => (
@@ -53,7 +56,7 @@ export function BoardPage() {
   if (board.isError) {
     const notFound = 'status' in board.error && board.error.status === 404;
     return (
-      <div className="px-4 py-6 sm:px-8">
+      <div className="px-4 pt-5 pb-4 sm:px-6 lg:px-8">
         <WorkspacePageHeader title={notFound ? 'Bacheca non trovata' : 'Bacheca'} />
         <Surface className="p-6" role="alert">
           <p className="font-semibold">
@@ -84,15 +87,79 @@ export function BoardPage() {
   const columnNames = Object.fromEntries(columns.map((c) => [c.id, c.name]));
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex h-full min-h-0 flex-col px-4 pt-5 pb-4 sm:px-6 lg:px-8">
       <WorkspacePageHeader
-        className="mb-0 shrink-0 px-4 pt-6 pb-5 sm:px-8 lg:px-11"
+        className="mb-3 shrink-0"
         title={info.name}
         description={info.description ?? undefined}
         canCreateCard={columns.length > 0}
         boardId={boardId}
         backLink={{ to: '/boards', label: 'torna a tutte le bacheche' }}
+        controls={
+          <>
+            <nav
+              aria-label="Visualizzazione della bacheca"
+              className="flex gap-1 rounded-full bg-surface-muted p-1"
+            >
+              {[
+                { to: `/boards/${boardId}`, label: 'Kanban', end: true },
+                { to: `/boards/${boardId}/table`, label: 'Tabella', end: false },
+              ].map((view) => (
+                <NavLink
+                  key={view.to}
+                  to={view.to}
+                  end={view.end}
+                  className={({ isActive }) =>
+                    cn(
+                      'inline-flex h-8 items-center rounded-full px-3 text-sm font-semibold transition-colors max-md:min-h-11',
+                      isActive
+                        ? 'bg-primary-soft text-primary-soft-foreground shadow-sm'
+                        : 'text-muted-foreground hover:bg-surface hover:text-foreground',
+                    )
+                  }
+                >
+                  {view.label}
+                </NavLink>
+              ))}
+            </nav>
+            {!tableView ? (
+              <div
+                role="group"
+                aria-label="Densità delle schede"
+                className="flex gap-1 rounded-full bg-surface-muted p-1"
+              >
+                {(
+                  [
+                    ['compact', 'Compatta'],
+                    ['informative', 'Informativa'],
+                  ] as const
+                ).map(([value, label]) => (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={density === value}
+                    onClick={() => setDensity(value)}
+                    className={cn(
+                      'inline-flex h-8 items-center rounded-full px-3 text-sm font-semibold transition-colors max-md:min-h-11',
+                      density === value
+                        ? 'bg-primary-soft text-primary-soft-foreground shadow-sm'
+                        : 'text-muted-foreground hover:bg-surface hover:text-foreground',
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </>
+        }
         actions={[
+          {
+            id: 'background',
+            label: `Cambia il background di ${info.name}`,
+            icon: Palette,
+            onSelect: () => setChangingBackground(true),
+          },
           {
             id: 'add-column',
             label: 'Aggiungi colonna',
@@ -130,67 +197,19 @@ export function BoardPage() {
             onSelect: () => setDeleting(true),
           },
         ]}
-      >
-        <nav
-          aria-label="Visualizzazione della bacheca"
-          className="flex gap-1 rounded-full bg-surface-muted p-1"
-        >
-          {[
-            { to: `/boards/${boardId}`, label: 'Kanban', end: true },
-            { to: `/boards/${boardId}/table`, label: 'Tabella', end: false },
-          ].map((view) => (
-            <NavLink
-              key={view.to}
-              to={view.to}
-              end={view.end}
-              className={({ isActive }) =>
-                cn(
-                  'inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold transition-colors max-md:min-h-11',
-                  isActive
-                    ? 'bg-primary-soft text-primary-soft-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-surface hover:text-foreground',
-                )
-              }
-            >
-              {view.label}
-            </NavLink>
-          ))}
-        </nav>
-        {!location.pathname.endsWith('/table') ? (
-          <div
-            role="group"
-            aria-label="Densità delle schede"
-            className="flex gap-1 rounded-full bg-surface-muted p-1"
-          >
-            {(
-              [
-                ['compact', 'Compatta'],
-                ['informative', 'Informativa'],
-              ] as const
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={density === value}
-                onClick={() => setDensity(value)}
-                className={cn(
-                  'inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold transition-colors max-md:min-h-11',
-                  density === value
-                    ? 'bg-primary-soft text-primary-soft-foreground shadow-sm'
-                    : 'text-muted-foreground hover:bg-surface hover:text-foreground',
-                )}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        ) : null}
-      </WorkspacePageHeader>
+      />
 
-      <div className="min-h-0 flex-1">
+      <div
+        data-testid="board-surface"
+        data-board-color={isColorToken(info.color) ? info.color : 'default'}
+        className="board-background min-h-0 flex-1 overflow-hidden rounded-xl border border-border"
+      >
         <Outlet />
       </div>
 
+      {changingBackground ? (
+        <BoardBackgroundDialog key={info.id} board={info} onOpenChange={setChangingBackground} />
+      ) : null}
       {addingColumn ? <ColumnDialog boardId={boardId} open onOpenChange={setAddingColumn} /> : null}
       <ArchivedDialog
         boardId={boardId}

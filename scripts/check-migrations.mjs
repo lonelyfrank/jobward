@@ -31,7 +31,14 @@ const added = fs
   .filter((f) => f.endsWith('.sql') && f.includes('drift_check'));
 fs.rmSync(tmp, { recursive: true, force: true });
 
-if (gen.status !== 0 || added.length > 0 || !/No schema changes/.test(out)) {
+if (gen.error || gen.status !== 0) {
+  console.error('✖ Impossibile completare il controllo dello schema con drizzle-kit:');
+  if (gen.error) console.error(gen.error.message);
+  console.error(out);
+  process.exit(1);
+}
+
+if (added.length > 0 || !/No schema changes/.test(out)) {
   console.error(
     '✖ Lo schema (packages/database/src/schema.ts) non corrisponde alle migrazioni committate.',
   );
@@ -43,8 +50,9 @@ if (gen.status !== 0 || added.length > 0 || !/No schema changes/.test(out)) {
 }
 
 const check = run(['check']);
-if (check.status !== 0) {
-  console.error('✖ drizzle-kit check ha rilevato incoerenze tra migrazioni e snapshot:');
+if (check.error || check.status !== 0) {
+  console.error('✖ drizzle-kit check non è riuscito:');
+  if (check.error) console.error(check.error.message);
   console.error(`${check.stdout}${check.stderr}`);
   process.exit(1);
 }

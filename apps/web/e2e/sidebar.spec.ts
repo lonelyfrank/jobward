@@ -28,6 +28,8 @@ test.beforeEach(async ({ page }) => {
               interviews: 0,
               openTasks: 0,
               overdueTasks: 0,
+              dueTodayTasks: 0,
+              noDueTasks: 0,
             },
             upcomingTasks: [],
             recentBoards: [],
@@ -38,7 +40,7 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
-test('bulge: compare vicino al bordo, segue il cursore, scompare e alterna 220/52 px', async ({
+test('bulge: compare vicino al bordo, segue il cursore, scompare e alterna sidebar espansa e fluttuante', async ({
   page,
 }) => {
   await page.goto('/');
@@ -70,10 +72,24 @@ test('bulge: compare vicino al bordo, segue il cursore, scompare e alterna 220/5
   await expect(toggle).toHaveCSS('pointer-events', 'none');
   await page.mouse.move(221, 350);
   await toggle.click();
-  await expect(sidebar).toHaveCSS('width', '52px');
+  await expect(sidebar).toHaveCSS('width', '60px');
   const active = sidebar.getByRole('link', { name: 'Overview', exact: true });
-  await expect(active).toHaveCSS('width', '36px');
+  await expect(active).toHaveCSS('width', '44px');
+  await expect(active).toHaveCSS('height', '44px');
+  await expect(sidebar).toHaveCSS('margin-left', '12px');
+  await expect(sidebar).toHaveCSS('margin-top', '12px');
+  await expect(sidebar).toHaveCSS('margin-bottom', '12px');
+  await expect(sidebar).toHaveCSS('border-radius', '20px');
+  await expect(sidebar.getByRole('button', { name: /^Menu account/ })).toHaveCSS('width', '44px');
+  await expect(sidebar.getByRole('button', { name: /^Menu account/ })).toHaveCSS('height', '44px');
   await expect(active).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  // La larghezza della barra e l'altezza del link devono scalare insieme al testo.
+  await page.evaluate(() => (document.documentElement.style.fontSize = '18px'));
+  await expect(sidebar).toHaveCSS('width', '67.5px');
+  await expect(active).toHaveCSS('width', '49.5px');
+  await expect(active).toHaveCSS('height', '49.5px');
+  await page.evaluate(() => document.documentElement.style.removeProperty('font-size'));
+  await expect(sidebar).toHaveCSS('width', '60px');
   await expect(sidebar.getByRole('heading', { name: 'Bacheche recenti' })).toHaveCount(0);
   const boards = sidebar.getByRole('link', { name: 'Bacheche', exact: true });
   await boards.hover();
@@ -82,10 +98,14 @@ test('bulge: compare vicino al bordo, segue il cursore, scompare e alterna 220/5
   const expand = sidebar.getByRole('button', { name: 'Espandi la barra laterale' });
   await expect(expand).toHaveCSS('opacity', '0');
   await page.reload();
-  await expect(sidebar).toHaveCSS('width', '52px');
-  await page.mouse.move(53, 350);
+  await expect(sidebar).toHaveCSS('width', '60px');
+  await page.mouse.move(73, 350);
   await expand.click();
   await expect(sidebar).toHaveCSS('width', '220px');
+  await expect(sidebar).toHaveCSS('margin-left', '0px');
+  await expect(sidebar).toHaveCSS('margin-top', '0px');
+  await expect(sidebar).toHaveCSS('margin-bottom', '0px');
+  await expect(sidebar).toHaveCSS('border-radius', '0px');
   await expect(sidebar.getByRole('heading', { name: 'Bacheche recenti' })).toBeVisible();
 });
 
@@ -102,7 +122,7 @@ test('collapse da tastiera e accessibilità nei due temi con movimento ridotto',
   await expect(toggle).toBeFocused();
   await expect(toggle).toHaveCSS('opacity', '1');
   await page.keyboard.press('Enter');
-  await expect(sidebar).toHaveCSS('width', '52px');
+  await expect(sidebar).toHaveCSS('width', '60px');
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(sidebar.getByRole('link', { name: 'Bacheche', exact: true })).toBeVisible();
   for (const colorScheme of ['light', 'dark'] as const) {
@@ -200,5 +220,5 @@ test('mobile: drawer indipendente dal collapse desktop e nessun bulge', async ({
   await expect(page.getByRole('heading', { name: 'Bacheche', level: 1 })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
   await page.setViewportSize({ width: 1280, height: 800 });
-  await expect(page.locator('aside')).toHaveCSS('width', '52px');
+  await expect(page.locator('aside')).toHaveCSS('width', '60px');
 });
