@@ -1,9 +1,51 @@
 import { BOARD_TEMPLATES } from '@jobward/shared';
+import { BOARD_BACKGROUND_IMAGES } from '@jobward/schemas';
 import { describe, expect, it } from 'vitest';
 import { db } from './helpers';
 import { addCard, createMinimalBoard, newUser } from './kanban-helpers';
 
 describe('bacheche', () => {
+  it('salva gli sfondi del catalogo per bacheca, preserva il colore e rifiuta URL arbitrari', async () => {
+    const { api } = await newUser('b-background@example.com');
+    const first = (
+      await api.post('/boards', { name: 'Paesaggi', color: 'blue', backgroundImage: 'alps' })
+    ).body.board;
+    const second = (await api.post('/boards', { name: 'Altra ricerca' })).body.board;
+    expect(first.backgroundImage).toBe('alps');
+    expect(second.backgroundImage).toBeNull();
+
+    for (const backgroundImage of BOARD_BACKGROUND_IMAGES) {
+      const saved = await api.patch(`/boards/${first.id}`, { backgroundImage });
+      expect(saved.status).toBe(200);
+      expect(saved.body.board).toMatchObject({ backgroundImage, color: 'blue' });
+      const detail = await api.get(`/boards/${first.id}`);
+      expect(detail.body.board.backgroundImage).toBe(backgroundImage);
+      const list = (await api.get('/boards')).body.boards;
+      expect(list.find((board: { id: string }) => board.id === first.id).backgroundImage).toBe(
+        backgroundImage,
+      );
+      expect(
+        list.find((board: { id: string }) => board.id === second.id).backgroundImage,
+      ).toBeNull();
+    }
+    const renamed = await api.patch(`/boards/${first.id}`, { name: 'Rinominata' });
+    expect(renamed.body.board.backgroundImage).toBe(BOARD_BACKGROUND_IMAGES.at(-1));
+    for (const backgroundImage of [
+      'unknown',
+      'https://example.com/photo.jpg',
+      'url(javascript:1)',
+    ]) {
+      expect((await api.patch(`/boards/${first.id}`, { backgroundImage })).status).toBe(400);
+      expect((await api.post('/boards', { name: 'Non valida', backgroundImage })).status).toBe(400);
+    }
+    const cleared = await api.patch(`/boards/${first.id}`, { backgroundImage: null });
+    expect(cleared.body.board).toMatchObject({
+      backgroundImage: null,
+      color: 'blue',
+      name: 'Rinominata',
+    });
+  });
+
   it('elenco vuoto per un workspace nuovo (nessun dato fittizio)', async () => {
     const { api } = await newUser('b-empty@example.com');
     const res = await api.get('/boards');

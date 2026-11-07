@@ -9,7 +9,9 @@ export default defineConfig({
     alias: { '@': path.resolve(import.meta.dirname, 'src') },
   },
   server: {
-    port: 5173,
+    port: 5174,
+    // Evita un cambio silenzioso di porta che non corrisponda ad APP_ORIGIN nell'API.
+    strictPort: true,
     // In sviluppo l'API gira in `wrangler dev` (porta 8787): il proxy mantiene
     // la stessa origine per il browser, come in produzione.
     proxy: { '/api': process.env['API_PROXY_TARGET'] ?? 'http://localhost:8787' },

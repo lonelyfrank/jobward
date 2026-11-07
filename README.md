@@ -87,11 +87,12 @@ pnpm db:migrate:local
 pnpm dev
 # …oppure separatamente, in due terminali:
 pnpm dev:api    # Worker su http://localhost:8787  (wrangler dev --env dev)
-pnpm dev:web    # Frontend su http://localhost:5173 (proxy /api → 8787)
+pnpm dev:web    # Frontend su http://localhost:5174 (proxy /api → 8787)
 ```
 
-Apri <http://localhost:5173>. Al primo avvio vedrai l'onboarding: crea il workspace e arriverai all'Overview.
+Apri <http://localhost:5174>. Al primo avvio vedrai l'onboarding: crea il workspace e arriverai all'Overview.
 Per ripartire da zero cancella `apps/api/.wrangler/state` e rilancia `pnpm db:migrate:local`.
+La porta del frontend è fissa: se è occupata, Vite si ferma. Per usare una porta diversa, allinea la porta di Vite e `APP_ORIGIN` del Worker dev, così anche i salvataggi mantengono la stessa origine autorizzata.
 
 ## Configurazione e variabili d'ambiente
 
@@ -106,7 +107,7 @@ Per ripartire da zero cancella `apps/api/.wrangler/state` e rilancia `pnpm db:mi
 | `ACCESS_TEAM_DOMAIN` | _da impostare_       | —                         | Es. `miotuo.cloudflareaccess.com`                       |
 | `ACCESS_AUD`         | _da impostare_       | —                         | Audience tag dell'applicazione Access                   |
 | `DEV_USER_EMAIL`     | —                    | `dev@meet-roulette.local` | Identità dev persistente preservata; vedi ADR-0014      |
-| `APP_ORIGIN`         | —                    | `http://localhost:5173`   | Origine aggiuntiva ammessa dalla protezione CSRF        |
+| `APP_ORIGIN`         | —                    | `http://localhost:5174`   | Origine aggiuntiva ammessa dalla protezione CSRF        |
 
 Con i valori di produzione vuoti l'API **rifiuta ogni richiesta** (fail-closed: provato anche eseguendo la configurazione di produzione su workerd).
 `workers_dev` e `preview_urls` sono disattivati in produzione (Access non protegge `*.workers.dev`): il deploy richiede un **dominio personalizzato**.

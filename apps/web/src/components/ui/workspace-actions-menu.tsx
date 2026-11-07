@@ -1,5 +1,6 @@
 import { Ellipsis, type LucideIcon } from 'lucide-react';
 import { Fragment } from 'react';
+import { cn } from '@/lib/cn';
 import { Button } from './button';
 import {
   DropdownMenu,
@@ -19,7 +20,13 @@ export type WorkspaceAction = {
   onSelect: () => void;
 };
 
-export function WorkspaceActionsMenu({ actions }: { actions: WorkspaceAction[] }) {
+export function WorkspaceActionsMenu({
+  actions,
+  className,
+}: {
+  actions: WorkspaceAction[];
+  className?: string;
+}) {
   if (!actions.length) return null;
   return (
     <DropdownMenu modal={false}>
@@ -27,7 +34,10 @@ export function WorkspaceActionsMenu({ actions }: { actions: WorkspaceAction[] }
         <Button
           size="icon"
           aria-label="Azioni della vista"
-          className="size-11 rounded-full shadow-none hover:shadow-sm active:bg-primary-hover data-[state=open]:bg-primary-hover [&_svg]:size-[18px]"
+          className={cn(
+            'size-11 rounded-full shadow-none hover:shadow-sm active:bg-primary-hover data-[state=open]:bg-primary-hover [&_svg]:size-[18px]',
+            className,
+          )}
         >
           <Ellipsis aria-hidden="true" />
         </Button>

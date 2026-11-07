@@ -1,4 +1,10 @@
-import { COLOR_TOKENS, type Board, type ColorToken } from '@jobward/schemas';
+import {
+  BOARD_BACKGROUND_IMAGES,
+  COLOR_TOKENS,
+  type Board,
+  type BoardBackgroundImage,
+  type ColorToken,
+} from '@jobward/schemas';
 import { Check } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -6,11 +12,16 @@ import { Dialog, DialogBody, DialogFooter } from '@/components/ui/dialog';
 import { useNotify } from '@/components/ui/notices';
 import { userMessage } from '@/features/kanban/mutations';
 import { COLOR_LABELS, isColorToken } from '@/lib/labels';
+import {
+  BOARD_BACKGROUNDS,
+  boardBackgroundStyle,
+  isBoardBackgroundImage,
+} from '@/lib/board-backgrounds';
 import { useUpdateBoard } from './api';
 
 const OPTIONS = [null, ...COLOR_TOKENS];
 
-/** Il colore è una proprietà della bacheca: si salva con la stessa API della modifica. */
+/** La scelta resta locale fino al salvataggio ed è persistita sulla sola bacheca. */
 export function BoardBackgroundDialog({
   board,
   onOpenChange,
@@ -21,6 +32,9 @@ export function BoardBackgroundDialog({
   const [color, setColor] = useState<ColorToken | null>(
     isColorToken(board.color) ? board.color : null,
   );
+  const [image, setImage] = useState<BoardBackgroundImage | null>(
+    isBoardBackgroundImage(board.backgroundImage) ? board.backgroundImage : null,
+  );
   const update = useUpdateBoard();
   const notify = useNotify();
 
@@ -29,7 +43,8 @@ export function BoardBackgroundDialog({
       open
       onOpenChange={onOpenChange}
       title="Cambia background"
-      description="Scegli una tinta unita per questa bacheca."
+      description="Scegli un paesaggio o una tinta unita per questa bacheca."
+      className="max-w-2xl"
     >
       <form
         className="flex min-h-0 flex-col"
@@ -37,7 +52,12 @@ export function BoardBackgroundDialog({
           event.preventDefault();
           if (update.isPending) return;
           update.mutate(
-            { boardId: board.id, input: { color } },
+            {
+              boardId: board.id,
+              input: image
+                ? { backgroundImage: image }
+                : { color, ...(board.backgroundImage ? { backgroundImage: null } : {}) },
+            },
             {
               onSuccess: () => {
                 notify('success', 'Sfondo della bacheca aggiornato.');
@@ -51,7 +71,9 @@ export function BoardBackgroundDialog({
           <div
             aria-hidden="true"
             data-board-color={color ?? 'default'}
-            className="board-background grid h-28 grid-cols-3 items-start gap-2 rounded-lg border border-border p-3"
+            data-board-image={image ?? undefined}
+            style={boardBackgroundStyle(image, true)}
+            className="board-background grid h-24 grid-cols-3 items-start gap-2 rounded-lg border border-border p-3"
           >
             {[2, 1, 3].map((count, index) => (
               <div key={index} className="space-y-1.5 rounded-md bg-surface-muted p-2">
@@ -63,6 +85,37 @@ export function BoardBackgroundDialog({
             ))}
           </div>
           <fieldset disabled={update.isPending}>
+            <legend className="mb-3 text-sm font-semibold">Paesaggi</legend>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {BOARD_BACKGROUND_IMAGES.map((id) => (
+                <label key={id} className="relative cursor-pointer">
+                  <input
+                    type="radio"
+                    name="board-background"
+                    value={id}
+                    checked={image === id}
+                    onChange={() => setImage(id)}
+                    className="peer absolute inset-0 z-10 m-0 size-full cursor-pointer opacity-0"
+                  />
+                  <span
+                    data-board-image={id}
+                    style={boardBackgroundStyle(id, true)}
+                    className="board-background flex h-20 items-center justify-center rounded-md border border-border-strong peer-checked:ring-2 peer-checked:ring-primary peer-checked:ring-offset-2 peer-checked:ring-offset-surface peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring peer-disabled:opacity-60"
+                  >
+                    {image === id ? (
+                      <span className="grid size-7 place-items-center rounded-full bg-surface text-foreground shadow-sm">
+                        <Check aria-hidden="true" className="size-4" />
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="mt-1.5 block text-center text-xs font-medium">
+                    {BOARD_BACKGROUNDS[id].label}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <fieldset disabled={update.isPending}>
             <legend className="mb-3 text-sm font-semibold">Tinta unita</legend>
             <div className="grid grid-cols-3 gap-3">
               {OPTIONS.map((option) => (
@@ -71,15 +124,20 @@ export function BoardBackgroundDialog({
                     type="radio"
                     name="board-background"
                     value={option ?? 'default'}
-                    checked={color === option}
-                    onChange={() => setColor(option)}
+                    checked={image === null && color === option}
+                    onChange={() => {
+                      setImage(null);
+                      setColor(option);
+                    }}
                     className="peer absolute inset-0 z-10 m-0 size-full cursor-pointer opacity-0"
                   />
                   <span
                     data-board-color={option ?? 'default'}
-                    className="board-background flex h-16 items-center justify-center rounded-md border border-border-strong text-foreground peer-checked:ring-2 peer-checked:ring-primary peer-checked:ring-offset-2 peer-checked:ring-offset-surface peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring peer-disabled:opacity-60"
+                    className="board-background flex h-11 items-center justify-center rounded-md border border-border-strong text-foreground peer-checked:ring-2 peer-checked:ring-primary peer-checked:ring-offset-2 peer-checked:ring-offset-surface peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring peer-disabled:opacity-60"
                   >
-                    {color === option ? <Check aria-hidden="true" className="size-5" /> : null}
+                    {image === null && color === option ? (
+                      <Check aria-hidden="true" className="size-5" />
+                    ) : null}
                   </span>
                   <span className="mt-1.5 block text-center text-xs font-medium">
                     {option === null ? 'Predefinito' : COLOR_LABELS[option]}

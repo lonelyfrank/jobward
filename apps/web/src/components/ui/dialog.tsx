@@ -41,7 +41,8 @@ export function Dialog({
             'fixed inset-0 z-40 bg-foreground/45',
             // Il pannello laterale lascia intravedere la bacheca: velo più leggero da `md`.
             drawer && 'md:bg-foreground/20',
-            search && 'bg-background/55 backdrop-blur-sm',
+            search &&
+              'animate-[jobward-search-backdrop-enter_200ms_ease-out_both] bg-background/55 backdrop-blur-sm motion-reduce:animate-none',
           )}
         />
         <Primitive.Content
@@ -50,7 +51,7 @@ export function Dialog({
           className={cn(
             'fixed z-50 flex flex-col bg-surface shadow-md outline-none',
             search
-              ? 'top-[min(15dvh,6rem)] left-1/2 max-h-[min(75dvh,42rem)] w-[calc(100vw-1rem)] max-w-[44rem] -translate-x-1/2 rounded-xl border border-border bg-surface/95 backdrop-blur-md'
+              ? 'top-[min(15dvh,6rem)] left-1/2 max-h-[min(80dvh,48rem)] w-[calc(100vw-2rem)] max-w-[40rem] origin-top -translate-x-1/2 animate-[jobward-search-enter_240ms_cubic-bezier(0.22,1,0.36,1)_both] bg-transparent pt-8 pr-9 shadow-none motion-reduce:animate-none'
               : workspace
                 ? // Modale ampia: schermo intero a telefono, centrata (max ~1000 px, 90dvh) da `md`.
                   'inset-0 h-dvh animate-[jobward-fade-in_0.12s_ease-out] md:inset-auto md:top-1/2 md:left-1/2 md:h-auto md:max-h-[90dvh] md:min-h-[min(36rem,90dvh)] md:w-[min(1000px,calc(100vw-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-xl md:border md:border-border'

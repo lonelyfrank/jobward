@@ -6,11 +6,26 @@ import { colorToken, idSchema, optionalText, requiredText } from './primitives';
 // Input
 // ---------------------------------------------------------------------------
 
+/** Catalogo chiuso di immagini ospitate dall'app: nessun URL esterno o upload. */
+export const BOARD_BACKGROUND_IMAGES = [
+  'golden-coast',
+  'alps',
+  'misty-fjord',
+  'misty-forest',
+  'sunny-meadow',
+  'dunes',
+  'ocean',
+  'lake',
+] as const;
+export const boardBackgroundImage = z.enum(BOARD_BACKGROUND_IMAGES);
+export type BoardBackgroundImage = z.infer<typeof boardBackgroundImage>;
+
 export const createBoardInput = z.object({
   name: requiredText(LIMITS.nameMax),
   description: optionalText(LIMITS.shortTextMax).default(null),
   icon: z.string().trim().max(40).nullable().default(null),
   color: colorToken.nullable().default(null),
+  backgroundImage: boardBackgroundImage.nullable().default(null),
   /** Template di partenza: bacheca e colonne vengono create insieme, in modo atomico. */
   templateId: z.enum(BOARD_TEMPLATE_IDS).default('custom'),
 });
@@ -22,6 +37,7 @@ export const updateBoardInput = z
     name: requiredText(LIMITS.nameMax),
     description: optionalText(LIMITS.shortTextMax),
     color: colorToken.nullable(),
+    backgroundImage: boardBackgroundImage.nullable(),
     isFavorite: z.boolean(),
   })
   .partial()
@@ -71,6 +87,7 @@ export const boardSchema = z.object({
   description: z.string().nullable(),
   icon: z.string().nullable(),
   color: z.string().nullable(),
+  backgroundImage: z.string().nullable().default(null),
   position: z.number().int(),
   isFavorite: z.boolean(),
   createdAt: z.number().int(),

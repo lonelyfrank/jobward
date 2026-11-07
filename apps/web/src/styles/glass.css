@@ -3,11 +3,11 @@
  *
  * NON è il runtime di Jello. Il repository Jello (privato, UNLICENSED, non pubblicato su npm) ha
  * un runtime imperativo con renderer JS; qui si riprendono soltanto i PRINCIPI e i PARAMETRI
- * documentati del suo materiale Glass (core/glass.css, core/params.ts, preset `satin`):
+ * documentati del suo materiale Glass (src/core/glass.css, preset `navbar` / Glass · Subtle):
  *   tinta + opacità tinta · blur · saturazione · riflesso perimetrale direzionale · ombra.
- * Non c'è rifrazione (Jello `satin` la ha a 0 e comunque richiede una GlassSource SVG), né
+ * Il percorso CSS, come quello di Jello, non include rifrazione SVG, né
  * aberrazione cromatica, né luce di pressione, né movimento. Differenze dettagliate in
- * docs/m3-ui-glass/README.md.
+ * docs/ux/kanban-glass.md.
  *
  * Mappa dei token → parametri Jello:
  *   --glass-tint / --glass-tint-alpha     tint / tintOpacity
@@ -24,8 +24,7 @@
  * I due pseudo-elementi non ricevono eventi (pointer-events: none) e non sono nell'albero di
  * accessibilità. Sono in `@layer components`: le utility di Tailwind (rounded-*, border-*) vincono.
  *
- * Contratto di sfondo: il materiale poggia sul fondo dell'app (--background). Il contrasto del
- * testo è verificato anche su sfondi estremi del tema da scripts/check-glass-contrast.mjs.
+ * La tinta è adattata al tema per mantenere leggibili i testi anche sulle fotografie della board.
  */
 
 :root {
@@ -70,14 +69,32 @@
 
 /*
  * Variante di contesto: colonne Kanban (unico uso di Glass Subtle in Jobward). Non è un secondo
- * materiale: cambia solo la tinta, per restare sul colore originale della colonna
- * (--surface-muted: #EFF0F8 chiaro, #1E203D scuro) e mantenere il contrasto con le schede
- * opache (bg-surface) che la colonna contiene.
+ * materiale: usa il percorso CSS di Glass · Subtle (preset Jello `navbar`), con tinta adattata
+ * ai temi di Jobward, senza riflessi luminosi sul bordo. Le schede restano opache;
+ * solo il materiale retrostante viene sfocato.
  */
 .glass-subtle.kanban-column-glass {
-  --glass-tint: var(--surface-muted);
-  --glass-tint-alpha: 0.8;
+  --glass-tint: var(--surface);
+  --glass-tint-alpha: 0.9;
+  --glass-blur: 4px;
+  --glass-saturation: 160%;
+  --glass-rim: oklch(1 0 0);
+  --glass-light: 0;
+  --glass-light-angle: 330deg;
+  --glass-highlight-x: -0.75px;
+  --glass-highlight-y: -1.3px;
+  --glass-edge-alpha: 0;
+  --glass-shadow-color: oklch(0 0 0);
+  --glass-shadow: 0.2;
+  --glass-shadow-blur: 26px;
+  --glass-shadow-y: 8px;
+  --glass-rim-width: 1.25px;
   --glass-opaque: var(--surface-muted);
+}
+
+.dark .glass-subtle.kanban-column-glass {
+  --glass-tint: var(--background);
+  --glass-tint-alpha: 0.78;
 }
 
 @layer components {
@@ -109,8 +126,8 @@
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
     box-shadow:
-      inset 0 1px 0
-        color-mix(in oklab, var(--glass-rim) calc(var(--glass-light) * 55%), transparent),
+      inset var(--glass-highlight-x, 0) var(--glass-highlight-y, 1px) 1px -0.5px
+        color-mix(in oklab, var(--glass-rim) calc(var(--glass-light) * 90%), transparent),
       0 var(--glass-shadow-y) var(--glass-shadow-blur) var(--glass-shadow-spread)
         color-mix(in oklab, var(--glass-shadow-color) calc(var(--glass-shadow) * 100%), transparent);
   }
@@ -121,9 +138,9 @@
     padding: var(--glass-rim-width);
     background: linear-gradient(
       var(--glass-light-angle),
-      color-mix(in oklab, var(--glass-rim) calc(var(--glass-light) * 100%), transparent) 0%,
-      color-mix(in oklab, var(--glass-edge) calc(var(--glass-edge-alpha) * 100%), transparent) 34%,
-      color-mix(in oklab, var(--glass-edge) calc(var(--glass-edge-alpha) * 100%), transparent) 66%,
+      color-mix(in oklab, var(--glass-rim) calc(var(--glass-light) * 95%), transparent) 0%,
+      color-mix(in oklab, var(--glass-edge) calc(var(--glass-edge-alpha) * 100%), transparent) 32%,
+      color-mix(in oklab, var(--glass-edge) calc(var(--glass-edge-alpha) * 100%), transparent) 64%,
       color-mix(in oklab, var(--glass-rim) calc(var(--glass-light) * 45%), transparent) 100%
     );
     -webkit-mask:
@@ -133,6 +150,11 @@
     mask:
       linear-gradient(#000 0 0) content-box exclude,
       linear-gradient(#000 0 0);
+  }
+
+  /* Colonne Kanban: superficie traslucida senza anello luminoso perimetrale. */
+  .glass-subtle.kanban-column-glass::after {
+    display: none;
   }
 
   /* Contenitori con bordo tratteggiato (stati vuoti): resta il tratteggio originale, quindi il

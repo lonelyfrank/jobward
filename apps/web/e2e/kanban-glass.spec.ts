@@ -78,7 +78,7 @@ for (const theme of ['dark', 'light'] as const) {
         expect(h.isGlass).toBe(true);
         // Nessun sfondo opaco sull'host (il vecchio bg-surface-muted è stato sostituito).
         expect(h.bg).toBe('rgba(0, 0, 0, 0)');
-        expect(h.beforeBackdrop).toMatch(/blur\(12px\)/);
+        expect(h.beforeBackdrop).toMatch(/blur\(4px\)/);
         expect(h.beforeZ).toBe('-1');
         expect(h.beforePointer).toBe('none');
         expect(h.afterPointer).toBe('none');

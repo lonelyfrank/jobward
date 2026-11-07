@@ -73,7 +73,7 @@
         "OWNER_EMAIL": "",
         "ACCESS_TEAM_DOMAIN": "",
         "ACCESS_AUD": "",
-        "APP_ORIGIN": "http://localhost:5173",
+        "APP_ORIGIN": "http://localhost:5174",
       },
     },
 

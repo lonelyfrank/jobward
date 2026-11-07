@@ -1,10 +1,73 @@
 import { act, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
+import type { UpdateBoardInput } from '@jobward/schemas';
+import { BOARD_BACKGROUNDS } from '@/lib/board-backgrounds';
 import { boardDetail } from '@/test/fixtures';
 import { mockApi, renderApp, withWorkspace } from '@/test/utils';
 
 describe('Sfondo della bacheca', () => {
+  it('salva un paesaggio per la sola bacheca corrente, annulla e torna alla tinta unita', async () => {
+    const user = userEvent.setup();
+    const state = boardDetail();
+    const other = {
+      ...boardDetail(),
+      board: { ...state.board, id: 'b2', backgroundImage: 'lake' },
+    };
+    const calls = mockApi({
+      ...withWorkspace(),
+      'GET /boards/b1': () => ({ body: state }),
+      'GET /boards/b2': () => ({ body: other }),
+      'PATCH /boards/b1': ({ body }) => {
+        state.board = { ...state.board, ...(body as UpdateBoardInput) };
+        return { body: { board: state.board } };
+      },
+    });
+    const { router } = renderApp('/boards/b1');
+    const open = async () => {
+      await user.click(await screen.findByRole('button', { name: 'Azioni della vista' }));
+      await user.click(
+        await screen.findByRole('menuitem', { name: 'Cambia il background di Ricerca autunno' }),
+      );
+      return screen.findByRole('dialog', { name: 'Cambia background' });
+    };
+    let dialog = await open();
+    await user.click(within(dialog).getByRole('radio', { name: BOARD_BACKGROUNDS.alps.label }));
+    expect(within(dialog).getByRole('radio', { name: 'Blu' })).not.toBeChecked();
+    expect(screen.getByTestId('board-surface')).not.toHaveAttribute('data-board-image');
+    await user.click(within(dialog).getByRole('button', { name: 'Salva sfondo' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByTestId('board-surface')).toHaveAttribute('data-board-image', 'alps');
+    expect(calls.find((call) => call.method === 'PATCH')?.body).toEqual({
+      backgroundImage: 'alps',
+    });
+    expect(state.board.color).toBe('blue');
+    await act(() => router.navigate('/boards/b2'));
+    await waitFor(() =>
+      expect(screen.getByTestId('board-surface')).toHaveAttribute('data-board-image', 'lake'),
+    );
+    await act(() => router.navigate('/boards/b1'));
+    await waitFor(() =>
+      expect(screen.getByTestId('board-surface')).toHaveAttribute('data-board-image', 'alps'),
+    );
+
+    dialog = await open();
+    expect(within(dialog).getByRole('radio', { name: BOARD_BACKGROUNDS.alps.label })).toBeChecked();
+    await user.click(within(dialog).getByRole('radio', { name: BOARD_BACKGROUNDS.dunes.label }));
+    await user.click(within(dialog).getByRole('button', { name: 'Annulla' }));
+    expect(screen.getByTestId('board-surface')).toHaveAttribute('data-board-image', 'alps');
+
+    dialog = await open();
+    await user.click(within(dialog).getByRole('radio', { name: 'Predefinito' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Salva sfondo' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(screen.getByTestId('board-surface')).not.toHaveAttribute('data-board-image');
+    expect(calls.filter((call) => call.method === 'PATCH').at(-1)?.body).toEqual({
+      color: null,
+      backgroundImage: null,
+    });
+  });
+
   it('annulla la scelta senza richieste e senza cambiare lo sfondo salvato', async () => {
     const user = userEvent.setup();
     const calls = mockApi({

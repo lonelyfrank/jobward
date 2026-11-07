@@ -19,6 +19,7 @@ const boardColumnsList = {
   description: boards.description,
   icon: boards.icon,
   color: boards.color,
+  backgroundImage: boards.backgroundImage,
   position: boards.position,
   isFavorite: boards.isFavorite,
   createdAt: boards.createdAt,
@@ -81,11 +82,11 @@ export async function createBoard(
   const statements = [
     d1
       .prepare(
-        `INSERT INTO boards (id, workspace_id, name, description, icon, color, position, is_favorite, created_at, updated_at)
-         SELECT ?1, ?2, ?3, ?4, ?5, ?6,
+        `INSERT INTO boards (id, workspace_id, name, description, icon, color, background_image, position, is_favorite, created_at, updated_at)
+         SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7,
                 COALESCE((SELECT max(position) FROM boards WHERE workspace_id = ?2), 0) + ${POSITION_GAP},
-                0, ?7, ?7
-         WHERE (SELECT count(*) FROM boards WHERE workspace_id = ?2) < ?8`,
+                0, ?8, ?8
+         WHERE (SELECT count(*) FROM boards WHERE workspace_id = ?2) < ?9`,
       )
       .bind(
         boardId,
@@ -94,6 +95,7 @@ export async function createBoard(
         input.description,
         input.icon,
         input.color,
+        input.backgroundImage,
         now,
         LIMITS.boardsPerWorkspaceMax,
       ),
@@ -115,7 +117,7 @@ export async function createBoard(
 
   const created = await d1
     .prepare(
-      `SELECT id, name, description, icon, color, position, is_favorite AS isFavorite,
+      `SELECT id, name, description, icon, color, background_image AS backgroundImage, position, is_favorite AS isFavorite,
               created_at AS createdAt, updated_at AS updatedAt
        FROM boards WHERE id = ?1 AND workspace_id = ?2`,
     )
@@ -130,6 +132,7 @@ const BOARD_FIELDS = {
   name: 'name',
   description: 'description',
   color: 'color',
+  backgroundImage: 'background_image',
   isFavorite: 'is_favorite',
 } as const;
 

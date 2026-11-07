@@ -197,6 +197,24 @@
     transform: none;
   }
 }
+@keyframes jobward-search-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes jobward-search-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
 @keyframes jobward-slide-in-left {
   from {
     transform: translateX(-100%);

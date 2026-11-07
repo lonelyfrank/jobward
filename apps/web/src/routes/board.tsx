@@ -1,6 +1,6 @@
 import { Archive, Palette, Plus, Star } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
-import { Link, NavLink, Outlet, useMatch, useNavigate, useParams } from 'react-router';
+import { Link, Outlet, useMatch, useNavigate, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
@@ -8,6 +8,7 @@ import { ColumnDialog } from '@/features/kanban/column-dialog';
 import { useNotify } from '@/components/ui/notices';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Surface } from '@/components/ui/surface';
+import { SegmentedControl } from '@/components/ui/segmented-control';
 import { useBoardDetail, useDeleteBoard, useUpdateBoard } from '@/features/boards/api';
 import { BoardDialog } from '@/features/boards/board-dialog';
 import { BoardBackgroundDialog } from '@/features/boards/board-background-dialog';
@@ -16,6 +17,7 @@ import { setDensity, useDensity } from '@/features/kanban/density';
 import { userMessage } from '@/features/kanban/mutations';
 import { cn } from '@/lib/cn';
 import { isColorToken } from '@/lib/labels';
+import { boardBackgroundStyle, isBoardBackgroundImage } from '@/lib/board-backgrounds';
 
 // Il configuratore è usato di rado: non pesa sul caricamento della bacheca.
 const CustomFieldsDialog = lazy(() =>
@@ -42,8 +44,8 @@ export function BoardPage() {
 
   if (board.isPending) {
     return (
-      <div className="px-4 pt-5 pb-4 sm:px-6 lg:px-8">
-        <WorkspacePageHeader title="Bacheca" description="Caricamento…" />
+      <div className="px-4 pt-4 pb-4 sm:px-6 lg:px-8">
+        <WorkspacePageHeader compact title="Bacheca" description="Caricamento…" />
         <div role="status" aria-label="Caricamento della bacheca" className="flex gap-4">
           {Array.from({ length: 3 }, (_, i) => (
             <Skeleton key={i} className="h-64 w-72 shrink-0" />
@@ -56,8 +58,8 @@ export function BoardPage() {
   if (board.isError) {
     const notFound = 'status' in board.error && board.error.status === 404;
     return (
-      <div className="px-4 pt-5 pb-4 sm:px-6 lg:px-8">
-        <WorkspacePageHeader title={notFound ? 'Bacheca non trovata' : 'Bacheca'} />
+      <div className="px-4 pt-4 pb-4 sm:px-6 lg:px-8">
+        <WorkspacePageHeader compact title={notFound ? 'Bacheca non trovata' : 'Bacheca'} />
         <Surface className="p-6" role="alert">
           <p className="font-semibold">
             {notFound ? 'Bacheca non trovata' : 'Non riusciamo a caricare la bacheca.'}
@@ -87,47 +89,43 @@ export function BoardPage() {
   const columnNames = Object.fromEntries(columns.map((c) => [c.id, c.name]));
 
   return (
-    <div className="flex h-full min-h-0 flex-col px-4 pt-5 pb-4 sm:px-6 lg:px-8">
+    <div className="flex h-full min-h-0 flex-col px-4 pt-4 pb-4 sm:px-6 lg:px-8">
       <WorkspacePageHeader
-        className="mb-3 shrink-0"
+        compact
+        className="mb-2 shrink-0"
         title={info.name}
         description={info.description ?? undefined}
         canCreateCard={columns.length > 0}
         boardId={boardId}
-        backLink={{ to: '/boards', label: 'torna a tutte le bacheche' }}
+        backLink={{ to: '/boards', label: 'Torna alle bacheche' }}
         controls={
           <>
-            <nav
-              aria-label="Visualizzazione della bacheca"
-              className="flex gap-1 rounded-full bg-surface-muted p-1"
+            <SegmentedControl
+              as="nav"
+              label="Visualizzazione della bacheca"
+              value={tableView ? 'table' : 'kanban'}
             >
               {[
-                { to: `/boards/${boardId}`, label: 'Kanban', end: true },
-                { to: `/boards/${boardId}/table`, label: 'Tabella', end: false },
+                { to: `/boards/${boardId}`, label: 'Kanban', active: !tableView },
+                { to: `/boards/${boardId}/table`, label: 'Tabella', active: tableView },
               ].map((view) => (
-                <NavLink
+                <Link
                   key={view.to}
                   to={view.to}
-                  end={view.end}
-                  className={({ isActive }) =>
-                    cn(
-                      'inline-flex h-8 items-center rounded-full px-3 text-sm font-semibold transition-colors max-md:min-h-11',
-                      isActive
-                        ? 'bg-primary-soft text-primary-soft-foreground shadow-sm'
-                        : 'text-muted-foreground hover:bg-surface hover:text-foreground',
-                    )
-                  }
+                  aria-current={view.active ? 'page' : undefined}
+                  className={cn(
+                    'relative z-10 inline-flex h-8 items-center rounded-full px-3 text-sm font-semibold transition-colors max-md:min-h-11 md:h-7 md:px-2.5 md:text-[13px]',
+                    view.active
+                      ? 'text-primary-soft-foreground'
+                      : 'text-muted-foreground hover:bg-surface hover:text-foreground',
+                  )}
                 >
                   {view.label}
-                </NavLink>
+                </Link>
               ))}
-            </nav>
+            </SegmentedControl>
             {!tableView ? (
-              <div
-                role="group"
-                aria-label="Densità delle schede"
-                className="flex gap-1 rounded-full bg-surface-muted p-1"
-              >
+              <SegmentedControl label="Densità delle schede" value={density}>
                 {(
                   [
                     ['compact', 'Compatta'],
@@ -140,16 +138,16 @@ export function BoardPage() {
                     aria-pressed={density === value}
                     onClick={() => setDensity(value)}
                     className={cn(
-                      'inline-flex h-8 items-center rounded-full px-3 text-sm font-semibold transition-colors max-md:min-h-11',
+                      'relative z-10 inline-flex h-8 items-center rounded-full px-3 text-sm font-semibold transition-colors max-md:min-h-11 md:h-7 md:px-2.5 md:text-[13px]',
                       density === value
-                        ? 'bg-primary-soft text-primary-soft-foreground shadow-sm'
+                        ? 'text-primary-soft-foreground'
                         : 'text-muted-foreground hover:bg-surface hover:text-foreground',
                     )}
                   >
                     {label}
                   </button>
                 ))}
-              </div>
+              </SegmentedControl>
             ) : null}
           </>
         }
@@ -202,6 +200,10 @@ export function BoardPage() {
       <div
         data-testid="board-surface"
         data-board-color={isColorToken(info.color) ? info.color : 'default'}
+        data-board-image={
+          isBoardBackgroundImage(info.backgroundImage) ? info.backgroundImage : undefined
+        }
+        style={boardBackgroundStyle(info.backgroundImage)}
         className="board-background min-h-0 flex-1 overflow-hidden rounded-xl border border-border"
       >
         <Outlet />

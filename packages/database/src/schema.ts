@@ -119,6 +119,7 @@ export const boards = sqliteTable(
     description: text('description'),
     icon: text('icon'),
     color: text('color'),
+    backgroundImage: text('background_image'),
     position: integer('position').notNull().default(0),
     isFavorite: integer('is_favorite', { mode: 'boolean' }).notNull().default(false),
     createdAt: createdAt(),

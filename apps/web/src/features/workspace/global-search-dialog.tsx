@@ -97,7 +97,7 @@ export function GlobalSearchDialog({
       onOpenChange={(open) => !open && onClose()}
       variant="search"
       title="Cerca in Jobward"
-      description="Cerca opportunità, bacheche e colloqui in tutto il workspace."
+      description="Cerca opportunità, bacheche e colloqui in tutto il workspace, incluse le schede archiviate. Usa le frecce per navigare, Invio per aprire ed Esc per chiudere."
       onCloseAutoFocus={(event) => {
         event.preventDefault();
         if (!navigating.current) {
@@ -106,8 +106,8 @@ export function GlobalSearchDialog({
         }
       }}
     >
-      <div className="flex shrink-0 items-center gap-2 border-b border-border p-3 sm:p-4">
-        <Search aria-hidden="true" className="size-5 shrink-0 text-muted-foreground" />
+      <div className="flex shrink-0 items-center gap-3">
+        <Search aria-hidden="true" className="size-6 shrink-0 text-muted-foreground" />
         <Input
           role="combobox"
           aria-label="Cerca in Jobward"
@@ -119,7 +119,7 @@ export function GlobalSearchDialog({
           maxLength={LIMITS.searchTextMax}
           autoComplete="off"
           placeholder="Cerca in Jobward…"
-          className="min-w-0 flex-1"
+          className="h-12 min-w-0 flex-1 rounded-full bg-surface/95 px-5 text-base shadow-md focus-visible:rounded-full"
           onChange={(event) => {
             setText(event.target.value);
             setSelected(0);
@@ -142,19 +142,26 @@ export function GlobalSearchDialog({
             }
           }}
         />
-        <DialogCloseButton />
+        <DialogCloseButton className="absolute top-0 right-0 rounded-full text-muted-foreground" />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 sm:p-4">
+      <div
+        className={cn(
+          'min-h-0 overflow-y-auto overscroll-contain',
+          term
+            ? 'mt-3 ml-9 rounded-2xl border border-border bg-surface/95 p-3 shadow-md backdrop-blur-md sm:p-4'
+            : 'sr-only',
+        )}
+      >
         <p role="status" aria-live="polite" className="mb-2 text-sm text-muted-foreground">
           {!term
-            ? 'Cerca tra tutte le bacheche, incluse le schede archiviate.'
+            ? ''
             : !valid
               ? `Usa al massimo ${LIMITS.searchTermsMax} parole.`
               : loading
                 ? 'Ricerca in corso…'
                 : query.isError
                   ? ''
-                  : `${results.length} ${results.length === 1 ? 'risultato' : 'risultati'}. Fino a 10 per categoria.`}
+                  : `${results.length} ${results.length === 1 ? 'risultato' : 'risultati'}.`}
         </p>
         {query.isError && !loading && valid && term ? (
           <div role="alert" className="space-y-3 p-2">
@@ -187,7 +194,7 @@ export function GlobalSearchDialog({
                     to={item.to}
                     tabIndex={-1}
                     className={cn(
-                      'flex min-h-14 items-center gap-3 rounded-md px-3 py-2 hover:bg-hover-soft',
+                      'flex min-h-16 items-center gap-3 rounded-lg px-3 py-3 hover:bg-hover-soft',
                       active?.key === item.key && 'bg-primary-soft text-primary-soft-foreground',
                     )}
                     onPointerMove={() =>
@@ -205,10 +212,10 @@ export function GlobalSearchDialog({
                       }
                     }}
                   >
-                    <Icon aria-hidden="true" className="size-4 shrink-0" />
+                    <Icon aria-hidden="true" className="size-5 shrink-0" />
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-semibold">{item.title}</span>
-                      <span className="block truncate text-xs text-muted-foreground">
+                      <span className="block truncate text-base font-semibold">{item.title}</span>
+                      <span className="block truncate text-sm text-muted-foreground">
                         {item.subtitle}
                       </span>
                     </span>
@@ -217,10 +224,6 @@ export function GlobalSearchDialog({
               </div>
             ))}
         </div>
-      </div>
-      <div className="flex shrink-0 flex-wrap justify-between gap-2 border-t border-border px-4 py-3 text-xs text-muted-foreground">
-        <span>↑↓ Naviga · Invio Apri · Esc Chiudi</span>
-        <span>Ctrl / ⌘ K</span>
       </div>
     </Dialog>
   );

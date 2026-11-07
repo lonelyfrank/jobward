@@ -32,6 +32,7 @@ const data = (): BoardDetailResponse => ({
     description: null,
     icon: null,
     color: null,
+    backgroundImage: null,
     position: 1,
     isFavorite: false,
     createdAt: 1,

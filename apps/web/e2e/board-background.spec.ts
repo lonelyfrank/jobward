@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
-import { COLOR_TOKENS } from '@jobward/schemas';
+import { BOARD_BACKGROUND_IMAGES, COLOR_TOKENS, type UpdateBoardInput } from '@jobward/schemas';
 import { COLOR_LABELS } from '../src/lib/labels';
+import { BOARD_BACKGROUNDS } from '../src/lib/board-backgrounds';
 import { board, boardDetail, column } from '../src/test/fixtures';
 import { expectNoA11yViolations, waitForAnimationsToSettle } from './helpers';
 
@@ -28,7 +29,7 @@ test.beforeEach(async ({ page }) => {
     if (route.request().method() === 'PATCH' && path.endsWith('/boards/b1')) {
       detail.board = {
         ...detail.board,
-        ...(route.request().postDataJSON() as { color: string | null }),
+        ...(route.request().postDataJSON() as UpdateBoardInput),
       };
       await route.fulfill({ json: { board: detail.board } });
       return;
@@ -73,6 +74,68 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const theme of ['light', 'dark'] as const) {
+  test(`paesaggi: immagini locali, persistenza e leggibilità (${theme})`, async ({
+    page,
+  }, info) => {
+    test.setTimeout(90_000);
+    await page.addInitScript((value) => localStorage.setItem('jobward-theme', value), theme);
+    await page.setViewportSize({ width: 1440, height: 960 });
+    await page.goto('/boards/b1');
+    const surface = page.getByTestId('board-surface');
+    const appBackground = await page
+      .locator('body')
+      .evaluate((element) => getComputedStyle(element).backgroundColor);
+    for (const id of BOARD_BACKGROUND_IMAGES) {
+      await openBackground(page);
+      const dialog = page.getByRole('dialog', { name: 'Cambia background' });
+      await dialog.getByRole('radio', { name: BOARD_BACKGROUNDS[id].label, exact: true }).check();
+      if (id === 'alps') {
+        await expectNoA11yViolations(page, `selettore con paesaggi ${theme}`);
+        await page.screenshot({ path: info.outputPath(`landscape-picker-${theme}.png`) });
+      }
+      await dialog.getByRole('button', { name: 'Salva sfondo' }).click();
+      await expect(dialog).toBeHidden();
+      await expect(surface).toHaveAttribute('data-board-image', id);
+      const asset = BOARD_BACKGROUNDS[id].asset;
+      await expect(surface).toHaveCSS(
+        'background-image',
+        new RegExp(`/backgrounds/${asset}\\.webp`),
+      );
+      const dimensions = await page.evaluate(async (source) => {
+        const image = new Image();
+        image.src = source;
+        await image.decode();
+        return { width: image.naturalWidth, height: image.naturalHeight };
+      }, `/backgrounds/${asset}.webp`);
+      expect(dimensions.width).toBeGreaterThanOrEqual(1600);
+      expect(dimensions.height).toBeGreaterThanOrEqual(900);
+      await expect(page.locator('body')).toHaveCSS('background-color', appBackground);
+      await expectNoA11yViolations(page, `board ${id} in ${theme}`);
+      if (id === 'lake')
+        await page.screenshot({ path: info.outputPath(`landscape-board-${theme}.png`) });
+    }
+    const lastImage = BOARD_BACKGROUND_IMAGES.at(-1)!;
+    await page.reload();
+    await expect(surface).toHaveAttribute('data-board-image', lastImage);
+    await page.getByRole('link', { name: 'Tabella', exact: true }).click();
+    await expect(surface).toHaveAttribute('data-board-image', lastImage);
+    await expectNoA11yViolations(page, `tabella con paesaggio ${theme}`);
+    await page.goto('/boards/b2');
+    await expect(surface).not.toHaveAttribute('data-board-image');
+    await page.goto('/boards/b1');
+    await expect(surface).toHaveAttribute('data-board-image', lastImage);
+    await openBackground(page);
+    const dialog = page.getByRole('dialog', { name: 'Cambia background' });
+    await expect(
+      dialog.getByRole('radio', { name: BOARD_BACKGROUNDS[lastImage].label, exact: true }),
+    ).toBeChecked();
+    await dialog.getByRole('radio', { name: 'Blu', exact: true }).check();
+    await dialog.getByRole('button', { name: 'Salva sfondo' }).click();
+    await expect(dialog).toBeHidden();
+    await expect(surface).not.toHaveAttribute('data-board-image');
+    await expect(surface).toHaveCSS('background-image', 'none');
+  });
+
   test(`sfondo per bacheca: salvataggio, ricaricamento, cambio vista e accessibilità (${theme})`, async ({
     page,
   }, info) => {
@@ -137,12 +200,13 @@ for (const theme of ['light', 'dark'] as const) {
   });
 }
 
-test('titolo e azioni condividono posizione e dimensioni nelle viste del workspace', async ({
+test('intestazione coerente nel workspace e compatta nelle viste della bacheca', async ({
   page,
-}) => {
+}, info) => {
   await page.setViewportSize({ width: 1440, height: 960 });
   const positions: { x: number; y: number; font: string; searchY: number; searchSize: number }[] =
     [];
+  const boardPositions: typeof positions = [];
   for (const path of ['/', '/boards', '/boards/b1', '/boards/b1/table', '/profile', '/help']) {
     await page.goto(path);
     const header = page.getByTestId('workspace-page-header');
@@ -150,6 +214,7 @@ test('titolo e azioni condividono posizione e dimensioni nelle viste del workspa
     if (path.startsWith('/boards/b1'))
       await expect(page.getByTestId('board-surface')).toBeVisible();
     await waitForAnimationsToSettle(page);
+    if (path === '/boards') await page.screenshot({ path: info.outputPath('board-gallery.png') });
     const title = header.getByRole('heading', { level: 1 });
     const box = (await title.boundingBox())!;
     const search = (await header.getByRole('button', { name: 'Cerca in Jobward' }).boundingBox())!;
@@ -162,8 +227,10 @@ test('titolo e azioni condividono posizione e dimensioni nelle viste del workspa
       expect(views.y + views.height).toBeLessThanOrEqual(search.y + search.height);
       const boardBox = (await page.getByTestId('board-surface').boundingBox())!;
       expect(boardBox.y).toBeLessThan(110);
+      if (path === '/boards/b1')
+        await page.screenshot({ path: info.outputPath('compact-board-header.png') });
     }
-    positions.push({
+    (path.startsWith('/boards/b1') ? boardPositions : positions).push({
       x: box.x,
       y: box.y,
       font: await title.evaluate((el) => getComputedStyle(el).fontSize),
@@ -172,6 +239,13 @@ test('titolo e azioni condividono posizione e dimensioni nelle viste del workspa
     });
   }
   for (const position of positions) expect(position).toEqual(positions[0]);
+  for (const position of boardPositions) {
+    expect(position).toEqual(boardPositions[0]);
+    expect(position.x).toBe(positions[0]!.x);
+    expect(position.y).toBeLessThan(positions[0]!.y);
+    expect(parseFloat(position.font)).toBeLessThan(parseFloat(positions[0]!.font));
+    expect(position.searchSize).toBeLessThan(positions[0]!.searchSize);
+  }
 });
 
 test('board contenuta, zoom completo e selettore accessibile su telefono', async ({
