@@ -1,0 +1,50 @@
+# M3 — Registro dei problemi (consegna finale)
+
+**Data:** 2026-11-07 · **Branch:** `m3-tasks-followups`. Vedi [consegna finale](m3-final-delivery.md). I registri storici ([C3](c3-issue-register.md), [C2](c2-delivery.md)) restano invariati.
+
+## Aperti
+
+| ID     | Priorità | Stato                       | Descrizione                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | Per chiuderlo                                                                                |
+| ------ | -------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| M3F-01 | **P2**   | Aperto (blocca la chiusura) | La CI remota del branch non è stata eseguita: nessun push autorizzato. M3 non è chiusa formalmente.                                                                                                                                                                                                                                                                                                                                                                                                            | push autorizzato → PR → CI verde → integrazione                                              |
+| M3F-02 | **P2**   | Aperto                      | **D1 remoto non verificato**: nessun database nell'account del login wrangler, `database_id` segnaposto. `0006` provata solo su D1 locale (workerd). `sqlite_version()` è vietata su D1.                                                                                                                                                                                                                                                                                                                       | comandi in [m3-t1-readiness §3.3](m3-t1-readiness.md); backup/Time Travel prima di applicare |
+| M3F-03 | P2       | Aperto (fuori da M3)        | Il working tree contiene **modifiche non committate di altri** (menu account/sidebar: «Impostazioni» spostata nel menu account). **Non fanno parte di questa consegna** e non sono nei suoi commit. Con quelle modifiche, in locale `hardening.spec` «menu account…» fallisce e axe segnala `label-content-name-mismatch` sul pulsante account; **non** è introdotto dalle Attività (il test passa su `origin/main` e la verifica completa è stata eseguita su un worktree pulito dei soli commit del branch). | chi ha in corso quel lavoro lo completa con i suoi test                                      |
+| M3F-04 | P3       | Aperto (processo)           | `main` non è protetta (C3-08): proposta di ruleset in [m3-t1-readiness §2](m3-t1-readiness.md), non applicata.                                                                                                                                                                                                                                                                                                                                                                                                 | approvazione e applicazione del ruleset                                                      |
+
+## Limiti noti (scelte dichiarate, non difetti)
+
+| ID     | Priorità | Descrizione                                                                                                                                                                                                  |
+| ------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| M3F-05 | P3       | **Timeline ≠ audit** (D-06): riaprire una task fa sparire la voce «completata»/«annullata»; titolo, scadenza e priorità non lasciano traccia; `task_added`/`task_completed` restano riservati e non scritti. |
+| M3F-06 | P3       | «Non ora» **per dispositivo**; S2/S3 usano «task creata dopo il colloquio» come proxy del legame (nessun `interview_id`, D-11).                                                                              |
+| M3F-07 | P3       | Sopra 50 attività per candidatura la sezione mostra le prime 50 e i suggerimenti si disattivano.                                                                                                             |
+| M3F-08 | P3       | Dopo la mezzanotte, una pagina lasciata aperta mostra la classificazione di «ieri» finché non si riallinea (refetch al ritorno sulla scheda). Nessun E2E con orologio simulato: il «oggi» è del server.      |
+| M3F-09 | P3       | Nessuna cancellazione definitiva: le annullate restano (tetto totale 5.000). Purga/export: M4.                                                                                                               |
+| M3F-10 | P3       | Verifiche automatiche **solo Chromium**; tastiera virtuale, screen reader reali, Firefox/WebKit e dispositivi reali non verificati (come C3-02).                                                             |
+| M3F-11 | Info     | `tasks.due_at` resta come colonna legacy non usata (nessuna ricostruzione per rimuoverla).                                                                                                                   |
+
+## Difetti trovati e corretti durante l'implementazione
+
+| ID     | Priorità | Scoperto da                               | Difetto e correzione                                                                                                                                                                                                       |
+| ------ | -------- | ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| M3F-12 | **P1**   | `db:upgrade-test` (vincoli presenti)      | CHECK `due_on`: con `date(x) = x` un mese impossibile (`2026-13-01`) **passava** (`date()` → NULL; un CHECK che vale NULL è soddisfatto). Corretto con `date(x) IS x`, in SQL, schema e snapshot; la prova ora lo rifiuta. |
+| M3F-13 | P2       | axe (E2E, 12 combinazioni larghezza×tema) | Pulsanti del riepilogo con `aria-label` che contraddiceva il testo visibile (WCAG 2.5.3, `label-content-name-mismatch`). Nome accessibile = testo visibile.                                                                |
+| M3F-14 | P2       | test RTL / E2E (strict mode)              | Testo della scadenza **duplicato** nel DOM (due varianti responsive): ambiguo per screen reader e selettori. Riga ridisegnata a griglia con **una sola copia** per elemento.                                               |
+| M3F-15 | P3       | test RTL                                  | Nello stato vuoto due pulsanti con lo stesso nome («Nuova attività»). Il secondo è ora «Aggiungi la prima attività».                                                                                                       |
+| M3F-16 | P3       | review del codice                         | Il modulo di creazione, in un dialog annidato (portale), avrebbe propagato `submit` al modulo della candidatura: `preventDefault` + `stopPropagation` esplicito.                                                           |
+| M3F-17 | P3       | `eslint`                                  | Una riga di test scritta male (`.toBeDisabled;` senza chiamata) non verificava nulla: corretta.                                                                                                                            |
+
+Nessun P0 noto. **P1 aperti: nessuno.** P2 aperti: M3F-01, M3F-02 (e M3F-03, di altri).
+
+## Mutation check eseguiti sulle guardie del servizio
+
+| Guardia rimossa                                     | Esito                                                                                               |
+| --------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| tetto delle attività aperte                         | 3 test falliscono                                                                                   |
+| confronto del fingerprint nel replay                | 2 test falliscono                                                                                   |
+| controllo del token di concorrenza                  | 1 test fallisce                                                                                     |
+| esclusione delle card archiviate (contatori)        | 2 test falliscono                                                                                   |
+| guardia «card archiviata» nel servizio **da sola**  | nessun test fallisce: la stessa regola è imposta anche in SQL (409 identico) — difesa in profondità |
+| guardia «card archiviata» nel servizio **e** in SQL | 2 test falliscono                                                                                   |
+
+Il file del servizio è stato ripristinato dopo ogni prova (`git diff` vuoto).

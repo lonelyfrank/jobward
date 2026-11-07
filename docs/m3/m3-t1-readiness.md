@@ -1,5 +1,7 @@
 # M3-C3 closure e readiness per M3-T1
 
+> **Aggiornamento:** le condizioni di questo documento sono state superate dall'implementazione ([consegna finale](m3-final-delivery.md)); la verifica del D1 remoto resta aperta (M3F-02).
+
 **Data:** 2026-11-07 · **Baseline:** `origin/main` = `5a0d056eda` · Indice del pacchetto: [tasks-index.md](tasks-index.md).
 Contesto: [c3-closure.md](c3-closure.md) (causa della CI rossa) · [registro decisioni](tasks-decision-register.md).
 

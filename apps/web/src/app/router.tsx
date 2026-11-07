@@ -9,6 +9,8 @@ import { InsightsPage } from '@/routes/coming-soon';
 import { NotFoundPage } from '@/routes/not-found';
 import { OverviewPage } from '@/routes/overview';
 import { SettingsPage } from '@/routes/settings';
+import { ProfilePage } from '@/routes/profile';
+import { HelpPage } from '@/routes/help';
 
 const handle = (title: string, extra: Partial<RouteHandle> = {}): RouteHandle => ({
   title,
@@ -56,6 +58,8 @@ export const appRoutes: RouteObject[] = [
           { path: 'tasks', lazy: () => import('@/routes/tasks'), handle: handle('Attività') },
           { path: 'insights', element: <InsightsPage />, handle: handle('Insights') },
           { path: 'settings', element: <SettingsPage />, handle: handle('Impostazioni') },
+          { path: 'profile', element: <ProfilePage />, handle: handle('Profilo') },
+          { path: 'help', element: <HelpPage />, handle: handle('Aiuto') },
           { path: '*', element: <NotFoundPage />, handle: handle('Pagina non trovata') },
         ],
       },

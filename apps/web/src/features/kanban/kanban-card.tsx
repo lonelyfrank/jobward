@@ -34,6 +34,7 @@ export function KanbanCard({
   isFirst,
   isLast,
   onAction,
+  zoom = 1,
 }: {
   card: Card;
   boardId: string;
@@ -41,6 +42,7 @@ export function KanbanCard({
   isFirst: boolean;
   isLast: boolean;
   onAction: (card: Card, action: CardAction) => void;
+  zoom?: number;
 }) {
   const navigate = useNavigate();
   const {
@@ -61,7 +63,13 @@ export function KanbanCard({
   return (
     <li
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      // Le coordinate di dnd-kit sono in pixel dello schermo, prima di CSS zoom.
+      style={{
+        transform: CSS.Transform.toString(
+          transform ? { ...transform, x: transform.x / zoom, y: transform.y / zoom } : null,
+        ),
+        transition,
+      }}
       data-card-id={card.id}
       className={cn('list-none touch-manipulation', isDragging && 'opacity-40')}
       {...pointerListeners}

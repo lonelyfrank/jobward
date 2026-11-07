@@ -27,6 +27,7 @@ export function KanbanColumn({
   isLast,
   onCardAction,
   onColumnAction,
+  zoom = 1,
 }: {
   boardId: string;
   column: Column;
@@ -36,6 +37,7 @@ export function KanbanColumn({
   isLast: boolean;
   onCardAction: (card: Card, action: CardAction) => void;
   onColumnAction: (column: Column, action: ColumnAction) => void;
+  zoom?: number;
 }) {
   const {
     attributes,
@@ -53,7 +55,14 @@ export function KanbanColumn({
       ref={setNodeRef}
       aria-labelledby={headingId}
       data-column-id={column.id}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      // dnd-kit misura gli spostamenti sullo schermo: CSS zoom scala già il contenitore.
+      // Compensare la traslazione mantiene il bersaglio allineato al puntatore.
+      style={{
+        transform: CSS.Transform.toString(
+          transform ? { ...transform, x: transform.x / zoom, y: transform.y / zoom } : null,
+        ),
+        transition,
+      }}
       className={cn(
         'flex max-h-full w-[85vw] shrink-0 snap-center flex-col rounded-xl pb-1 sm:w-[18rem] sm:snap-align-none',
         // Unico uso del materiale Glass Subtle: lo sfondo del contenitore esterno della colonna
@@ -134,6 +143,7 @@ export function KanbanColumn({
           {cards.map((card, index) => (
             <KanbanCard
               key={card.id}
+              zoom={zoom}
               card={card}
               boardId={boardId}
               columns={allColumns}

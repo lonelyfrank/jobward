@@ -1,4 +1,4 @@
-import { ArrowLeft, Archive, Plus, Star } from 'lucide-react';
+import { Archive, Plus, Star } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,6 @@ import { cn } from '@/lib/cn';
 const CustomFieldsDialog = lazy(() =>
   import('@/features/custom-fields/fields-dialog').then((m) => ({ default: m.CustomFieldsDialog })),
 );
-import { COLOR_BG, isColorToken } from '@/lib/labels';
 
 /** Bacheca aperta: intestazione, Kanban e (come sotto-rotta) il pannello di dettaglio della scheda. */
 export function BoardPage() {
@@ -92,21 +91,7 @@ export function BoardPage() {
         description={info.description ?? undefined}
         canCreateCard={columns.length > 0}
         boardId={boardId}
-        navigation={
-          <Link
-            to="/boards"
-            className="inline-flex min-h-11 items-center gap-1 rounded-sm text-sm text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft aria-hidden="true" className="size-4" />
-            {isColorToken(info.color) ? (
-              <span
-                aria-hidden="true"
-                className={cn('size-3 shrink-0 rounded-full', COLOR_BG[info.color])}
-              />
-            ) : null}
-            Tutte le bacheche
-          </Link>
-        }
+        backLink={{ to: '/boards', label: 'torna a tutte le bacheche' }}
         actions={[
           {
             id: 'add-column',
@@ -148,7 +133,7 @@ export function BoardPage() {
       >
         <nav
           aria-label="Visualizzazione della bacheca"
-          className="flex gap-1 rounded-md border border-border-strong bg-surface p-1"
+          className="flex gap-1 rounded-full bg-surface-muted p-1"
         >
           {[
             { to: `/boards/${boardId}`, label: 'Kanban', end: true },
@@ -160,10 +145,10 @@ export function BoardPage() {
               end={view.end}
               className={({ isActive }) =>
                 cn(
-                  'inline-flex h-9 items-center rounded-lg px-4 text-sm font-semibold max-md:min-h-11',
+                  'inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold transition-colors max-md:min-h-11',
                   isActive
-                    ? 'bg-primary-soft text-primary-soft-foreground'
-                    : 'text-muted-foreground hover:bg-hover-soft hover:text-foreground',
+                    ? 'bg-primary-soft text-primary-soft-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-surface hover:text-foreground',
                 )
               }
             >
@@ -175,7 +160,7 @@ export function BoardPage() {
           <div
             role="group"
             aria-label="Densità delle schede"
-            className="flex gap-1 rounded-md border border-border-strong bg-surface p-1"
+            className="flex gap-1 rounded-full bg-surface-muted p-1"
           >
             {(
               [
@@ -189,10 +174,10 @@ export function BoardPage() {
                 aria-pressed={density === value}
                 onClick={() => setDensity(value)}
                 className={cn(
-                  'inline-flex h-9 items-center rounded-lg px-4 text-sm font-semibold max-md:min-h-11',
+                  'inline-flex h-9 items-center rounded-full px-4 text-sm font-semibold transition-colors max-md:min-h-11',
                   density === value
-                    ? 'bg-primary-soft text-primary-soft-foreground'
-                    : 'text-muted-foreground hover:bg-hover-soft hover:text-foreground',
+                    ? 'bg-primary-soft text-primary-soft-foreground shadow-sm'
+                    : 'text-muted-foreground hover:bg-surface hover:text-foreground',
                 )}
               >
                 {label}

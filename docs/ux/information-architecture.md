@@ -29,7 +29,7 @@ flowchart TD
 | `/boards`          | Elenco bacheche + template | Stato vuoto ✅; funzioni M1 |
 | `/boards/:boardId` | Kanban                     | Segnaposto dichiarato (M1)  |
 | `/opportunities`   | Tabella                    | Stato vuoto, M2             |
-| `/tasks`           | Attività                   | Stato vuoto, M3             |
+| `/tasks`           | Attività                   | Pagina operativa (M3)       |
 | `/insights`        | Statistiche                | Stato vuoto, M4             |
 | `/settings`        | Impostazioni               | ✅ tema, workspace, account |
 | `*`                | 404 dentro la shell        | ✅                          |

@@ -131,7 +131,7 @@ export function Sidebar({
             Workspace
           </p>
           <ul className="space-y-2 px-2">
-            {NAV_ITEMS.filter((item) => item.placement !== 'bottom').map((item) => (
+            {NAV_ITEMS.map((item) => (
               <SidebarLink
                 key={item.to}
                 item={item}
@@ -156,21 +156,8 @@ export function Sidebar({
           </div>
         </div>
 
-        <div className="mt-auto flex shrink-0 flex-col gap-3 px-2 pt-3 pb-5">
-          <div className="mx-0.5 h-px bg-border" />
-          <ul>
-            {NAV_ITEMS.filter((item) => item.placement === 'bottom').map((item) => (
-              <SidebarLink
-                key={item.to}
-                item={item}
-                collapsed={collapsed}
-                onNavigate={onNavigate}
-              />
-            ))}
-          </ul>
-          <div className="px-0.5">
-            <UserMenu />
-          </div>
+        <div className="mt-auto shrink-0 border-t border-border px-2 py-2">
+          <UserMenu key={String(collapsed)} collapsed={collapsed} onNavigate={onNavigate} />
         </div>
       </nav>
     </div>

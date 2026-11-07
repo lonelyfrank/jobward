@@ -28,6 +28,8 @@ import { anchorBefore } from '@jobward/shared';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNotify } from '@/components/ui/notices';
 import { groupCards, menuMove } from './board-state';
+import { useBoardZoom } from './board-zoom';
+import { BoardZoomControls } from './board-zoom-controls';
 import { CardView } from './card-view';
 import { ColumnDialog } from './column-dialog';
 import { DeleteColumnDialog } from './delete-column-dialog';
@@ -56,6 +58,18 @@ const INSTRUCTIONS =
  */
 export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDetailResponse }) {
   const { columns, cards } = data;
+  const {
+    zoom,
+    viewportRef,
+    canvasRef,
+    zoomOut,
+    zoomIn,
+    fit,
+    reset: resetZoom,
+    fitting,
+    canZoomOut,
+    canZoomIn,
+  } = useBoardZoom(boardId, columns.length);
   const notify = useNotify();
   const moveCard = useMoveCard(boardId);
   const moveColumn = useMoveColumn(boardId);
@@ -71,7 +85,11 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
   );
 
   const [dragItems, setDragItems] = useState<Items | null>(null);
-  const [active, setActive] = useState<{ type: 'card' | 'column'; id: string } | null>(null);
+  const [active, setActive] = useState<{
+    type: 'card' | 'column';
+    id: string;
+    width?: number;
+  } | null>(null);
   const items = dragItems ?? baseItems;
   const lastOverId = useRef<UniqueIdentifier | null>(null);
 
@@ -138,7 +156,7 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
 
   const onDragStart = ({ active: a }: DragStartEvent) => {
     const type = a.data.current?.['type'] === 'column' ? 'column' : 'card';
-    setActive({ type, id: String(a.id) });
+    setActive({ type, id: String(a.id), width: a.rect.current.initial?.width });
     if (type === 'card') setDragItems(structuredClone(baseItems));
   };
 
@@ -283,7 +301,7 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
     active?.type === 'column' ? columns.find((c) => c.id === active.id) : undefined;
 
   return (
-    <>
+    <div ref={viewportRef} className="relative h-full min-h-0 overflow-hidden">
       <DndContext
         sensors={sensors}
         collisionDetection={collisionDetection}
@@ -300,10 +318,12 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
         {/* `relative`: gli elementi sr-only (absolute) restano contenuti e scorrono con la bacheca,
             altrimenti allargherebbero in orizzontale la pagina intera. */}
         <div
+          ref={canvasRef}
           role="group"
           aria-label="Colonne della bacheca"
           data-testid="kanban"
-          className="relative flex h-full min-h-0 snap-x snap-mandatory items-start gap-5 overflow-x-auto px-4 pb-4 sm:snap-none sm:px-8 lg:px-11"
+          style={{ zoom, width: '100%', height: '100%' }}
+          className="relative flex min-h-0 snap-x snap-mandatory items-start gap-5 overflow-x-auto px-4 pb-4 sm:snap-none sm:px-8 lg:px-11"
         >
           <SortableContext
             items={columns.map((c) => c.id)}
@@ -312,6 +332,7 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
             {columns.map((column, index) => (
               <KanbanColumn
                 key={column.id}
+                zoom={zoom}
                 boardId={boardId}
                 column={{ ...column, cardCount: items[column.id]?.length ?? column.cardCount }}
                 cards={(items[column.id] ?? []).flatMap((id) => cardById.get(id) ?? [])}
@@ -333,14 +354,31 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
         </div>
 
         <DragOverlay dropAnimation={null}>
-          {activeCard ? <CardView card={activeCard} boardId={boardId} overlay /> : null}
-          {activeColumn ? (
-            <div className="w-[18rem] rounded-xl border border-border bg-surface-muted p-3 text-sm font-semibold shadow-md ring-2 ring-ring">
-              {activeColumn.name}
-            </div>
-          ) : null}
+          <div style={{ zoom, width: active?.width ? active.width / zoom : undefined }}>
+            {activeCard ? <CardView card={activeCard} boardId={boardId} overlay /> : null}
+            {activeColumn ? (
+              <div className="w-[18rem] rounded-xl border border-border bg-surface-muted p-3 text-sm font-semibold shadow-md ring-2 ring-ring">
+                {activeColumn.name}
+              </div>
+            ) : null}
+          </div>
         </DragOverlay>
       </DndContext>
+
+      {columns.length > 0 ? (
+        <BoardZoomControls
+          canvasRef={canvasRef}
+          zoom={zoom}
+          fitting={fitting}
+          canZoomOut={canZoomOut}
+          canZoomIn={canZoomIn}
+          disabled={active !== null}
+          onZoomOut={zoomOut}
+          onZoomIn={zoomIn}
+          onReset={resetZoom}
+          onFit={fit}
+        />
+      ) : null}
 
       {editingColumn ? (
         <ColumnDialog
@@ -359,6 +397,6 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
           onClose={() => setDeletingColumn(null)}
         />
       ) : null}
-    </>
+    </div>
   );
 }

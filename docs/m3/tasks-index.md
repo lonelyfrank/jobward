@@ -1,6 +1,6 @@
 # Attività, follow-up e scadenze — Pacchetto di progettazione (M3-T0)
 
-**Stato:** **proposta per approvazione. Nessuna implementazione**: nessuna migrazione, nessun endpoint, nessuna modifica alla UI Attività.
+**Stato (aggiornato 2026-11-07):** progettazione **approvata e implementata** nel branch `m3-tasks-followups`: [consegna finale](m3-final-delivery.md) · [problemi](m3-final-issue-register.md). Scostamenti dalla progettazione: [consegna §2](m3-final-delivery.md). _Il testo storico qui sotto descrive la fase di progettazione (nessuna implementazione)._
 **Baseline:** `origin/main` = `5a0d056eda` · **Branch:** `m3-c3-closure-tasks-design` · **Data:** 2026-11-07.
 
 Obiettivo: trasformare Jobward da strumento di tracciamento a **workspace operativo** — «cosa devo fare, entro quando, per quale candidatura» —

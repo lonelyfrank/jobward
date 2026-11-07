@@ -1,6 +1,6 @@
 # Attività e follow-up — Roadmap in checkpoint
 
-**Stato:** **proposta da validare**: i nomi M3-T0…T3 **non** sono milestone approvate. · **Baseline:** `5a0d056eda`.
+**Stato (aggiornato):** roadmap **approvata**; T0–T3 eseguiti in un'unica consegna ([m3-final-delivery.md](m3-final-delivery.md)), restano C4/C5 coperti dalla stessa verifica; nessun nuovo checkpoint. _Alla progettazione:_ **proposta da validare**: i nomi M3-T0…T3 **non** sono milestone approvate. · **Baseline:** `5a0d056eda`.
 Indice: [tasks-index.md](tasks-index.md). Nessuna milestone già consegnata viene riscritta: gli esiti di C1–C3 restano quelli dei loro report.
 
 ## 1. Rapporto con il piano M3 esistente

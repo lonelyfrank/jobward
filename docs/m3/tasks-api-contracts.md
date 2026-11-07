@@ -1,6 +1,6 @@
 # Attività e follow-up — Contratti API proposti
 
-**Stato:** proposta, **nessun endpoint implementato** · **Baseline:** `5a0d056eda`.
+**Stato:** contratti **implementati** (v. [consegna finale](m3-final-delivery.md)). _Testo alla progettazione:_ proposta, nessun endpoint implementato · **Baseline:** `5a0d056eda`.
 Indice: [tasks-index.md](tasks-index.md) · Modello: [tasks-architecture.md](tasks-architecture.md).
 
 ## 1. Convenzioni (identiche a M3-C2)

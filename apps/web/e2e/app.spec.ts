@@ -10,6 +10,8 @@ const SECTIONS = [
   { link: 'Attività', heading: 'Attività', path: '/tasks' },
   { link: 'Insights', heading: 'Insights', path: '/insights' },
   { link: 'Impostazioni', heading: 'Impostazioni', path: '/settings' },
+  { link: 'Profilo', heading: 'Profilo', path: '/profile' },
+  { link: 'Aiuto', heading: 'Aiuto', path: '/help' },
 ] as const;
 
 test('primo accesso: onboarding con validazione, poi creazione del workspace', async ({ page }) => {
@@ -48,7 +50,12 @@ test('naviga tra tutte le schermate e ciascuna dichiara cosa non è ancora dispo
   await page.goto('/');
   const nav = page.getByRole('navigation', { name: 'Navigazione principale' });
   for (const section of SECTIONS) {
-    await nav.getByRole('link', { name: section.link }).click();
+    if (['Impostazioni', 'Profilo', 'Aiuto'].includes(section.link)) {
+      await nav.getByRole('button', { name: /^Menu account/ }).click();
+      await page.getByRole('menuitem', { name: section.link }).click();
+    } else {
+      await nav.getByRole('link', { name: section.link }).click();
+    }
     await expect(page).toHaveURL(section.path);
     await expect(page.getByRole('heading', { level: 1, name: section.heading })).toBeVisible();
     await expect(page.getByRole('main')).toBeFocused();

@@ -4,26 +4,26 @@ Legenda stato: ✅ M0 · ⏳ milestone futura (indicata).
 
 ## Funzionali
 
-| ID   | Requisito                                                                                                    | Milestone | Stato                                                 |
-| ---- | ------------------------------------------------------------------------------------------------------------ | --------- | ----------------------------------------------------- |
-| F-01 | Il proprietario accede in modo privato; gli altri sono esclusi                                               | M0        | ✅                                                    |
-| F-02 | Creazione del workspace al primo accesso (nome, fuso orario)                                                 | M0        | ✅                                                    |
-| F-03 | Overview con riepilogo derivato dai dati reali e stati vuoti utili                                           | M0        | ✅ (dati a zero finché non esistono schede)           |
-| F-04 | Tema chiaro/scuro/sistema, sidebar comprimibile, navigazione responsive                                      | M0        | ✅                                                    |
-| F-05 | Bacheche: CRUD, preferite, ordinamento, ricerca                                                              | M1        | ⏳                                                    |
-| F-06 | Colonne: crea, rinomina, riordina; eliminazione solo se vuote                                                | M1        | ⏳                                                    |
-| F-07 | Schede: creazione col solo titolo, modifica, archiviazione recuperabile                                      | M1        | ⏳                                                    |
-| F-08 | Kanban con drag & drop (aggiornamento ottimistico + rollback) e alternativa da tastiera/menu                 | M1        | ⏳                                                    |
-| F-09 | Pannello di dettaglio scheda (Overview, Notes, History…) senza perdere il contesto                           | M1        | ⏳                                                    |
-| F-10 | Onboarding completo: template (Job Search Standard / Minimal / Custom), prima opportunità                    | M1        | ⏳ (template già definiti come dati)                  |
-| F-11 | Informazioni strutturate dell'opportunità (azienda, sede, contratto, retribuzione, fonte, date, fase, esito) | M2        | ⏳                                                    |
-| F-12 | Campi personalizzati (8 tipi) con validazione per tipo                                                       | M2        | ⏳ (schemi di validazione già implementati e testati) |
-| F-13 | Etichette, filtri (colonna, priorità, etichette, scadute), ricerca (titolo, azienda, descrizione)            | M2        | ⏳                                                    |
-| F-14 | Vista tabella con ordinamento e filtri                                                                       | M2        | ⏳                                                    |
-| F-15 | Attività con scadenza, follow-up, cronologia degli eventi                                                    | M3        | ⏳                                                    |
-| F-16 | Statistiche pertinenti                                                                                       | M4        | ⏳                                                    |
-| F-17 | Esportazione dei dati dell'utente                                                                            | M4        | ⏳                                                    |
-| F-18 | Registrazione pubblica, quote, cancellazione account                                                         | M5        | ⏳                                                    |
+| ID   | Requisito                                                                                                    | Milestone | Stato                                                          |
+| ---- | ------------------------------------------------------------------------------------------------------------ | --------- | -------------------------------------------------------------- |
+| F-01 | Il proprietario accede in modo privato; gli altri sono esclusi                                               | M0        | ✅                                                             |
+| F-02 | Creazione del workspace al primo accesso (nome, fuso orario)                                                 | M0        | ✅                                                             |
+| F-03 | Overview con riepilogo derivato dai dati reali e stati vuoti utili                                           | M0        | ✅ (dati a zero finché non esistono schede)                    |
+| F-04 | Tema chiaro/scuro/sistema, sidebar comprimibile, navigazione responsive                                      | M0        | ✅                                                             |
+| F-05 | Bacheche: CRUD, preferite, ordinamento, ricerca                                                              | M1        | ⏳                                                             |
+| F-06 | Colonne: crea, rinomina, riordina; eliminazione solo se vuote                                                | M1        | ⏳                                                             |
+| F-07 | Schede: creazione col solo titolo, modifica, archiviazione recuperabile                                      | M1        | ⏳                                                             |
+| F-08 | Kanban con drag & drop (aggiornamento ottimistico + rollback) e alternativa da tastiera/menu                 | M1        | ⏳                                                             |
+| F-09 | Pannello di dettaglio scheda (Overview, Notes, History…) senza perdere il contesto                           | M1        | ⏳                                                             |
+| F-10 | Onboarding completo: template (Job Search Standard / Minimal / Custom), prima opportunità                    | M1        | ⏳ (template già definiti come dati)                           |
+| F-11 | Informazioni strutturate dell'opportunità (azienda, sede, contratto, retribuzione, fonte, date, fase, esito) | M2        | ⏳                                                             |
+| F-12 | Campi personalizzati (8 tipi) con validazione per tipo                                                       | M2        | ⏳ (schemi di validazione già implementati e testati)          |
+| F-13 | Etichette, filtri (colonna, priorità, etichette, scadute), ricerca (titolo, azienda, descrizione)            | M2        | ⏳                                                             |
+| F-14 | Vista tabella con ordinamento e filtri                                                                       | M2        | ⏳                                                             |
+| F-15 | Attività con scadenza, follow-up, cronologia degli eventi                                                    | M3        | ✅ (branch `m3-tasks-followups`; Timeline derivata, non audit) |
+| F-16 | Statistiche pertinenti                                                                                       | M4        | ⏳                                                             |
+| F-17 | Esportazione dei dati dell'utente                                                                            | M4        | ⏳                                                             |
+| F-18 | Registrazione pubblica, quote, cancellazione account                                                         | M5        | ⏳                                                             |
 
 ## Regole di business
 

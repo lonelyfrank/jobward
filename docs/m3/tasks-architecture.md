@@ -1,6 +1,6 @@
 # Attività e follow-up — Architettura proposta
 
-**Stato:** proposta, **nessun file SQL, endpoint o componente creato** · **Baseline:** `5a0d056eda`.
+**Stato:** progettazione **implementata** (v. [consegna finale](m3-final-delivery.md), con gli scostamenti S-1…S-6: CHECK `due_on` con `IS`, `tasks_card_idx` conservato, «Oggi» indicatore statico). _Testo alla progettazione:_ proposta, nessun file SQL, endpoint o componente creato · **Baseline:** `5a0d056eda`.
 Indice: [tasks-index.md](tasks-index.md) · Contratti: [tasks-api-contracts.md](tasks-api-contracts.md).
 
 ## 1. Principi

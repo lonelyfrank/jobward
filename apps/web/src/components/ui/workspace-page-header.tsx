@@ -1,5 +1,6 @@
-import { Menu, Plus, Search } from 'lucide-react';
+import { ChevronLeft, Menu, Plus, Search } from 'lucide-react';
 import type { ReactNode } from 'react';
+import { Link } from 'react-router';
 import { useWorkspaceControls } from '@/features/workspace/workspace-controls';
 import { cn } from '@/lib/cn';
 import { Button } from './button';
@@ -10,6 +11,7 @@ export function WorkspacePageHeader({
   title,
   description,
   navigation,
+  backLink,
   actions = [],
   canCreateCard = false,
   boardId,
@@ -19,6 +21,7 @@ export function WorkspacePageHeader({
   title: string;
   description?: string;
   navigation?: ReactNode;
+  backLink?: { to: string; label: string };
   actions?: WorkspaceAction[];
   canCreateCard?: boolean;
   boardId?: string;
@@ -41,7 +44,12 @@ export function WorkspacePageHeader({
     <header data-testid="workspace-page-header" className={cn('mb-8', className)}>
       {navigation ? <div className="mb-2">{navigation}</div> : null}
       <div className="flex flex-wrap items-start justify-between gap-x-5 gap-y-3">
-        <div className="flex min-w-0 flex-1 basis-48 items-start gap-2">
+        <div
+          className={cn(
+            'flex min-w-0 flex-1 basis-48 items-start gap-2',
+            backLink && 'max-sm:basis-32',
+          )}
+        >
           <Button
             ref={setMenuButton}
             variant="ghost"
@@ -61,12 +69,12 @@ export function WorkspacePageHeader({
             ) : null}
           </div>
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           <Tooltip content="Cerca in Jobward" side="bottom">
             <Button
-              variant="secondary"
+              variant="ghost"
               size="icon"
-              className="size-11 active:bg-hover-soft"
+              className="size-11 rounded-full bg-surface-muted text-foreground hover:bg-primary-soft hover:text-primary-soft-foreground active:bg-primary-soft [&_svg]:size-[18px]"
               aria-label="Cerca in Jobward"
               aria-keyshortcuts="Control+K Meta+K"
               onClick={openSearch}
@@ -74,6 +82,20 @@ export function WorkspacePageHeader({
               <Search aria-hidden="true" />
             </Button>
           </Tooltip>
+          {backLink ? (
+            <Tooltip content={backLink.label} side="bottom">
+              <Button
+                asChild
+                variant="ghost"
+                size="icon"
+                className="size-11 rounded-full bg-surface-muted text-foreground hover:bg-primary-soft hover:text-primary-soft-foreground active:bg-primary-soft [&_svg]:size-[18px]"
+              >
+                <Link to={backLink.to} aria-label={backLink.label}>
+                  <ChevronLeft aria-hidden="true" />
+                </Link>
+              </Button>
+            </Tooltip>
+          ) : null}
           <WorkspaceActionsMenu actions={menu} />
         </div>
       </div>

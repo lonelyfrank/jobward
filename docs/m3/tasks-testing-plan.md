@@ -1,6 +1,6 @@
 # Attività e follow-up — Piano di test
 
-**Stato:** proposta, nessun test scritto · **Baseline:** `5a0d056eda`.
+**Stato:** piano **eseguito** (risultati e lacune dichiarate: [consegna finale](m3-final-delivery.md) §5 e §7). _Testo alla progettazione:_ proposta, nessun test scritto · **Baseline:** `5a0d056eda`.
 Indice: [tasks-index.md](tasks-index.md). Convenzioni e strumenti: quelle esistenti (Vitest nei 4 pacchetti, API su D1 reale con `m3-helpers`, RTL, Playwright E2E e **preview con CSP reale**, `db:check`, `db:upgrade-test`).
 
 **Regola di processo (dalla lezione della CI 42334739111):** ogni E2E che cambia scheda o apre un dialog attende lo **stato ARIA** (`openTab`, `toBeVisible` del pannello), mai il solo URL; i `describe` seriali non dipendono da dati lasciati da altri test; ogni test di tempo/race è provato **con CPU limitata** (throttling CDP ≥ 6×) prima di essere accettato.

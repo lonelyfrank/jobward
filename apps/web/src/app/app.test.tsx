@@ -83,21 +83,14 @@ describe('accesso e onboarding', () => {
 });
 
 describe('shell e navigazione', () => {
-  it('mostra le sei voci previste e segna quella attiva con aria-current', async () => {
+  it('mostra le cinque voci del workspace e segna quella attiva con aria-current', async () => {
     mockApi(withWorkspace());
     renderApp();
     const nav = await screen.findByRole('navigation', { name: 'Navigazione principale' });
     const links = within(nav)
       .getAllByRole('link')
       .map((l) => l.textContent);
-    expect(links).toEqual([
-      'Overview',
-      'Bacheche',
-      'Opportunità',
-      'Attività',
-      'Insights',
-      'Impostazioni',
-    ]);
+    expect(links).toEqual(['Overview', 'Bacheche', 'Opportunità', 'Attività', 'Insights']);
     expect(within(nav).getByRole('link', { name: 'Overview' })).toHaveAttribute(
       'aria-current',
       'page',
@@ -116,8 +109,15 @@ describe('shell e navigazione', () => {
       ['Attività', 'Attività'],
       ['Insights', 'Insights'],
       ['Impostazioni', 'Impostazioni'],
+      ['Profilo', 'Profilo'],
+      ['Aiuto', 'Aiuto'],
     ] as const) {
-      await user.click(within(nav).getByRole('link', { name: link }));
+      if (['Impostazioni', 'Profilo', 'Aiuto'].includes(link)) {
+        await user.click(within(nav).getByRole('button', { name: /^Menu account/ }));
+        await user.click(await screen.findByRole('menuitem', { name: link }));
+      } else {
+        await user.click(within(nav).getByRole('link', { name: link }));
+      }
       expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
       expect(screen.getByTestId('workspace-page-header')).toHaveTextContent(heading);
       expect(screen.queryByTestId('topbar-title')).not.toBeInTheDocument();
@@ -319,28 +319,50 @@ describe('schermate base', () => {
   });
 });
 
-describe('tema condiviso tra componenti', () => {
-  it('il menu account riflette il tema scelto in Impostazioni (stato unico)', async () => {
+describe('menu account', () => {
+  it('lascia il tema nelle Impostazioni e conserva la scelta quando si usa il menu', async () => {
     const user = userEvent.setup();
     mockApi(withWorkspace());
     renderApp('/settings');
 
     await user.click(await screen.findByRole('radio', { name: /Scuro/ }));
-    await user.click(screen.getByRole('button', { name: 'Menu account' }));
+    await user.click(screen.getByRole('button', { name: /^Menu account/ }));
 
-    expect(await screen.findByRole('menuitemradio', { name: 'Scuro' })).toBeChecked();
-    expect(screen.getByRole('menuitemradio', { name: 'Come il sistema' })).not.toBeChecked();
+    const menu = await screen.findByRole('menu', { name: 'Menu account' });
+    expect(within(menu).queryByRole('menuitemradio')).not.toBeInTheDocument();
+    expect(
+      within(menu)
+        .getAllByRole('menuitem')
+        .map((item) => item.textContent),
+    ).toEqual(['Profilo', 'Impostazioni', 'Aiuto']);
+    await user.click(within(menu).getByRole('menuitem', { name: 'Impostazioni' }));
+    expect(screen.getByRole('radio', { name: /Scuro/ })).toBeChecked();
+    expect(document.documentElement).toHaveClass('dark');
   });
 
-  it('e viceversa: la scelta dal menu aggiorna le Impostazioni', async () => {
+  it('apre un profilo con i dati reali e una guida con collegamenti alle funzioni disponibili', async () => {
     const user = userEvent.setup();
     mockApi(withWorkspace());
-    renderApp('/settings');
+    renderApp();
 
-    await user.click(await screen.findByRole('button', { name: 'Menu account' }));
-    await user.click(await screen.findByRole('menuitemradio', { name: 'Chiaro' }));
+    await user.click(await screen.findByRole('button', { name: /^Menu account/ }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Profilo' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Profilo' })).toBeInTheDocument();
+    expect(within(screen.getByRole('main')).getByText(USER.email)).toBeInTheDocument();
+    expect(screen.getByText(WORKSPACE.name, { selector: 'dd' })).toBeInTheDocument();
+    expect(screen.getByText(WORKSPACE.timezone, { selector: 'dd' })).toBeInTheDocument();
 
-    expect(screen.getByRole('radio', { name: /Chiaro/ })).toBeChecked();
-    expect(document.documentElement).not.toHaveClass('dark');
+    await user.click(screen.getByRole('button', { name: /^Menu account/ }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Aiuto' }));
+    expect(await screen.findByRole('heading', { level: 1, name: 'Aiuto' })).toBeInTheDocument();
+    const main = within(screen.getByRole('main'));
+    expect(main.getByRole('link', { name: /Organizza le opportunità/ })).toHaveAttribute(
+      'href',
+      '/boards',
+    );
+    expect(main.getByRole('link', { name: 'Segnala un problema' })).toHaveAttribute(
+      'href',
+      'https://github.com/lonelyfrank/jobward/issues',
+    );
   });
 });

@@ -3,20 +3,20 @@
 Implementazione: [`packages/database/src/schema.ts`](../../packages/database/src/schema.ts) (persistenza) e
 [`packages/schemas`](../../packages/schemas/src) (validazione). Diagramma ER: [database](../architecture/database.md).
 
-| Entità                      | Scopo                                                | Note                                                           |
-| --------------------------- | ---------------------------------------------------- | -------------------------------------------------------------- |
-| **User**                    | Account proprietario dei dati                        | Email minuscola e univoca                                      |
-| **Workspace**               | Ambiente di lavoro                                   | Fuso orario IANA. MVP: uno per utente                          |
-| **WorkspaceMember**         | Membership `owner` / `editor` / `viewer`             | Predispone permessi articolati; in M0 solo `owner`             |
-| **Board**                   | Bacheca di opportunità                               | Nome, descrizione, icona, colore, posizione, preferita         |
-| **BoardColumn**             | Colonna configurabile                                | Nome, colore, posizione, **categoria semantica** facoltativa   |
-| **Card**                    | Elemento centrale                                    | Creabile col solo titolo; priorità; archiviazione recuperabile |
-| **ApplicationDetails**      | Dati strutturati dell'opportunità, 1:1 con la scheda | Tutti i campi facoltativi                                      |
-| **CustomFieldDefinition**   | Campo configurabile per bacheca                      | 8 tipi; configurazione tipizzata; ordine; attivo/disattivo     |
-| **CustomFieldValue**        | Valore di un campo su una scheda                     | Validato rispetto alla definizione; JSON che preserva il tipo  |
-| **Label** / **card_labels** | Etichette del workspace                              | Nome univoco senza distinguere maiuscole                       |
-| **Task**                    | Attività                                             | Collegata a una scheda o al workspace; scadenza; completamento |
-| **ActivityEvent**           | Cronologia                                           | Solo eventi significativi, metadati strutturati minimi         |
+| Entità                      | Scopo                                                | Note                                                                                                                                                            |
+| --------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **User**                    | Account proprietario dei dati                        | Email minuscola e univoca                                                                                                                                       |
+| **Workspace**               | Ambiente di lavoro                                   | Fuso orario IANA. MVP: uno per utente                                                                                                                           |
+| **WorkspaceMember**         | Membership `owner` / `editor` / `viewer`             | Predispone permessi articolati; in M0 solo `owner`                                                                                                              |
+| **Board**                   | Bacheca di opportunità                               | Nome, descrizione, icona, colore, posizione, preferita                                                                                                          |
+| **BoardColumn**             | Colonna configurabile                                | Nome, colore, posizione, **categoria semantica** facoltativa                                                                                                    |
+| **Card**                    | Elemento centrale                                    | Creabile col solo titolo; priorità; archiviazione recuperabile                                                                                                  |
+| **ApplicationDetails**      | Dati strutturati dell'opportunità, 1:1 con la scheda | Tutti i campi facoltativi                                                                                                                                       |
+| **CustomFieldDefinition**   | Campo configurabile per bacheca                      | 8 tipi; configurazione tipizzata; ordine; attivo/disattivo                                                                                                      |
+| **CustomFieldValue**        | Valore di un campo su una scheda                     | Validato rispetto alla definizione; JSON che preserva il tipo                                                                                                   |
+| **Label** / **card_labels** | Etichette del workspace                              | Nome univoco senza distinguere maiuscole                                                                                                                        |
+| **Task**                    | Attività                                             | Collegata a una scheda o al workspace; scadenza = **data di calendario**; stato derivato (da fare/completata/annullata); tipo (generica/follow-up/preparazione) |
+| **ActivityEvent**           | Cronologia                                           | Solo eventi significativi, metadati strutturati minimi                                                                                                          |
 
 ## Vocabolari controllati (`packages/shared/src/constants.ts`)
 

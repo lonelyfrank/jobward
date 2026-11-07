@@ -18,15 +18,11 @@ ATS per recruiter e non invia candidature al posto tuo. Funziona per qualsiasi s
 
 ## Stato effettivo del progetto
 
-**Checkpoint corrente: M3-C3 — Application Workflow UI & Integration, consegnato su `main` (`5a0d056eda`) ma _non ancora chiuso_.**
-C3 collega pipeline, note, riferimenti documentali e timeline alle sei schede della modale
-([consegna](docs/m3/c3-delivery.md) · [verifiche](docs/m3/c3-testing-report.md), documenti storici).
-La **CI remota di `main` è rossa** ([run 42334739111](https://github.com/lonelyfrank/jobward/actions/runs/42334739111)):
-typecheck/lint/test/build e 176 E2E verdi, **un test della suite preview in timeout** per una race di sincronizzazione del test (nessun difetto di prodotto).
-La correzione è nella [PR #8](https://github.com/lonelyfrank/jobward/pull/8) con **CI verde** (Quality, E2E 176, preview 13/13); **`main` resta rossa fino al merge**.
-Causa, prova e stato: [chiusura C3](docs/m3/c3-closure.md).
+**Checkpoint corrente: M3 funzionalmente completa nel branch `m3-tasks-followups` (Attività, follow-up e scadenze) — non pubblicata e non ancora chiusa.**
+Il branch parte da `main` (`7bf462e`, **CI verde**) e realizza la progettazione approvata: pagina Attività, sezione nella candidatura, suggerimenti deterministici, Overview retrocompatibile, migrazione additiva `0006`. Verificato **in locale**; la **chiusura formale** richiede CI remota verde e integrazione della PR finale.
+[Consegna finale M3](docs/m3/m3-final-delivery.md) · [registro dei problemi](docs/m3/m3-final-issue-register.md) · [progettazione](docs/m3/tasks-index.md).
 
-**Prossimo sviluppo (solo progettazione, nessuna implementazione):** Attività, follow-up e scadenze — [pacchetto di progettazione](docs/m3/tasks-index.md), in attesa di approvazione.
+**M3-C3 è chiusa:** la correzione del test preview (PR #8, causa in [chiusura C3](docs/m3/c3-closure.md)) è in `main` e la CI di `main` sul commit `7bf462e` è verde ([run 42363749545](https://github.com/lonelyfrank/jobward/actions/runs/42363749545)). C3 collega pipeline, note, riferimenti documentali e timeline alle sei schede della modale ([consegna](docs/m3/c3-delivery.md) · [verifiche](docs/m3/c3-testing-report.md), documenti storici).
 
 M2 trasforma il Kanban in uno strumento da **confrontare e personalizzare**: dati professionali completi, fase ed esito indipendenti dalla colonna, campi personalizzati per bacheca, etichette, ricerca e filtri, vista Tabella ([`docs/m2/delivery.md`](docs/m2/delivery.md)). M1 aveva reso l'app **utilizzabile**: si creano bacheche da template, si personalizzano le colonne, si registrano opportunità con il solo titolo, si modificano e si spostano (trascinamento con mouse, tastiera e touch, oppure da menu), si archiviano e si ripristinano, e tutto persiste: [`docs/m1/delivery.md`](docs/m1/delivery.md).
 
@@ -51,7 +47,7 @@ M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend 
 | **Ricerca, filtri e vista Tabella** (anche da telefono), Kanban ↔ Tabella                           | ✅ **M2** — funzionanti                                                                                   |
 | **Modale della candidatura e colloqui** (più round, feedback, prossimo colloquio sulla card Kanban) | ✅ **M2.5** — funzionanti                                                                                 |
 | **Pipeline, note, documenti e timeline paginata**                                                   | ✅ **M3-C3** — in `main`; gate locale verde, **CI remota rossa (test preview), correzione da confermare** |
-| Attività e scadenze                                                                                 | ⏳ M3 — [progettazione](docs/m3/tasks-index.md), non implementate                                         |
+| **Attività, follow-up e scadenze** (pagina, sezione nella candidatura, suggerimenti, Timeline)      | ✅ **M3** — implementate e verificate in locale nel branch `m3-tasks-followups` (CI remota da eseguire)   |
 | Insights, esportazione dati, deploy privato                                                         | ⏳ M4                                                                                                     |
 
 Le funzioni non ancora disponibili (M3–M4) sono mostrate come tali nell'interfaccia (badge _"In arrivo · Mx"_ e
@@ -181,7 +177,7 @@ jobward/
 - Prodotto: [visione](docs/product/vision.md) · [requisiti](docs/product/requirements.md) · [modello di dominio](docs/product/domain-model.md) · [user stories](docs/product/user-stories.md)
 - UX: [architettura dell'informazione](docs/ux/information-architecture.md) · [design system](docs/ux/design-system.md) · [schermate](docs/ux/screens.md)
 - Roadmap: [perimetro e politica](docs/roadmap/scope-policy.md) · [milestone](docs/roadmap/milestones.md) · [consegna M0](docs/roadmap/m0-delivery.md) · [backlog](docs/roadmap/backlog.md)
-- M3 (stato corrente): [chiusura C3](docs/m3/c3-closure.md) · [Attività e follow-up — progettazione](docs/m3/tasks-index.md) · [roadmap Attività](docs/m3/tasks-roadmap.md) · [decisioni](docs/m3/tasks-decision-register.md)
+- M3 (stato corrente): [consegna finale](docs/m3/m3-final-delivery.md) · [problemi](docs/m3/m3-final-issue-register.md) · [chiusura C3](docs/m3/c3-closure.md) · [Attività e follow-up — progettazione](docs/m3/tasks-index.md) · [roadmap Attività](docs/m3/tasks-roadmap.md) · [decisioni](docs/m3/tasks-decision-register.md)
 - M2.5: [consegna](docs/m25/delivery.md) · [architettura](docs/m25/architecture.md) · [modale e UX](docs/m25/modal-ux.md) · [colloqui](docs/m25/interview-domain.md) · [contratti API](docs/m25/api-contracts.md) · [migrazione](docs/m25/database-migration.md) · [test](docs/m25/testing-report.md) · [problemi](docs/m25/issue-register.md)
 - M2: [consegna](docs/m2/delivery.md) · [architettura](docs/m2/architecture.md) · [ciclo della candidatura](docs/m2/application-lifecycle.md) · [campi personalizzati](docs/m2/custom-fields.md) · [etichette](docs/m2/labels.md) · [ricerca e filtri](docs/m2/search-and-filtering.md) · [tabella](docs/m2/table-view.md) · [contratti API](docs/m2/api-contracts.md) · [UX](docs/m2/ux-review.md) · [test](docs/m2/testing-report.md) · [problemi](docs/m2/issue-register.md)
 - M1: [consegna](docs/m1/delivery.md) · [architettura](docs/m1/architecture.md) · [contratti API](docs/m1/api-contracts.md) · [interazioni](docs/m1/board-interactions.md) · [ordinamento](docs/m1/kanban-ordering.md) · [accessibilità](docs/m1/accessibility.md) · [test](docs/m1/testing-report.md) · [problemi](docs/m1/issue-register.md)

@@ -8,7 +8,7 @@ export function Component() {
   const board = useBoardDetail(boardId);
   return (
     <>
-      {board.data ? <KanbanBoard boardId={boardId} data={board.data} /> : null}
+      {board.data ? <KanbanBoard key={boardId} boardId={boardId} data={board.data} /> : null}
       {/* Pannello di dettaglio della scheda: sotto-rotta, la bacheca resta viva dietro. */}
       <Outlet />
     </>

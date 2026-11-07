@@ -2,6 +2,8 @@
 
 **Stato corrente:** C1 e C2 integrati in `main` @ `8071759b6d` (PR #7, CI verde).
 
+> **Aggiornamento finale:** M3 è completa funzionalmente nel branch `m3-tasks-followups` ([consegna finale](m3-final-delivery.md)); C3 è chiusa (CI di `main` verde su `7bf462e`).
+
 > **Aggiornamento 2026-11-07:** l'intestazione «Stato corrente» qui sotto è quella **alla consegna C3** e non è riscritta. Dopo la consegna C3 è stata pubblicata su `main` (`5a0d056eda`) e la CI remota è risultata **rossa** (test preview, race di sincronizzazione; nessun difetto di prodotto). Esito, causa e correzione: [c3-closure.md](c3-closure.md).
 > C3 autorizzato, implementato e verificato localmente sul branch `m3-c3-application-workflow-ui`, con quality gate locale superato:
 > [consegna](c3-delivery.md), [test](c3-testing-report.md), [problemi](c3-issue-register.md).

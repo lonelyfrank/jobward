@@ -92,3 +92,10 @@ per una race nel test preview 302 (nessun difetto di prodotto); la correzione è
 Non sono milestone approvate. [Indice](../m3/tasks-index.md) · [roadmap](../m3/tasks-roadmap.md) · [decisioni](../m3/tasks-decision-register.md).
 
 **Politica di perimetro:** [scope-policy.md](scope-policy.md) — nessuna funzionalità fuori roadmap (AI, recruiter/ATS, marketplace) senza una nuova decisione esplicita; il backlog non implica approvazione.
+
+## Aggiornamento — consegna finale di M3 (2026-11-07)
+
+**M3-C3 chiusa:** la correzione del preview (PR #8) è in `main` e la CI di `main` su `7bf462e` è verde ([run 42363749545](https://github.com/lonelyfrank/jobward/actions/runs/42363749545)).
+**M3 completa funzionalmente** nel branch `m3-tasks-followups` (Attività, follow-up, scadenze, suggerimenti deterministici, Overview retrocompatibile, migrazione additiva `0006`), verificata in locale; **non pubblicata**.
+**Chiusura formale di M3:** CI remota verde del branch + integrazione della PR finale. Nessun nuovo checkpoint: il passo successivo è **M4 — Insights & Private Release**.
+[Consegna finale](../m3/m3-final-delivery.md) · [problemi](../m3/m3-final-issue-register.md).

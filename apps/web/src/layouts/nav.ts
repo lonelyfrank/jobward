@@ -2,7 +2,6 @@ import {
   BarChart3,
   LayoutDashboard,
   ListChecks,
-  Settings,
   SquareKanban,
   Table2,
   type LucideIcon,
@@ -13,7 +12,6 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
   end?: boolean;
-  placement?: 'bottom';
 }
 
 /** Voci della sidebar, nell'ordine previsto dall'architettura dell'informazione. */
@@ -23,7 +21,6 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { to: '/opportunities', label: 'Opportunità', icon: Table2 },
   { to: '/tasks', label: 'Attività', icon: ListChecks },
   { to: '/insights', label: 'Insights', icon: BarChart3 },
-  { to: '/settings', label: 'Impostazioni', icon: Settings, placement: 'bottom' },
 ];
 
 /** Metadati di rotta (titolo della vista attiva, usato da document.title). */

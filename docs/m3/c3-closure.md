@@ -110,3 +110,7 @@ I numeri di test della consegna (1.179 unit/integrazione, 176 E2E, 13 preview) *
 **M3-C3 NON è dichiarato definitivamente chiuso** (chiusura formale = merge della PR #8 + run di `main` verde). La correzione è locale e provata, ma la **CI remota del commit corretto non è stata eseguita**: non va considerata superata.
 Per chiudere: push autorizzato → run di GitHub Actions verde sul commit `f359630` (o successivo).
 La Parte B (progettazione di Attività e follow-up) procede **come analisi separata** e **non** afferma la chiusura di C3: [tasks-index.md](tasks-index.md).
+
+## Aggiornamento finale — M3-C3 chiusa
+
+La PR [#8](https://github.com/lonelyfrank/jobward/pull/8) è stata integrata (commit `f359630`) e la CI di `main` sul commit `7bf462e` è **verde** ([run 42363749545](https://github.com/lonelyfrank/jobward/actions/runs/42363749545)): il criterio «verifica remota verde + integrazione» è soddisfatto. **M3-C3 è formalmente chiusa**; C3-07 è risolto.

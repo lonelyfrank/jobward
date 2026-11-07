@@ -27,7 +27,7 @@ export function WorkspaceActionsMenu({ actions }: { actions: WorkspaceAction[] }
         <Button
           size="icon"
           aria-label="Azioni della vista"
-          className="size-11 active:bg-primary-hover"
+          className="size-11 rounded-full shadow-none hover:shadow-sm active:bg-primary-hover data-[state=open]:bg-primary-hover [&_svg]:size-[18px]"
         >
           <Ellipsis aria-hidden="true" />
         </Button>

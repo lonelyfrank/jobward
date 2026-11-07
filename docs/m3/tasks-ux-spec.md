@@ -1,6 +1,6 @@
 # Attività e follow-up — Specifica UX (mobile-first)
 
-**Stato:** proposta, **nessuna modifica alla UI** · **Baseline:** `5a0d056eda`.
+**Stato:** specifica **implementata** (scostamenti: «Oggi» è un indicatore statico, non un filtro; dialog `center`; v. [consegna finale](m3-final-delivery.md)). _Testo alla progettazione:_ proposta, nessuna modifica alla UI · **Baseline:** `5a0d056eda`.
 Indice: [tasks-index.md](tasks-index.md) · Funzione: [tasks-product-spec.md](tasks-product-spec.md).
 
 ## 1. Principi

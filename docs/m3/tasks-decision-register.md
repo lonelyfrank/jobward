@@ -1,6 +1,8 @@
 # Attività e follow-up — Registro e matrice delle decisioni
 
-**Stato:** le decisioni sotto sono **raccomandazioni; quelle elencate in «Approvazioni» sono state approvate dall'utente il 2026-11-07** (alcune con condizioni). Nessuna è stata applicata al codice. · **Baseline:** `5a0d056eda`.
+**Aggiornamento 2026-11-07:** D-01, D-03, D-05, D-06 e D-13 sono **implementate** ([consegna finale](m3-final-delivery.md)); le altre decisioni sono state seguite senza richiedere modifiche. Scostamenti: [consegna §2](m3-final-delivery.md).
+
+**Stato (alla progettazione):** le decisioni sotto sono **raccomandazioni; quelle elencate in «Approvazioni» sono state approvate dall'utente il 2026-11-07** (alcune con condizioni). Nessuna è stata applicata al codice. · **Baseline:** `5a0d056eda`.
 Indice: [tasks-index.md](tasks-index.md). Ogni decisione riporta la **reversibilità**: quelle «onerose» vanno approvate prima di M3-T1, perché toccano dati o contratti pubblici.
 
 ## Approvazioni del 2026-11-07
