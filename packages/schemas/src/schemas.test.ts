@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { z } from 'zod';
 import {
   applicationDetailsInput,
   cardDetailsInput,
@@ -7,6 +8,12 @@ import {
   createCardInput,
   createColumnInput,
   createTaskInput,
+  updateTaskInput,
+  tasksQuery,
+  taskSchema,
+  taskCommandInput,
+  overviewResponse,
+  timelineEntrySchema,
   createWorkspaceInput,
   deleteColumnInput,
   moveCardInput,
@@ -183,14 +190,164 @@ describe('workspace, board, column, task', () => {
     );
     expect(createColumnInput.safeParse({ name: 'x', category: 'boh' }).success).toBe(false);
   });
+});
 
-  it('createTaskInput accetta scadenze come istanti ISO con offset', () => {
+describe('attività (M3 Tasks)', () => {
+  const id = 'a1b2c3d4-e5f6-4789-8abc-def012345678'; // UUID (36)
+  const valid = { id, title: '  Richiama HR  ' };
+
+  it('createTaskInput: solo titolo, con valori predefiniti e rifilatura', () => {
+    const t = createTaskInput.parse(valid);
+    expect(t).toMatchObject({ title: 'Richiama HR', kind: 'general', priority: 'none' });
+  });
+  it('createTaskInput: la scadenza è una DATA di calendario, mai un istante né una data impossibile', () => {
+    expect(createTaskInput.safeParse({ ...valid, dueOn: '2026-11-10' }).success).toBe(true);
+    expect(createTaskInput.safeParse({ ...valid, dueOn: null }).success).toBe(true);
+    for (const bad of [
+      '2026-02-30',
+      '2027-02-29',
+      '10/11/2026',
+      '2026-11-10T09:00:00+01:00',
+      '2026-1-1',
+    ])
+      expect(createTaskInput.safeParse({ ...valid, dueOn: bad }).success, bad).toBe(false);
     expect(
-      createTaskInput.safeParse({ title: 'Richiama HR', dueAt: '2026-11-10T09:00:00+01:00' })
-        .success,
-    ).toBe(true);
-    expect(createTaskInput.safeParse({ title: 'x', dueAt: '10/11/2026' }).success).toBe(false);
-    expect(createTaskInput.safeParse({ title: '' }).success).toBe(false);
+      createTaskInput.safeParse({ ...valid, dueAt: '2026-11-10T09:00:00+01:00' }).success,
+    ).toBe(false);
+  });
+  it('createTaskInput: limiti e chiavi sconosciute', () => {
+    expect(createTaskInput.safeParse({ ...valid, title: ' ' }).success).toBe(false);
+    expect(createTaskInput.safeParse({ ...valid, title: 'x'.repeat(200) }).success).toBe(true);
+    expect(createTaskInput.safeParse({ ...valid, title: 'x'.repeat(201) }).success).toBe(false);
+    expect(createTaskInput.safeParse({ ...valid, description: 'x'.repeat(2000) }).success).toBe(
+      true,
+    );
+    expect(createTaskInput.safeParse({ ...valid, description: 'x'.repeat(2001) }).success).toBe(
+      false,
+    );
+    expect(createTaskInput.safeParse({ ...valid, kind: 'other' }).success).toBe(false);
+    expect(createTaskInput.safeParse({ ...valid, priority: 'meh' }).success).toBe(false);
+    expect(createTaskInput.safeParse({ ...valid, workspaceId: 'w' }).success).toBe(false);
+    expect(createTaskInput.safeParse({ ...valid, status: 'done' }).success).toBe(false); // lo stato non è scrivibile
+  });
+  it('createTaskInput: ID del client di 16–48 caratteri (la Timeline ne deriva id con suffisso)', () => {
+    expect(createTaskInput.safeParse({ ...valid, id: 'short' }).success).toBe(false);
+    expect(createTaskInput.safeParse({ ...valid, id: 'a'.repeat(48) }).success).toBe(true);
+    expect(createTaskInput.safeParse({ ...valid, id: 'a'.repeat(49) }).success).toBe(false);
+    expect(createTaskInput.safeParse({ ...valid, id: 'a'.repeat(15) + ' ' }).success).toBe(false);
+  });
+  it('updateTaskInput: expectedUpdatedAt obbligatorio e almeno un campo', () => {
+    expect(updateTaskInput.safeParse({ title: 'x' }).success).toBe(false);
+    expect(updateTaskInput.safeParse({ expectedUpdatedAt: 5 }).success).toBe(false);
+    expect(updateTaskInput.safeParse({ expectedUpdatedAt: 5, dueOn: null }).success).toBe(true);
+    expect(updateTaskInput.safeParse({ expectedUpdatedAt: 5, description: null }).success).toBe(
+      true,
+    );
+    expect(updateTaskInput.safeParse({ expectedUpdatedAt: 5, cardId: null }).success).toBe(true);
+    expect(updateTaskInput.safeParse({ expectedUpdatedAt: 0, title: 'x' }).success).toBe(false);
+    expect(updateTaskInput.safeParse({ expectedUpdatedAt: 5, status: 'done' }).success).toBe(false);
+  });
+  it('tasksQuery: valori predefiniti e limiti', () => {
+    expect(tasksQuery.parse({})).toMatchObject({ view: 'all', limit: 50 });
+    expect(tasksQuery.safeParse({ view: 'late' }).success).toBe(false);
+    expect(tasksQuery.safeParse({ limit: '0' }).success).toBe(false);
+    expect(tasksQuery.safeParse({ limit: '101' }).success).toBe(false);
+    expect(tasksQuery.parse({ limit: '100' }).limit).toBe(100);
+  });
+  it('i comandi di stato non hanno corpo', () => {
+    expect(taskCommandInput.safeParse({}).success).toBe(true);
+    expect(taskCommandInput.safeParse({ x: 1 }).success).toBe(false);
+  });
+  it('taskSchema: la risposta non ammette stati inventati', () => {
+    const base = {
+      id,
+      cardId: null,
+      card: null,
+      title: 't',
+      description: null,
+      kind: 'general',
+      priority: 'none',
+      dueOn: null,
+      status: 'open',
+      completedAt: null,
+      cancelledAt: null,
+      createdAt: 1,
+      updatedAt: 1,
+    };
+    expect(taskSchema.safeParse(base).success).toBe(true);
+    expect(taskSchema.safeParse({ ...base, status: 'late' }).success).toBe(false);
+  });
+  it('Timeline: la voce derivata da una task è accettata, senza testo libero', () => {
+    const entry = {
+      id: `${id}:created`,
+      source: 'task',
+      kind: 'task_created',
+      occurredAt: 1,
+      entity: { type: 'task', id },
+      data: { taskId: id, taskKind: 'follow_up' },
+    };
+    expect(timelineEntrySchema.safeParse(entry).success).toBe(true);
+    expect(timelineEntrySchema.safeParse({ ...entry, kind: 'task_reopened' }).success).toBe(false);
+  });
+});
+
+describe('Overview — retrocompatibilità del contratto (condizione approvata)', () => {
+  // Snapshot dello schema alla baseline 5a0d056: NON si modifica quando il contratto si estende.
+  const legacyOverview = z.object({
+    workspaceId: z.string().min(1).max(64),
+    counts: z.object({
+      boards: z.number().int(),
+      opportunities: z.number().int(),
+      applicationsSubmitted: z.number().int(),
+      interviews: z.number().int(),
+      openTasks: z.number().int(),
+      overdueTasks: z.number().int(),
+    }),
+    upcomingTasks: z.array(
+      z.object({
+        id: z.string().min(1).max(64),
+        title: z.string(),
+        dueAt: z.number().int(),
+        cardId: z.string().min(1).max(64).nullable(),
+      }),
+    ),
+  });
+  const sample = {
+    workspaceId: 'w-1',
+    counts: {
+      boards: 1,
+      opportunities: 2,
+      applicationsSubmitted: 1,
+      interviews: 0,
+      openTasks: 3,
+      overdueTasks: 1,
+      dueTodayTasks: 1,
+      noDueTasks: 1,
+    },
+    upcomingTasks: [
+      { id: 'abc', title: 't', dueAt: 1_700_000_000_000, dueOn: '2026-11-10', cardId: null },
+    ],
+    recentBoards: [],
+    recentCards: [],
+  };
+  it('una risposta del contratto esteso è valida anche per lo schema della baseline', () => {
+    expect(legacyOverview.safeParse(sample).success).toBe(true);
+    expect(overviewResponse.safeParse(sample).success).toBe(true);
+  });
+  it('nessun campo della baseline è stato rimosso o ha cambiato tipo', () => {
+    const shape = overviewResponse.shape.counts.shape;
+    for (const key of [
+      'boards',
+      'opportunities',
+      'applicationsSubmitted',
+      'interviews',
+      'openTasks',
+      'overdueTasks',
+    ])
+      expect(Object.keys(shape), key).toContain(key);
+    const task = overviewResponse.shape.upcomingTasks.element.shape;
+    expect(Object.keys(task)).toEqual(expect.arrayContaining(['id', 'title', 'dueAt', 'cardId']));
+    expect(task.dueAt.safeParse(1.5).success).toBe(false); // resta un intero
   });
 });
 

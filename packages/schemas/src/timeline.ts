@@ -1,4 +1,4 @@
-import { ACTIVITY_EVENT_TYPES, LIMITS } from '@jobward/shared';
+import { ACTIVITY_EVENT_TYPES, LIMITS, TASK_KINDS, TASK_TIMELINE_KINDS } from '@jobward/shared';
 import { z } from 'zod';
 import { idSchema } from './primitives';
 
@@ -14,7 +14,10 @@ export const timelineQuery = z.object({
 });
 export type TimelineQuery = z.infer<typeof timelineQuery>;
 
-const entity = z.object({ type: z.enum(['card', 'interview', 'note', 'document']), id: idSchema });
+const entity = z.object({
+  type: z.enum(['card', 'interview', 'note', 'document', 'task']),
+  id: idSchema,
+});
 /** Solo valori strutturati ammessi dalla whitelist del dominio: mai testo libero di sistema. */
 const safeData = z.record(z.string(), z.union([z.string(), z.number(), z.null()]));
 
@@ -34,6 +37,15 @@ export const timelineEntrySchema = z.discriminatedUnion('source', [
     occurredAt: z.number().int(),
     entity,
     data: z.object({ body: z.string() }),
+  }),
+  z.object({
+    id: idSchema,
+    source: z.literal('task'),
+    kind: z.enum(TASK_TIMELINE_KINDS),
+    occurredAt: z.number().int(),
+    entity,
+    /** Solo ID e tipo: il titolo non è nei metadati della cronologia. */
+    data: z.object({ taskId: idSchema, taskKind: z.enum(TASK_KINDS) }),
   }),
 ]);
 export type TimelineEntryDto = z.infer<typeof timelineEntrySchema>;

@@ -105,6 +105,15 @@ export const ACTIVITY_EVENT_TYPES = [
 ] as const;
 export type ActivityEventType = (typeof ACTIVITY_EVENT_TYPES)[number];
 
+/** Attività (M3 Tasks). Un follow-up è una Task con `kind = 'follow_up'`, non un'entità separata. */
+export const TASK_KINDS = ['general', 'follow_up', 'preparation'] as const;
+export type TaskKind = (typeof TASK_KINDS)[number];
+export const TASK_STATUSES = ['open', 'done', 'cancelled'] as const;
+export type TaskStatus = (typeof TASK_STATUSES)[number];
+/** Viste dell'elenco: «all» = da fare + completate (le annullate hanno una vista propria). */
+export const TASK_VIEWS = ['all', 'open', 'done', 'overdue', 'no_due', 'cancelled'] as const;
+export type TaskView = (typeof TASK_VIEWS)[number];
+
 /** Riferimenti documentali (M3-C2): si conserva il riferimento, mai il file. */
 export const DOCUMENT_KINDS = ['cv', 'cover_letter', 'job_posting', 'portfolio', 'other'] as const;
 export type DocumentKind = (typeof DOCUMENT_KINDS)[number];
@@ -175,6 +184,12 @@ export const LIMITS = {
   searchTermsMax: 6,
   pageSizeDefault: 25,
   pageSizeMax: 50,
+  /** Attività (M3 Tasks): tetti atomici per workspace e dimensione di pagina. */
+  taskDescriptionMax: 2_000,
+  openTasksPerWorkspaceMax: 500,
+  tasksPerWorkspaceMax: 5_000,
+  taskPageDefault: 50,
+  taskPageMax: 100,
   /** Dimensione massima del body JSON accettato dall'API, in byte. */
   requestBodyMaxBytes: 64 * 1024,
 } as const;

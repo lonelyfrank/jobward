@@ -1,5 +1,6 @@
 import {
   ACTIVITY_EVENT_TYPES,
+  type TaskKind,
   OUTCOMES,
   PRIORITIES,
   STAGES,
@@ -11,7 +12,7 @@ import { PIPELINE_STATUSES, type PipelineStatus, type PipelineTransitionKind } f
 /** Solo dominio: il CHECK SQL e il vocabolario persistente restano quelli M2.5 fino a C2. */
 export type TimelineEventType = ActivityEventType | 'application_reopened';
 export type TimelineEntity = {
-  readonly type: 'card' | 'interview' | 'note' | 'document';
+  readonly type: 'card' | 'interview' | 'note' | 'document' | 'task';
   readonly id: string;
 };
 export type SafeTimelineMetadata = Readonly<Record<string, string | number | null>>;
@@ -123,7 +124,33 @@ export interface TimelineNote {
   readonly createdAt: number;
   readonly body: string;
 }
+/** Attività con card: la Timeline ne deriva fino a tre voci dai timestamp della riga (D-06). */
+export interface TimelineTask {
+  readonly id: string;
+  readonly cardId: string;
+  readonly kind: TaskKind;
+  readonly createdAt: number;
+  readonly completedAt: number | null;
+  readonly cancelledAt: number | null;
+}
+export const TASK_TIMELINE_KINDS = ['task_created', 'task_completed', 'task_cancelled'] as const;
+export type TaskTimelineKind = (typeof TASK_TIMELINE_KINDS)[number];
+/** Id di voce = `<taskId>:created|completed|cancelled` (gli id task sono ≤ 48 caratteri). */
+export const TASK_TIMELINE_SUFFIX: Readonly<Record<TaskTimelineKind, string>> = {
+  task_created: 'created',
+  task_completed: 'completed',
+  task_cancelled: 'cancelled',
+};
 export type TimelineEntry =
+  | {
+      readonly id: string;
+      readonly source: 'task';
+      readonly kind: TaskTimelineKind;
+      readonly occurredAt: number;
+      readonly entity: { readonly type: 'task'; readonly id: string };
+      /** Solo ID e tipo: nessun testo libero (il titolo si legge dall'entità collegata). */
+      readonly data: { readonly taskId: string; readonly taskKind: TaskKind };
+    }
   | {
       readonly id: string;
       readonly source: 'system';
@@ -158,6 +185,7 @@ export function compareTimelineEntries(a: TimelineEntry, b: TimelineEntry): numb
 export function mergeTimeline(
   events: readonly TimelineSystemEvent[],
   notes: readonly TimelineNote[],
+  tasks: readonly TimelineTask[] = [],
 ): TimelineEntry[] {
   const entries: TimelineEntry[] = events.map((event) => {
     const data = safeTimelineMetadata(event.type, event.metadata);
@@ -189,6 +217,24 @@ export function mergeTimeline(
       entity: { type: 'note', id: note.id },
       data: { body: note.body },
     });
+  for (const task of tasks) {
+    const stamps: [TaskTimelineKind, number | null][] = [
+      ['task_created', task.createdAt],
+      ['task_completed', task.completedAt],
+      ['task_cancelled', task.cancelledAt],
+    ];
+    for (const [kind, occurredAt] of stamps) {
+      if (occurredAt === null) continue;
+      entries.push({
+        id: `${task.id}:${TASK_TIMELINE_SUFFIX[kind]}`,
+        source: 'task',
+        kind,
+        occurredAt,
+        entity: { type: 'task', id: task.id },
+        data: { taskId: task.id, taskKind: task.kind },
+      });
+    }
+  }
   const unique = new Map<string, TimelineEntry>();
   for (const entry of entries) {
     const identity = JSON.stringify([entry.source, entry.id]);

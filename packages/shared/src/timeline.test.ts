@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { ACTIVITY_EVENT_TYPES } from './constants';
 import {
+  compareTimelineEntries,
   mergeTimeline,
   pipelineEventIntent,
   safeTimelineMetadata,
@@ -123,5 +124,57 @@ describe('timeline pura, compatibile con gli eventi M2.5', () => {
     expect(first.dedupeKey).not.toBe(
       pipelineEventIntent('application_reopened', { ...base, operationId: 'new' }).dedupeKey,
     );
+  });
+});
+
+describe('Timeline — voci derivate dalle attività (D-06)', () => {
+  const task = {
+    id: 'task-aaaaaaaaaaaaaaaa',
+    cardId: 'card-1',
+    kind: 'follow_up' as const,
+    createdAt: 100,
+    completedAt: 300,
+    cancelledAt: null,
+  };
+  it('deriva creata e completata dai timestamp, senza testo libero', () => {
+    const entries = mergeTimeline([], [], [task]);
+    expect(entries.map((e) => [e.kind, e.id, e.occurredAt])).toEqual([
+      ['task_completed', 'task-aaaaaaaaaaaaaaaa:completed', 300],
+      ['task_created', 'task-aaaaaaaaaaaaaaaa:created', 100],
+    ]);
+    const first = entries[0];
+    expect(first?.source).toBe('task');
+    expect(first?.data).toEqual({ taskId: task.id, taskKind: 'follow_up' });
+    expect(JSON.stringify(entries)).not.toMatch(/title|description/);
+  });
+  it('riaprire azzera il timestamp: la voce «completata» sparisce (limite dichiarato)', () => {
+    const entries = mergeTimeline([], [], [{ ...task, completedAt: null }]);
+    expect(entries.map((e) => e.kind)).toEqual(['task_created']);
+  });
+  it('una task annullata produce la voce «annullata»', () => {
+    const entries = mergeTimeline([], [], [{ ...task, completedAt: null, cancelledAt: 400 }]);
+    expect(entries.map((e) => e.kind)).toEqual(['task_cancelled', 'task_created']);
+  });
+  it('ordine totale e stabile con tre fonti, a parità di istante', () => {
+    const events = [
+      {
+        id: 'evt-1',
+        type: 'card_created' as const,
+        occurredAt: 100,
+        cardId: 'card-1',
+        metadata: {},
+      },
+    ];
+    const notes = [{ id: 'note-1', cardId: 'card-1', createdAt: 100, body: 'x' }];
+    const a = mergeTimeline(events, notes, [task]);
+    const b = mergeTimeline([...events].reverse(), [...notes].reverse(), [task]);
+    expect(a).toEqual(b);
+    expect(new Set(a.map((e) => `${e.source}|${e.id}`)).size).toBe(a.length);
+    for (let i = 1; i < a.length; i += 1)
+      expect(compareTimelineEntries(a[i - 1]!, a[i]!)).toBeLessThan(0);
+  });
+  it('senza task il risultato è identico a quello delle due fonti precedenti', () => {
+    const notes = [{ id: 'note-1', cardId: 'card-1', createdAt: 5, body: 'x' }];
+    expect(mergeTimeline([], notes)).toEqual(mergeTimeline([], notes, []));
   });
 });

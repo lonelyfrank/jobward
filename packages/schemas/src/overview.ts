@@ -14,12 +14,21 @@ export const overviewResponse = z.object({
     interviews: z.number().int(),
     openTasks: z.number().int(),
     overdueTasks: z.number().int(),
+    /** Additivi (M3 Tasks): attività aperte in scadenza oggi e senza scadenza. */
+    dueTodayTasks: z.number().int(),
+    noDueTasks: z.number().int(),
   }),
   upcomingTasks: z.array(
     z.object({
       id: idSchema,
       title: z.string(),
+      /**
+       * Retrocompatibile: intero (ms UTC) = primo istante del giorno di scadenza nel fuso del
+       * workspace. DEPRECATO come orario (la scadenza è una data): usare `dueOn`.
+       */
       dueAt: z.number().int(),
+      /** Additivo: la data di calendario `YYYY-MM-DD`. */
+      dueOn: z.string(),
       cardId: idSchema.nullable(),
     }),
   ),
