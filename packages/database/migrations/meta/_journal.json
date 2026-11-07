@@ -43,6 +43,13 @@
       "when": 1793988923965,
       "tag": "0005_m3_c2_notes_documents_dedupe",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1794048471054,
+      "tag": "0006_m3_tasks",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,7 @@ import {
   MEMBER_ROLES,
   OUTCOMES,
   PRIORITIES,
+  TASK_KINDS,
   SALARY_BASES,
   SALARY_PERIODS,
   STAGES,
@@ -582,6 +583,18 @@ export const tasks = sqliteTable(
     priority: text('priority', { enum: PRIORITIES }).notNull().default('none'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
+    // --- 0006 (M3 Tasks), solo colonne additive ---
+    /** Tipo semantico: un follow-up è una task con `kind = 'follow_up'`, non un'entità separata. */
+    kind: text('kind', { enum: TASK_KINDS }).notNull().default('general'),
+    /**
+     * Scadenza come DATA di calendario `YYYY-MM-DD` nel fuso del workspace (nessun orario).
+     * `due_at` è LEGACY: non più letta né scritta (nessuna ricostruzione per rimuoverla).
+     */
+    dueOn: text('due_on'),
+    /** Annullata = `cancelled_at` valorizzato. Stato DERIVATO: completed_at / cancelled_at. */
+    cancelledAt: integer('cancelled_at'),
+    /** SHA-256 della richiesta di creazione (idempotenza); NULL per le righe preesistenti. */
+    requestFingerprint: text('request_fingerprint'),
   },
   (t) => [
     // card_id NULL = attività del workspace: con chiave composita NULL la FK non si applica.
@@ -590,9 +603,32 @@ export const tasks = sqliteTable(
       columns: [t.cardId, t.workspaceId],
       foreignColumns: [cards.id, cards.workspaceId],
     }).onDelete('cascade'),
-    index('tasks_workspace_open_due_idx').on(t.workspaceId, t.completedAt, t.dueAt),
+    index('tasks_open_due_idx')
+      .on(t.workspaceId, t.dueOn, t.id)
+      .where(sql`${t.completedAt} is null and ${t.cancelledAt} is null`),
+    index('tasks_done_idx')
+      .on(t.workspaceId, t.completedAt, t.id)
+      .where(sql`${t.completedAt} is not null`),
     index('tasks_card_idx').on(t.cardId),
     check('tasks_priority_valid', inList(t.priority, PRIORITIES)),
+    check('tasks_kind_valid', inList(t.kind, TASK_KINDS)),
+    check('tasks_title_valid', sql`length(${t.title}) between 1 and 200`),
+    check(
+      'tasks_description_valid',
+      sql`${t.description} is null or length(${t.description}) <= 2000`,
+    ),
+    check(
+      'tasks_not_done_and_cancelled',
+      sql`${t.completedAt} is null or ${t.cancelledAt} is null`,
+    ),
+    check(
+      'tasks_due_on_valid',
+      sql`${t.dueOn} is null or (${t.dueOn} glob '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' and date(${t.dueOn}) is ${t.dueOn})`,
+    ),
+    check(
+      'tasks_fingerprint_valid',
+      sql`${t.requestFingerprint} is null or length(${t.requestFingerprint}) = 64`,
+    ),
   ],
 );
 

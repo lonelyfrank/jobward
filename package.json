@@ -25,7 +25,7 @@
     "check:contrast": "node scripts/check-contrast.mjs > /dev/null && echo \"Contrasto WCAG dei token: OK\" || (node scripts/check-contrast.mjs | grep FAIL; exit 1)",
     "test:preview": "pnpm --filter @jobward/web test:preview",
     "db:check": "node scripts/check-migrations.mjs",
-    "db:upgrade-test": "node scripts/test-migration-upgrade.mjs && node scripts/test-migration-m3c2.mjs",
+    "db:upgrade-test": "node scripts/test-migration-upgrade.mjs && node scripts/test-migration-m3c2.mjs && node scripts/test-migration-m3tasks.mjs",
     "check:config": "node scripts/check-config.mjs",
     "check:brand": "node scripts/check-brand.mjs",
     "test:identity": "node scripts/rename-dev-identity.test.mjs"
