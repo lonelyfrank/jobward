@@ -29,7 +29,11 @@ export const EMPTY_OVERVIEW = {
 
 type HandlerResult = { status?: number; body: unknown };
 /** Un handler può rispondere subito o in modo asincrono (utile per osservare lo stato "in volo"). */
-type Handler = (req: { method: string; body: unknown }) => HandlerResult | Promise<HandlerResult>;
+type Handler = (req: {
+  method: string;
+  body: unknown;
+  path: string;
+}) => HandlerResult | Promise<HandlerResult>;
 
 /** Sostituisce fetch con un'API simulata a livello di rete. Restituisce le chiamate ricevute. */
 export function mockApi(routes: Record<string, Handler>) {
@@ -49,9 +53,9 @@ export function mockApi(routes: Record<string, Handler>) {
             { status: 404 },
           ),
         );
-      return Promise.resolve(handler({ method, body })).then(
+      return Promise.resolve(handler({ method, body, path })).then(
         ({ status = 200, body: payload }) =>
-          new Response(JSON.stringify(payload), {
+          new Response(status === 204 ? null : JSON.stringify(payload), {
             status,
             headers: { 'content-type': 'application/json' },
           }),

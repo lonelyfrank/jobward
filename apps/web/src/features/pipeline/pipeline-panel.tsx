@@ -189,9 +189,16 @@ function PipelineConfirmation({
         ...(response.cancelledInterviews
           ? [`${response.cancelledInterviews} colloqui futuri annullati; lo storico è conservato.`]
           : []),
-        ...response.warnings.map(
-          (w) => WARNING_TEXT[w.code] ?? 'Controlla i dati della candidatura.',
-        ),
+        ...response.warnings.map((w) => {
+          if (w.code === 'manage_future_interviews') {
+            return response.cancelledInterviews > 0
+              ? 'Hai annullato i colloqui futuri programmati.'
+              : handling === 'keep'
+                ? 'Hai conservato i colloqui futuri programmati.'
+                : 'Nessun colloquio futuro da annullare al momento della conferma.';
+          }
+          return WARNING_TEXT[w.code] ?? 'Controlla i dati della candidatura.';
+        }),
       ]);
     } catch (error) {
       operation.failed(error);

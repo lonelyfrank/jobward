@@ -145,7 +145,8 @@ export function CardDetailRoute() {
             tab={tab}
             onTabChange={setTab}
             onArchived={() => {
-              dirtyRef.current.clear();
+              // Una bozza può essere nata mentre l'archiviazione era in volo.
+              // Anche questa uscita deve passare dalla guardia, senza svuotare il registro.
               close();
             }}
           />
