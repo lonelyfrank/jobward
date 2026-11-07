@@ -29,6 +29,9 @@ export const keys = {
   overview: (ws: string) => ['overview', ws] as const,
   labels: (ws: string) => ['labels', ws] as const,
   interviews: (ws: string, cardId: string) => ['interviews', ws, cardId] as const,
+  notes: (ws: string, cardId: string) => ['notes', ws, cardId] as const,
+  documents: (ws: string, cardId: string) => ['documents', ws, cardId] as const,
+  timeline: (ws: string, cardId: string) => ['timeline', ws, cardId] as const,
   boardFields: (ws: string, boardId: string) => ['board-fields', ws, boardId] as const,
   cardFields: (ws: string, cardId: string) => ['card-fields', ws, cardId] as const,
   /** Prefisso di tutte le ricerche del workspace (si invalida in blocco dopo una modifica). */

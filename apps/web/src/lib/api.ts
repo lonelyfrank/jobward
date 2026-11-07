@@ -66,7 +66,10 @@ export async function apiRequest<T>(
 
   if (!res.ok) throw await readError(res);
 
-  const parsed = schema.safeParse(await res.json().catch(() => undefined));
+  // DELETE note/documenti restituisce 204, senza JSON. Il contratto decide se è valido.
+  const parsed = schema.safeParse(
+    res.status === 204 ? undefined : await res.json().catch(() => undefined),
+  );
   if (!parsed.success) {
     throw new ApiRequestError(
       res.status,
