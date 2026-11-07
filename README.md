@@ -18,37 +18,41 @@ ATS per recruiter e non invia candidature al posto tuo. Funziona per qualsiasi s
 
 ## Stato effettivo del progetto
 
-**Checkpoint corrente: M3-C3 — Application Workflow UI & Integration**, verificato localmente sul branch
-`m3-c3-application-workflow-ui`. M3-C2 è integrata in `main` alla baseline `8071759b6d`
-(PR #7, CI verde). C3 collega pipeline, note, riferimenti documentali e timeline alle sei schede
-della modale. [Consegna C3](docs/m3/c3-delivery.md) · [verifiche](docs/m3/c3-testing-report.md).
-Nessun push, PR o deploy di C3; la CI del branch non è ancora verificata.
+**Checkpoint corrente: M3-C3 — Application Workflow UI & Integration, consegnato su `main` (`5a0d056eda`) ma _non ancora chiuso_.**
+C3 collega pipeline, note, riferimenti documentali e timeline alle sei schede della modale
+([consegna](docs/m3/c3-delivery.md) · [verifiche](docs/m3/c3-testing-report.md), documenti storici).
+La **CI remota di `main` è rossa** ([run 42334739111](https://github.com/lonelyfrank/jobward/actions/runs/42334739111)):
+typecheck/lint/test/build e 176 E2E verdi, **un test della suite preview in timeout** per una race di sincronizzazione del test (nessun difetto di prodotto).
+La correzione è pronta e provata in locale sul branch `m3-c3-closure-tasks-design`; **la conferma in CI richiede un push da autorizzare**.
+Causa, prova e stato: [chiusura C3](docs/m3/c3-closure.md).
+
+**Prossimo sviluppo (solo progettazione, nessuna implementazione):** Attività, follow-up e scadenze — [pacchetto di progettazione](docs/m3/tasks-index.md), in attesa di approvazione.
 
 M2 trasforma il Kanban in uno strumento da **confrontare e personalizzare**: dati professionali completi, fase ed esito indipendenti dalla colonna, campi personalizzati per bacheca, etichette, ricerca e filtri, vista Tabella ([`docs/m2/delivery.md`](docs/m2/delivery.md)). M1 aveva reso l'app **utilizzabile**: si creano bacheche da template, si personalizzano le colonne, si registrano opportunità con il solo titolo, si modificano e si spostano (trascinamento con mouse, tastiera e touch, oppure da menu), si archiviano e si ripristinano, e tutto persiste: [`docs/m1/delivery.md`](docs/m1/delivery.md).
 
-M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend e deployabilità, e corretto i difetti trovati (isolamento tra workspace nel database, header e cache degli asset, accessibilità del drawer e del menu, e altri): [`docs/m0h/delivery.md`](docs/m0h/delivery.md). **Non è "production ready"**: Cloudflare Access reale e deploy privato restano da configurare e provare. La CI della baseline main è verde; la CI di C3 richiederà un futuro push autorizzato.
+M0.H ha verificato la baseline, eseguito audit di sicurezza, database, frontend e deployabilità, e corretto i difetti trovati (isolamento tra workspace nel database, header e cache degli asset, accessibilità del drawer e del menu, e altri): [`docs/m0h/delivery.md`](docs/m0h/delivery.md). **Non è "production ready"**: Cloudflare Access reale e deploy privato restano da configurare e provare. La CI di `main` all'ultima baseline C3 è **rossa** per un test preview (vedi sopra); era verde alla baseline C2 (`8071759b6d`).
 
-| Area                                                                                                | Stato                                                       |
-| --------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Monorepo, tooling, CI                                                                               | ✅ Implementato                                             |
-| Schema database completo + migrazioni                                                               | ✅ Implementato e testato su D1                             |
-| API: health, `me`, workspace (lista/creazione), overview                                            | ✅ Implementate, protette, testate                          |
-| Accesso privato del proprietario (Cloudflare Access)                                                | ✅ Implementato e testato; **da configurare** per il deploy |
-| App shell, design system, tema chiaro/scuro, responsive                                             | ✅ Implementato                                             |
-| Onboarding (creazione workspace)                                                                    | ✅ Funzionante                                              |
-| Overview con dati reali (a zero finché non ci sono schede)                                          | ✅ Funzionante                                              |
-| Impostazioni (tema, info workspace/account)                                                         | ✅ Funzionanti                                              |
-| **Bacheche** (template, preferite, ordine, eliminazione con conferma)                               | ✅ **M1** — funzionanti                                     |
-| **Colonne** (crea, rinomina, colore, fase, ordine, eliminazione controllata)                        | ✅ **M1** — funzionanti                                     |
-| **Schede** (creazione rapida, dettaglio, priorità, azienda, URL, cronologia, archivio)              | ✅ **M1** — funzionanti                                     |
-| **Kanban interattivo** (trascinamento, tastiera, touch, menu, rollback)                             | ✅ **M1** — funzionante                                     |
-| **Dati professionali** (posizione, sede, modalità, contratto, retribuzione, date, fase, esito)      | ✅ **M2** — funzionanti                                     |
-| **Campi personalizzati** (8 tipi, per bacheca) ed **etichette**                                     | ✅ **M2** — funzionanti                                     |
-| **Ricerca, filtri e vista Tabella** (anche da telefono), Kanban ↔ Tabella                           | ✅ **M2** — funzionanti                                     |
-| **Modale della candidatura e colloqui** (più round, feedback, prossimo colloquio sulla card Kanban) | ✅ **M2.5** — funzionanti                                   |
-| **Pipeline, note, documenti e timeline paginata**                                                   | ✅ **M3-C3** — implementati, quality gate locale verde      |
-| Attività e scadenze                                                                                 | ⏳ M3                                                       |
-| Insights, esportazione dati, deploy privato                                                         | ⏳ M4                                                       |
+| Area                                                                                                | Stato                                                                                                     |
+| --------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Monorepo, tooling, CI                                                                               | ✅ Implementato                                                                                           |
+| Schema database completo + migrazioni                                                               | ✅ Implementato e testato su D1                                                                           |
+| API: health, `me`, workspace (lista/creazione), overview                                            | ✅ Implementate, protette, testate                                                                        |
+| Accesso privato del proprietario (Cloudflare Access)                                                | ✅ Implementato e testato; **da configurare** per il deploy                                               |
+| App shell, design system, tema chiaro/scuro, responsive                                             | ✅ Implementato                                                                                           |
+| Onboarding (creazione workspace)                                                                    | ✅ Funzionante                                                                                            |
+| Overview con dati reali (a zero finché non ci sono schede)                                          | ✅ Funzionante                                                                                            |
+| Impostazioni (tema, info workspace/account)                                                         | ✅ Funzionanti                                                                                            |
+| **Bacheche** (template, preferite, ordine, eliminazione con conferma)                               | ✅ **M1** — funzionanti                                                                                   |
+| **Colonne** (crea, rinomina, colore, fase, ordine, eliminazione controllata)                        | ✅ **M1** — funzionanti                                                                                   |
+| **Schede** (creazione rapida, dettaglio, priorità, azienda, URL, cronologia, archivio)              | ✅ **M1** — funzionanti                                                                                   |
+| **Kanban interattivo** (trascinamento, tastiera, touch, menu, rollback)                             | ✅ **M1** — funzionante                                                                                   |
+| **Dati professionali** (posizione, sede, modalità, contratto, retribuzione, date, fase, esito)      | ✅ **M2** — funzionanti                                                                                   |
+| **Campi personalizzati** (8 tipi, per bacheca) ed **etichette**                                     | ✅ **M2** — funzionanti                                                                                   |
+| **Ricerca, filtri e vista Tabella** (anche da telefono), Kanban ↔ Tabella                           | ✅ **M2** — funzionanti                                                                                   |
+| **Modale della candidatura e colloqui** (più round, feedback, prossimo colloquio sulla card Kanban) | ✅ **M2.5** — funzionanti                                                                                 |
+| **Pipeline, note, documenti e timeline paginata**                                                   | ✅ **M3-C3** — in `main`; gate locale verde, **CI remota rossa (test preview), correzione da confermare** |
+| Attività e scadenze                                                                                 | ⏳ M3 — [progettazione](docs/m3/tasks-index.md), non implementate                                         |
+| Insights, esportazione dati, deploy privato                                                         | ⏳ M4                                                                                                     |
 
 Le funzioni non ancora disponibili (M3–M4) sono mostrate come tali nell'interfaccia (badge _"In arrivo · Mx"_ e
 controlli disabilitati): nessuna di esse simula un comportamento. Non esistono dati dimostrativi: l'app
@@ -177,6 +181,7 @@ jobward/
 - Prodotto: [visione](docs/product/vision.md) · [requisiti](docs/product/requirements.md) · [modello di dominio](docs/product/domain-model.md) · [user stories](docs/product/user-stories.md)
 - UX: [architettura dell'informazione](docs/ux/information-architecture.md) · [design system](docs/ux/design-system.md) · [schermate](docs/ux/screens.md)
 - Roadmap: [milestone](docs/roadmap/milestones.md) · [consegna M0](docs/roadmap/m0-delivery.md) · [backlog](docs/roadmap/backlog.md)
+- M3 (stato corrente): [chiusura C3](docs/m3/c3-closure.md) · [Attività e follow-up — progettazione](docs/m3/tasks-index.md) · [roadmap Attività](docs/m3/tasks-roadmap.md) · [decisioni](docs/m3/tasks-decision-register.md)
 - M2.5: [consegna](docs/m25/delivery.md) · [architettura](docs/m25/architecture.md) · [modale e UX](docs/m25/modal-ux.md) · [colloqui](docs/m25/interview-domain.md) · [contratti API](docs/m25/api-contracts.md) · [migrazione](docs/m25/database-migration.md) · [test](docs/m25/testing-report.md) · [problemi](docs/m25/issue-register.md)
 - M2: [consegna](docs/m2/delivery.md) · [architettura](docs/m2/architecture.md) · [ciclo della candidatura](docs/m2/application-lifecycle.md) · [campi personalizzati](docs/m2/custom-fields.md) · [etichette](docs/m2/labels.md) · [ricerca e filtri](docs/m2/search-and-filtering.md) · [tabella](docs/m2/table-view.md) · [contratti API](docs/m2/api-contracts.md) · [UX](docs/m2/ux-review.md) · [test](docs/m2/testing-report.md) · [problemi](docs/m2/issue-register.md)
 - M1: [consegna](docs/m1/delivery.md) · [architettura](docs/m1/architecture.md) · [contratti API](docs/m1/api-contracts.md) · [interazioni](docs/m1/board-interactions.md) · [ordinamento](docs/m1/kanban-ordering.md) · [accessibilità](docs/m1/accessibility.md) · [test](docs/m1/testing-report.md) · [problemi](docs/m1/issue-register.md)

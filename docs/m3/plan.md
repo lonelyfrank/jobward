@@ -1,11 +1,13 @@
 # M3 — Piano tecnico
 
 **Stato corrente:** C1 e C2 integrati in `main` @ `8071759b6d` (PR #7, CI verde).
-C3 autorizzato, implementato e verificato localmente sul branch `m3-c3-application-workflow-ui`, con quality gate locale superato:
-[consegna](c3-delivery.md), [test](c3-testing-report.md), [problemi](c3-issue-register.md).
-C4/C5 non avviati. Nessun push, PR, merge, deploy o D1 remoto per C3.
-Le condizioni D4/D5 restano valide; la richiesta C3 include i test di integrazione/E2E e la sua documentazione.
-Premessa: M2.5 ha già costruito modale, colloqui e cronologia di base ([audit §4](audit.md)). M3 **completa e collega**: non riscrive.
+
+> **Aggiornamento 2026-11-07:** l'intestazione «Stato corrente» qui sotto è quella **alla consegna C3** e non è riscritta. Dopo la consegna C3 è stata pubblicata su `main` (`5a0d056eda`) e la CI remota è risultata **rossa** (test preview, race di sincronizzazione; nessun difetto di prodotto). Esito, causa e correzione: [c3-closure.md](c3-closure.md).
+> C3 autorizzato, implementato e verificato localmente sul branch `m3-c3-application-workflow-ui`, con quality gate locale superato:
+> [consegna](c3-delivery.md), [test](c3-testing-report.md), [problemi](c3-issue-register.md).
+> C4/C5 non avviati. Nessun push, PR, merge, deploy o D1 remoto per C3.
+> Le condizioni D4/D5 restano valide; la richiesta C3 include i test di integrazione/E2E e la sua documentazione.
+> Premessa: M2.5 ha già costruito modale, colloqui e cronologia di base ([audit §4](audit.md)). M3 **completa e collega**: non riscrive.
 
 ## 1. Decisioni approvate
 

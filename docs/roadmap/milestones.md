@@ -80,3 +80,13 @@ M3-C3 (sei schede, pipeline, note, documenti come riferimenti, timeline) impleme
 `m3-c3-application-workflow-ui`, quality gate locale superato (1.179 unit/integration, 176 E2E e 13 preview). [Consegna](../m3/c3-delivery.md) ·
 [test](../m3/c3-testing-report.md). Attività/scadenze e checkpoint successivi restano fuori perimetro.
 Nessun push, PR o deploy C3.
+
+## Aggiornamento post-integrazione C3 — 2026-11-07
+
+Il blocco precedente descrive lo stato **al momento della consegna C3**. Fatti verificati dopo:
+C3 è in `main` (`5a0d056eda`, push diretto, nessuna PR); la CI remota ([run 42334739111](https://github.com/lonelyfrank/jobward/actions/runs/42334739111)) è **rossa**
+per una race nel test preview 302 (nessun difetto di prodotto); la correzione è pronta in locale e **non ancora confermata in CI** (push non autorizzato).
+**M3-C3 non è definitivamente chiuso.** Dettagli: [chiusura C3](../m3/c3-closure.md).
+
+**Attività e follow-up** (progettazione, nessuna implementazione): checkpoint proposti M3-T0…T3 fra C3 e C4, con C4/C5 come verifica e consegna dell'intero M3.
+Non sono milestone approvate. [Indice](../m3/tasks-index.md) · [roadmap](../m3/tasks-roadmap.md) · [decisioni](../m3/tasks-decision-register.md).

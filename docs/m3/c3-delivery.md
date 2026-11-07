@@ -3,6 +3,8 @@
 **Data:** 2026-11-07 · **Branch:** `m3-c3-application-workflow-ui`
 **Baseline verificata:** `origin/main` = `8071759b6d2faaf985a129cfd4618dedece65956`.
 
+> **Aggiornamento 2026-11-07:** questo documento è lo stato **alla consegna** e non è riscritto. Dopo la consegna C3 è stata pubblicata su `main` (`5a0d056eda`) e la CI remota è risultata **rossa** (test preview, race di sincronizzazione; nessun difetto di prodotto). Esito, causa e correzione: [c3-closure.md](c3-closure.md).
+
 **Esito:** M3-C3 completato e verificato localmente. Tutti i comandi obbligatori verdi;
 1.179 test unitari/integrazione, 176 E2E e 13 preview passati. Il collector visuale opzionale
 preesistente resta opt-in. Nessun P0/P1 aperto noto. CI del branch non eseguita, perché non è stato effettuato push.

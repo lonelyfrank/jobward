@@ -3,6 +3,8 @@
 **Data:** 2026-11-07 · **Ambiente:** Linux, Node 22.23.1, pnpm 12.15.0, Chromium Playwright.
 **Branch:** `m3-c3-application-workflow-ui`, base `8071759b6d`.
 
+> **Aggiornamento 2026-11-07:** questo documento è lo stato **alla consegna** e non è riscritto. Dopo la consegna C3 è stata pubblicata su `main` (`5a0d056eda`) e la CI remota è risultata **rossa** (test preview, race di sincronizzazione; nessun difetto di prodotto). Esito, causa e correzione: [c3-closure.md](c3-closure.md).
+
 ## Stato delle verifiche
 
 **Quality gate locale superato.** Tutti i comandi obbligatori terminati con codice 0.
