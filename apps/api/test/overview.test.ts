@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { overviewResponse } from '@jobward/schemas';
+import { addDays, localDate, startOfLocalDay } from '@jobward/shared';
 import { createApp } from '../src/app';
 import { addCard, createMinimalBoard, newUser } from './kanban-helpers';
 import { call, devEnv, seedBoardWithColumn, seedCard, seedTask, seedWorkspace } from './helpers';
 
 const app = createApp();
-const HOUR = 3_600_000;
 
 describe('GET /api/v1/overview', () => {
   it('con workspace vuoto restituisce soli zeri e liste vuote (nessun dato dimostrativo)', async () => {
@@ -25,6 +25,8 @@ describe('GET /api/v1/overview', () => {
         interviews: 0,
         openTasks: 0,
         overdueTasks: 0,
+        dueTodayTasks: 0,
+        noDueTasks: 0,
       },
       upcomingTasks: [],
       recentBoards: [],
@@ -53,12 +55,14 @@ describe('GET /api/v1/overview', () => {
       archivedAt: Date.now(),
     });
 
-    const now = Date.now();
-    await seedTask(workspaceId, { title: 'scaduta', dueAt: now - HOUR });
-    await seedTask(workspaceId, { title: 'tra 2 ore', dueAt: now + 2 * HOUR });
-    await seedTask(workspaceId, { title: 'tra 1 ora', dueAt: now + HOUR });
+    const today = localDate(Date.now(), 'UTC'); // il workspace di prova è in UTC
+    await seedTask(workspaceId, { title: 'scaduta', dueOn: addDays(today, -1) });
+    await seedTask(workspaceId, { title: 'oggi', dueOn: today });
+    await seedTask(workspaceId, { title: 'tra 2 giorni', dueOn: addDays(today, 2) });
+    await seedTask(workspaceId, { title: 'domani', dueOn: addDays(today, 1) });
     await seedTask(workspaceId, { title: 'senza scadenza' });
-    await seedTask(workspaceId, { title: 'fatta', dueAt: now + HOUR, completedAt: now });
+    await seedTask(workspaceId, { title: 'fatta', dueOn: today, completedAt: Date.now() });
+    await seedTask(workspaceId, { title: 'annullata', dueOn: today, cancelledAt: Date.now() });
 
     const res = await call<any>(
       app,
@@ -70,13 +74,22 @@ describe('GET /api/v1/overview', () => {
       opportunities: 3,
       applicationsSubmitted: 2,
       interviews: 1,
-      openTasks: 4,
+      openTasks: 5, // le completate e le annullate non contano
       overdueTasks: 1,
+      dueTodayTasks: 1,
+      noDueTasks: 1,
     });
     expect(res.body.upcomingTasks.map((t: { title: string }) => t.title)).toEqual([
-      'tra 1 ora',
-      'tra 2 ore',
+      'oggi',
+      'domani',
+      'tra 2 giorni',
     ]);
+    // Retrocompatibilità: `dueAt` resta un intero (primo istante del giorno), `dueOn` è additivo.
+    for (const t of res.body.upcomingTasks) {
+      expect(Number.isInteger(t.dueAt)).toBe(true);
+      expect(t.dueAt).toBe(startOfLocalDay(t.dueOn, 'UTC'));
+    }
+    expect(overviewResponse.parse(res.body)).toBeTruthy();
     expect(res.body.recentBoards).toHaveLength(1);
     expect(res.body.recentCards).toHaveLength(3); // le archiviate non compaiono
   });
@@ -116,7 +129,10 @@ describe('GET /api/v1/overview', () => {
     const other = await seedWorkspace('ov-other@example.com');
     const b = await seedBoardWithColumn(other.workspaceId);
     await seedCard(other.workspaceId, b.boardId, b.columnId);
-    await seedTask(other.workspaceId, { title: 'altrui', dueAt: Date.now() + HOUR });
+    await seedTask(other.workspaceId, {
+      title: 'altrui',
+      dueOn: addDays(localDate(Date.now(), 'UTC'), 1),
+    });
 
     const res = await call<any>(
       app,

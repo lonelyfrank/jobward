@@ -157,18 +157,32 @@ export async function seedCard(
 
 export async function seedTask(
   workspaceId: string,
-  opts: { title: string; dueAt?: number | null; completedAt?: number | null },
+  opts: {
+    title: string;
+    dueOn?: string | null;
+    completedAt?: number | null;
+    cancelledAt?: number | null;
+    cardId?: string | null;
+    kind?: 'general' | 'follow_up' | 'preparation';
+    priority?: 'none' | 'low' | 'medium' | 'high' | 'urgent';
+  },
 ) {
   const now = Date.now();
+  const id = newId();
   await db()
     .insert(schema.tasks)
     .values({
-      id: newId(),
+      id,
       workspaceId,
+      cardId: opts.cardId ?? null,
       title: opts.title,
-      dueAt: opts.dueAt ?? null,
+      dueOn: opts.dueOn ?? null,
       completedAt: opts.completedAt ?? null,
+      cancelledAt: opts.cancelledAt ?? null,
+      kind: opts.kind ?? 'general',
+      priority: opts.priority ?? 'none',
       createdAt: now,
       updatedAt: now,
     });
+  return id;
 }

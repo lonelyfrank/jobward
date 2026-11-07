@@ -17,6 +17,7 @@ import { meRoutes } from './modules/me/routes';
 import { noteRoutes } from './modules/notes/routes';
 import { opportunityRoutes } from './modules/opportunities/routes';
 import { overviewRoutes } from './modules/overview/routes';
+import { taskRoutes } from './modules/tasks/routes';
 import { workspaceRoutes } from './modules/workspaces/routes';
 import { searchRoutes } from './modules/search/routes';
 
@@ -52,6 +53,7 @@ export function createApp(deps: AuthDeps = defaultAuthDeps) {
   v1.route('/interviews', interviewRoutes);
   v1.route('/notes', noteRoutes);
   v1.route('/documents', documentRoutes);
+  v1.route('/tasks', taskRoutes);
   v1.route('/custom-fields', customFieldRoutes);
   app.route('/api/v1', v1);
 

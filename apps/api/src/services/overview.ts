@@ -1,7 +1,8 @@
 import { schema, type Database } from '@jobward/database';
 import type { OverviewResponse } from '@jobward/schemas';
 import { SUBMITTED_STAGES } from '@jobward/shared';
-import { and, asc, count, desc, eq, gte, isNull, lt, sql } from 'drizzle-orm';
+import { count, desc, eq, sql } from 'drizzle-orm';
+import { getAsOf, taskCounts, upcomingTasks } from './tasks';
 
 /**
  * Riepilogo della ricerca, calcolato esclusivamente da dati persistiti.
@@ -12,22 +13,17 @@ export async function getOverview(
   workspaceId: string,
   now: number,
 ): Promise<OverviewResponse> {
-  const { boards, tasks } = schema;
-  const openTask = and(eq(tasks.workspaceId, workspaceId), isNull(tasks.completedAt));
+  const { boards } = schema;
+  // Attività: stesso servizio di `GET /tasks/summary` (nessuna logica duplicata). `dueAt` resta per
+  // retrocompatibilità (primo istante del giorno di scadenza); `dueOn` e i nuovi contatori sono additivi.
+  const asOf = await getAsOf(db, workspaceId, now);
+  const [taskTotals, upcomingList] = await Promise.all([
+    taskCounts(db, workspaceId, asOf.today),
+    upcomingTasks(db, workspaceId, asOf),
+  ]);
 
-  const [boardCount, openTasks, overdue, upcoming, recent] = await db.batch([
+  const [boardCount, recent] = await db.batch([
     db.select({ n: count() }).from(boards).where(eq(boards.workspaceId, workspaceId)),
-    db.select({ n: count() }).from(tasks).where(openTask),
-    db
-      .select({ n: count() })
-      .from(tasks)
-      .where(and(openTask, lt(tasks.dueAt, now))),
-    db
-      .select({ id: tasks.id, title: tasks.title, dueAt: tasks.dueAt, cardId: tasks.cardId })
-      .from(tasks)
-      .where(and(openTask, gte(tasks.dueAt, now)))
-      .orderBy(asc(tasks.dueAt))
-      .limit(5),
     db
       .select({
         id: boards.id,
@@ -82,10 +78,12 @@ export async function getOverview(
       opportunities: stats?.opportunities ?? 0,
       applicationsSubmitted: stats?.submitted ?? 0,
       interviews: stats?.interviews ?? 0,
-      openTasks: openTasks[0]?.n ?? 0,
-      overdueTasks: overdue[0]?.n ?? 0,
+      openTasks: taskTotals.open,
+      overdueTasks: taskTotals.overdue,
+      dueTodayTasks: taskTotals.today,
+      noDueTasks: taskTotals.noDue,
     },
-    upcomingTasks: upcoming.flatMap((t) => (t.dueAt === null ? [] : [{ ...t, dueAt: t.dueAt }])),
+    upcomingTasks: upcomingList,
     recentBoards: recent,
     recentCards,
   };

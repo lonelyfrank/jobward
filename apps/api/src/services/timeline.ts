@@ -1,12 +1,20 @@
 import { type Database } from '@jobward/database';
 import type { TimelineResponse } from '@jobward/schemas';
-import { mergeTimeline, type TimelineEntry, type TimelineSystemEvent } from '@jobward/shared';
+import {
+  compareTimelineEntries,
+  mergeTimeline,
+  taskTimelineEntries,
+  type TimelineEntry,
+  type TimelineSystemEvent,
+  type TimelineTask,
+} from '@jobward/shared';
 import { sql } from 'drizzle-orm';
 import { ApiError } from '../lib/errors';
 import { getCard } from './cards';
 
 /**
- * Timeline aggregata di una candidatura (M3-C2, docs/m3/plan.md §4): eventi di sistema ∪ note.
+ * Timeline aggregata di una candidatura (M3-C2, docs/m3/plan.md §4): eventi di sistema ∪ note ∪ voci
+ *  derivate dalle attività collegate (M3 Tasks, D-06: nessun evento duplicato in `activity_events`).
  *  - ordine totale e stabile `(occurredAt, id, source)` decrescente (la funzione pura di C1);
  *  - paginazione a cursore opaco: nessun salto né duplicato se arrivano righe nuove fra due pagine;
  *  - nessuna informazione riservata: i metadati degli eventi passano dalla whitelist del dominio,
@@ -15,7 +23,7 @@ import { getCard } from './cards';
  *    nota (la sua fonte), mai copiato in un evento.
  */
 
-type Source = 'system' | 'note';
+type Source = 'system' | 'note' | 'task';
 interface Cursor {
   occurredAt: number;
   id: string;
@@ -50,7 +58,7 @@ export function decodeCursor(raw: string): Cursor {
       typeof id === 'string' &&
       id.length > 0 &&
       id.length <= 64 &&
-      (source === 'system' || source === 'note')
+      (source === 'system' || source === 'note' || source === 'task')
     ) {
       return { occurredAt: at, id, source };
     }
@@ -116,16 +124,32 @@ export async function getTimeline(
         ORDER BY created_at DESC, id DESC LIMIT ${take}`,
   );
 
-  const merged = mergeTimeline(
-    events.map((e) => ({
-      id: e.id,
-      type: e.type,
-      occurredAt: e.occurredAt,
-      cardId: e.cardId,
-      metadata: parseMetadata(e.metadata),
-    })),
-    notes,
+  // Attività della card: poche per candidatura, si leggono tutte e si filtrano per cursore in memoria
+  // (ogni task produce fino a 3 voci con id `<taskId>:created|completed|cancelled`, unici fra le fonti).
+  const taskRows = await db.all<TimelineTask>(
+    sql`SELECT id, card_id AS cardId, kind, created_at AS createdAt, completed_at AS completedAt,
+               cancelled_at AS cancelledAt
+        FROM tasks WHERE workspace_id = ${workspaceId} AND card_id = ${cardId}`,
   );
+  const afterCursor = (entry: TimelineEntry) =>
+    !cursor ||
+    entry.occurredAt < cursor.occurredAt ||
+    (entry.occurredAt === cursor.occurredAt && entry.id < cursor.id);
+  const taskEntries = taskTimelineEntries(taskRows).filter(afterCursor);
+
+  const merged = [
+    ...mergeTimeline(
+      events.map((e) => ({
+        id: e.id,
+        type: e.type,
+        occurredAt: e.occurredAt,
+        cardId: e.cardId,
+        metadata: parseMetadata(e.metadata),
+      })),
+      notes,
+    ),
+    ...taskEntries,
+  ].sort(compareTimelineEntries);
   const page = merged.slice(0, query.limit);
   const last = page.at(-1);
   return {

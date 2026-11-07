@@ -182,6 +182,29 @@ export function compareTimelineEntries(a: TimelineEntry, b: TimelineEntry): numb
         : -1)
   );
 }
+/** Voci derivate dalle righe `tasks` (D-06): creata, completata, annullata. Senza testo libero. */
+export function taskTimelineEntries(tasks: readonly TimelineTask[]): TimelineEntry[] {
+  const result: TimelineEntry[] = [];
+  for (const task of tasks) {
+    const stamps: [TaskTimelineKind, number | null][] = [
+      ['task_created', task.createdAt],
+      ['task_completed', task.completedAt],
+      ['task_cancelled', task.cancelledAt],
+    ];
+    for (const [kind, occurredAt] of stamps) {
+      if (occurredAt === null) continue;
+      result.push({
+        id: `${task.id}:${TASK_TIMELINE_SUFFIX[kind]}`,
+        source: 'task',
+        kind,
+        occurredAt,
+        entity: { type: 'task', id: task.id },
+        data: { taskId: task.id, taskKind: task.kind },
+      });
+    }
+  }
+  return result;
+}
 export function mergeTimeline(
   events: readonly TimelineSystemEvent[],
   notes: readonly TimelineNote[],
@@ -217,24 +240,7 @@ export function mergeTimeline(
       entity: { type: 'note', id: note.id },
       data: { body: note.body },
     });
-  for (const task of tasks) {
-    const stamps: [TaskTimelineKind, number | null][] = [
-      ['task_created', task.createdAt],
-      ['task_completed', task.completedAt],
-      ['task_cancelled', task.cancelledAt],
-    ];
-    for (const [kind, occurredAt] of stamps) {
-      if (occurredAt === null) continue;
-      entries.push({
-        id: `${task.id}:${TASK_TIMELINE_SUFFIX[kind]}`,
-        source: 'task',
-        kind,
-        occurredAt,
-        entity: { type: 'task', id: task.id },
-        data: { taskId: task.id, taskKind: task.kind },
-      });
-    }
-  }
+  entries.push(...taskTimelineEntries(tasks));
   const unique = new Map<string, TimelineEntry>();
   for (const entry of entries) {
     const identity = JSON.stringify([entry.source, entry.id]);
