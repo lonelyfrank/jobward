@@ -73,7 +73,7 @@ export function BoardsPage() {
           id: 'create-board',
           label: 'Nuova bacheca',
           icon: Plus,
-          separator: true,
+          group: 'create',
           onSelect: () => setCreating(true),
         },
       ]}

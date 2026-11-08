@@ -62,7 +62,7 @@ export function OverviewPage() {
           id: 'boards',
           label: 'Le mie bacheche',
           icon: SquareKanban,
-          separator: true,
+          group: 'navigate',
           onSelect: () => void navigate('/boards'),
         },
       ]}

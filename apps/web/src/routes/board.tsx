@@ -1,4 +1,4 @@
-import { Archive, Palette, Plus, Star } from 'lucide-react';
+import { Archive, Palette, Pencil, Plus, SlidersHorizontal, Star, Trash2 } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import { Link, Outlet, useMatch, useNavigate, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -155,45 +155,57 @@ export function BoardPage() {
         }
         actions={[
           {
-            id: 'background',
-            label: `Cambia il background di ${info.name}`,
-            icon: Palette,
-            onSelect: () => setChangingBackground(true),
-          },
-          {
             id: 'add-column',
+            group: 'create',
             label: 'Aggiungi colonna',
             icon: Plus,
             onSelect: () => setAddingColumn(true),
           },
           {
+            id: 'background',
+            group: 'view',
+            label: `Cambia il background di ${info.name}`,
+            icon: Palette,
+            onSelect: () => setChangingBackground(true),
+          },
+          {
             id: 'archived',
+            group: 'view',
             label: `Archiviate (${archivedTotal})`,
             icon: Archive,
             onSelect: () => setShowArchived(true),
           },
           {
             id: 'favorite',
+            group: 'manage',
             label: info.isFavorite ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti',
             icon: Star,
-            separator: true,
             onSelect: () =>
               update.mutate(
                 { boardId: info.id, input: { isFavorite: !info.isFavorite } },
                 { onError: () => notify('error', 'Non siamo riusciti ad aggiornare i preferiti.') },
               ),
           },
-          { id: 'edit-board', label: 'Modifica bacheca…', onSelect: () => setEditing(true) },
+          {
+            id: 'edit-board',
+            group: 'manage',
+            label: 'Modifica bacheca…',
+            icon: Pencil,
+            onSelect: () => setEditing(true),
+          },
           {
             id: 'fields',
+            group: 'manage',
             label: 'Campi personalizzati…',
+            icon: SlidersHorizontal,
             onSelect: () => setConfiguringFields(true),
           },
           {
             id: 'delete-board',
+            group: 'danger',
             label: 'Elimina bacheca…',
+            icon: Trash2,
             danger: true,
-            separator: true,
             onSelect: () => setDeleting(true),
           },
         ]}

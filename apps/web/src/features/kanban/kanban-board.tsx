@@ -29,6 +29,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { useNotify } from '@/components/ui/notices';
 import { groupCards, menuMove } from './board-state';
 import { useBoardZoom } from './board-zoom';
+import { BoardScrollbar } from './board-scrollbar';
 import { BoardZoomControls } from './board-zoom-controls';
 import { CardView } from './card-view';
 import { ColumnDialog } from './column-dialog';
@@ -315,7 +316,8 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
           restoreFocus: true,
         }}
       >
-        {/* `relative`: gli elementi sr-only (absolute) restano contenuti e scorrono con la bacheca,
+        {/* Scrollbar nativa nascosta: la sostituisce <BoardScrollbar />.
+            `relative`: gli elementi sr-only (absolute) restano contenuti e scorrono con la bacheca,
             altrimenti allargherebbero in orizzontale la pagina intera. */}
         <div
           ref={canvasRef}
@@ -323,7 +325,7 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
           aria-label="Colonne della bacheca"
           data-testid="kanban"
           style={{ zoom, width: '100%', height: '100%' }}
-          className="relative flex min-h-0 snap-x snap-mandatory items-start gap-3 overflow-x-auto p-3 sm:snap-none"
+          className="relative flex min-h-0 snap-x snap-mandatory items-start gap-3 overflow-x-auto p-3 [scrollbar-width:none] sm:snap-none [&::-webkit-scrollbar]:hidden"
         >
           <SortableContext
             items={columns.map((c) => c.id)}
@@ -364,6 +366,10 @@ export function KanbanBoard({ boardId, data }: { boardId: string; data: BoardDet
           </div>
         </DragOverlay>
       </DndContext>
+
+      {columns.length > 0 ? (
+        <BoardScrollbar canvasRef={canvasRef} viewportRef={viewportRef} zoom={zoom} />
+      ) : null}
 
       {columns.length > 0 ? (
         <BoardZoomControls
