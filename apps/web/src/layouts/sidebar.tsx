@@ -133,8 +133,8 @@ export function Sidebar({
           </p>
           <ul
             className={cn(
-              'flex flex-col px-2 transition-[gap] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
-              collapsed ? 'gap-1.5' : 'gap-2',
+              'flex flex-col transition-[gap,padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              collapsed ? 'gap-1.5 px-1' : 'gap-2 px-2',
             )}
           >
             {NAV_ITEMS.map((item) => (
@@ -163,7 +163,12 @@ export function Sidebar({
           </div>
         </div>
 
-        <div className="mt-auto shrink-0 border-t border-border p-2">
+        <div
+          className={cn(
+            'mt-auto shrink-0 border-t border-border transition-[padding] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]',
+            collapsed ? 'p-1' : 'p-2',
+          )}
+        >
           <UserMenu collapsed={collapsed} onNavigate={onNavigate} />
         </div>
       </nav>

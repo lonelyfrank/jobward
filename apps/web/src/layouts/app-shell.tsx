@@ -81,7 +81,7 @@ export function AppShell() {
             <aside
               className={cn(
                 'relative z-30 hidden shrink-0 bg-sidebar transition-[width,margin,border-radius] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] md:block',
-                collapsed ? 'my-3 ml-3 w-15 rounded-xl' : 'm-0 w-[220px] rounded-none',
+                collapsed ? 'my-3 ml-3 w-13 rounded-xl' : 'm-0 w-[220px] rounded-none',
               )}
             >
               <Sidebar collapsed={collapsed} />

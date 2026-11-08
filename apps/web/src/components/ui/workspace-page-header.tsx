@@ -38,6 +38,7 @@ export function WorkspacePageHeader({
     ? [
         {
           id: 'create-card',
+          group: 'create' as const,
           label: 'Nuova scheda',
           icon: Plus,
           onSelect: () => createCard(boardId),
