@@ -1,8 +1,16 @@
 # M3 — report finale di stabilizzazione
 
-**Stato della revisione validata: READY TO MERGE, non CLOSED.** La [PR #10](https://github.com/lonelyfrank/jobward/pull/10) è aperta e include main `8be8bd2`. Il [run 42513587371](https://github.com/lonelyfrank/jobward/actions/runs/42513587371) sulla HEAD `3baeabfb65245bd9b04c0843ccd168883e108fc8` è **completed / success: 2/2 job e 13/13 gate**. Unitari/integrazione: **1.291 passati**; E2E: **237 passed + 1 skip preesistente**, zero failed/flaky/retry; preview **14/14**. Il consolidamento documentale successivo deve superare nuovamente tutti i check della propria HEAD; esito e SHA conclusivi nel riepilogo PR. Nessun P0/P1 aperto sulla revisione verificata. Merge soltanto con successiva autorizzazione esplicita; M3 CLOSED richiede la verifica della baseline finale integrata.
+**Checkpoint corrente (2026-11-08): M3 CODE COMPLETE.** La [PR #10](https://github.com/lonelyfrank/jobward/pull/10) è stata integrata con squash su `main` `9a48f0b25104f16ddc0e911c9f276b35668d6231` alle **22:38:06 CET** (21:38:06 UTC). La baseline iniziale era `8be8bd2a2d77b77ba74ad394dfba6be495072217`; HEAD integrata `30436a1ae9a753c2fd1df7b4a64ea58747ba1d08`. Il contenuto Git della nuova main coincide con quello della HEAD della PR, senza divergenze. La [CI post-merge](https://github.com/lonelyfrank/jobward/actions/runs/42526187028) è **completed / success: 2/2 job e 13/13 gate verdi**; il verde pre-merge del [run 42519576365](https://github.com/lonelyfrank/jobward/actions/runs/42519576365) non sostituisce questo gate.
+
+**RELEASE READY: no.** D1 remoto e Cloudflare Access non verificati in questa chiusura; nessun deploy staging né smoke test reale eseguito. Migrazioni `0000`–`0007` esclusivamente locali. Restano aperti i rischi P2/P3 e i due advisory moderati della toolchain dev; nessuna risoluzione dichiarata senza prove.
+
+Il presente aggiornamento è soltanto documentale, su branch separato: nessuna nuova funzionalità, modifica applicativa, schema, migrazione, workflow CI o risorsa Cloudflare. Il checkout originale e tutti i branch/worktree preesistenti sono conservati.
 
 **Evidenza storica: revisione 7ff0ab0 READY TO MERGE, non CLOSED.** La [PR #9](https://github.com/lonelyfrank/jobward/pull/9) originaria è stata successivamente mergiata esternamente; il [run remoto 42506245939](https://github.com/lonelyfrank/jobward/actions/runs/42506245939) sul commit `7ff0ab09e8d556031c017e7a7781204dfec0781e` è concluso con **2/2 job verdi e 13/13 gate applicativi superati**. E2E: 236 passati al primo tentativo, uno passato al retry (flaky storico), uno skip preesistente; preview 14/14. Ogni commit successivo, incluso il consolidamento documentale di questi risultati, richiede nuovamente tutti i controlli verdi sulla HEAD della PR; il riepilogo aggiornato è nella PR. Risultati locali e remoti distinti nel [quality gate](quality-gate.md). Merge subordinato a una successiva autorizzazione esplicita; M3 CLOSED richiede anche verifica della baseline integrata su main.
+
+## Evidenze storiche della stabilizzazione
+
+Le sezioni da qui fino a «Integrazione finale della PR #10» descrivono le revisioni precedenti; lo stato corrente è quello in apertura.
 
 ## Executive summary
 
@@ -101,7 +109,7 @@ La combinazione aggiornata (`43bf119`, main `ebb9c66`) ha superato anche TypeScr
 
 Il run [42509110535](https://github.com/lonelyfrank/jobward/actions/runs/42509110535) ha superato quality ma fallito E2E sulla combinazione con `ebb9c66`: cinque test attendevano la sidebar compressa a 60 px anziché i 52 px introdotti dalla nuova main. Preview non eseguita. Conteggio: 225 passed, 5 failed, 2 flaky, 1 skipped, 5 did not run. L'onboarding segnalato al retry appartiene al gruppo seriale rieseguito dopo la failure sidebar: il workspace creato al primo tentativo è ancora nel D1, quindi l'heading onboarding non ricompare. Non è una nuova failure isolata del prodotto. Il secondo flaky è M3S-15 tastiera/zoom, tuttora aperto.
 
-Riproduzione locale con onboarding più cinque regressioni: **1 passed, 5 failed**, tutte `60px` atteso / `52px` ricevuto. Correzione limitata a tre file E2E: valori esatti 52 px e 58,5 px con testo a 18 px (13 rem); target 44 px, scala dei link, persistenza, espansione, fit colonne, temi, tastiera e axe conservati. Dopo la correzione: **6/6 passed** in 41,7 s, senza retry, nuove esclusioni o timeout. Nessuna modifica applicativa e nessuna nuova funzionalità.
+Riproduzione locale con onboarding più cinque regressioni: **1 passed, 5 failed**, tutte `60px` atteso / `52px` ricevuto. Correzione limitata a tre file E2E: valori esatti 52 px e 58,5 px con testo a 18 px (3,25 rem (`w-13`)); target 44 px, scala dei link, persistenza, espansione, fit colonne, temi, tastiera e axe conservati. Dopo la correzione: **6/6 passed** in 41,7 s, senza retry, nuove esclusioni o timeout. Nessuna modifica applicativa e nessuna nuova funzionalità.
 
 L'host locale non ha ::1 sul loopback: due avvii ordinari si sono fermati prima dei test con EADDRNOTAVAIL. La riproduzione usa un config temporaneo esterno alla repo che cambia solo il bind di Wrangler a 127.0.0.1, più ordine DNS IPv4 del processo. Nessuna variazione ai test/URL/timeout o ai workflow. Questi errori ambientali non sono conteggiati come test eseguiti. Il diff finale passa a **36 file**, 18 documenti e 18 file di codice/test; i 12 deliverable restano presenti. Attendere tutti i check della nuova HEAD prima di dichiarare READY TO MERGE.
 
@@ -120,3 +128,19 @@ Il run intermedio 42511488244, ancora privo del fix, ha ripetuto le cinque failu
 Review finale della revisione `3baeabf`: main incluso come antenato, nessun conflitto, PR mergeable; nessuna issue aperta, review, commento o thread pendente rilevato. Worktree dedicato pulito; originale ancora pulito a `ebb9c66`, senza interventi dell'agente sui suoi file. I 12 deliverable sono presenti e i link locali sono validi. Il diff della PR #10 comprende 10 file: tre test e sette documenti; nessuna modifica applicativa, configurazione, dipendenza, SQL, dato reale, segreto o artefatto di test introdotto. La documentazione finale conserva il perimetro dei run e i rischi residui.
 
 M4-C1 pronto per la specifica dopo merge autorizzato e verifica della baseline integrata. Nessun blocco tecnico P0/P1 nella revisione verificata; restano autorizzazione al merge e verifica post-merge. Advisory dev moderati, Access/D1 remoti e copertura assistiva/browser/device restano attività M4. Nessun deploy, modifica Cloudflare, migrazione remota o implementazione M4/M5 effettuati. Ogni nuova HEAD, incluso il presente consolidamento documentale, richiede tutti i check verdi prima del merge.
+
+## Integrazione finale della PR #10
+
+Stato e metadati di merge sono riportati in apertura; questa sezione registra le verifiche di integrazione.
+
+Pre-merge: main invariata a `8be8bd2`, HEAD attesa confermata, 0 commit indietro / 4 avanti, PR aperta e `clean`, 2/2 check conclusi verdi e 13/13 gate, nessuna review, commento inline, thread o issue GitHub aperta rilevati. Diff revisionato: tre file E2E (52 px e 58,5 px) e sette documenti; requisiti di focus, persistenza, touch e axe conservati. Merge eseguito con vincolo sulla HEAD verificata, senza force push o eliminazione di branch. GitHub conferma `merged: true`; lo squash ha un solo genitore, la main iniziale.
+
+La pipeline `push` su main è partita automaticamente: nessun dispatch manuale o modifica CI necessari. Risultati della baseline integrata nel [quality gate](quality-gate.md). La copertura automatizzata riguarda Chromium; browser aggiuntivi, device fisici e tecnologie assistive restano non verificati. Nessun P0/P1 aperto rilevato nel perimetro esaminato; non è una garanzia di assenza assoluta di difetti.
+
+Main non protetta e ruleset `[]`, verificati via API. Proposta effettiva e limiti aggiornati in [readiness §2](../m3-t1-readiness.md#2-stato-pr-e-protezione-di-main-verificato-sola-lettura): PR obbligatoria, zero approvazioni esterne, due check reali, base aggiornata, conversazioni risolte, blocco force push/cancellazione, nessun bypass. Non applicata: serve autorizzazione separata.
+
+**RELEASE READY: no.** D1 remoto e Cloudflare Access non verificati in questa chiusura; nessun deploy staging né smoke test reale eseguito. Migrazioni `0000`–`0007` esclusivamente locali. Restano aperti i rischi P2/P3 e i due advisory moderati della toolchain dev; nessuna risoluzione dichiarata senza prove.
+
+Le sezioni precedenti conservano le evidenze storiche e non descrivono lo stato corrente. L’handoff resta in [piano M4](../../roadmap/m4-private-release-plan.md), senza implementazione M4/M5.
+
+**Esito finale: M3 CODE COMPLETE sulla baseline main `9a48f0b`.** Run 42526187028 concluso con successo: 2/2 job e 13/13 gate, 1.291 test unitari/integrazione più 5 test identità, 237 E2E passati + uno skip visuale preesistente, zero failure/flaky/retry, preview 14/14. Log letti e conservati in `/tmp/jobward-m3-integration-evidence`. Questo esito non attesta i check di eventuali commit documentali successivi: la loro CI resta distinta. Gli aggiornamenti documentali sono predisposti su branch/PR separata, senza auto-merge né push diretto su main; il merge autorizzato copriva la sola PR #10.
