@@ -108,7 +108,7 @@ test('la sidebar si comprime e la scelta resta dopo il refresh', async ({ page }
   await page.mouse.move(221, 350);
   await page.getByRole('button', { name: 'Comprimi la barra laterale' }).click();
   await page.reload();
-  await expect(page.locator('aside')).toHaveCSS('width', '60px');
+  await expect(page.locator('aside')).toHaveCSS('width', '52px');
   await page.mouse.move(73, 350);
   await expect(page.getByRole('button', { name: 'Espandi la barra laterale' })).toBeVisible();
   await page.getByRole('button', { name: 'Espandi la barra laterale' }).click();

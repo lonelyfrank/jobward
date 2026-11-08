@@ -72,7 +72,7 @@ test('bulge: compare vicino al bordo, segue il cursore, scompare e alterna sideb
   await expect(toggle).toHaveCSS('pointer-events', 'none');
   await page.mouse.move(221, 350);
   await toggle.click();
-  await expect(sidebar).toHaveCSS('width', '60px');
+  await expect(sidebar).toHaveCSS('width', '52px');
   const active = sidebar.getByRole('link', { name: 'Overview', exact: true });
   await expect(active).toHaveCSS('width', '44px');
   await expect(active).toHaveCSS('height', '44px');
@@ -85,11 +85,11 @@ test('bulge: compare vicino al bordo, segue il cursore, scompare e alterna sideb
   await expect(active).not.toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   // La larghezza della barra e l'altezza del link devono scalare insieme al testo.
   await page.evaluate(() => (document.documentElement.style.fontSize = '18px'));
-  await expect(sidebar).toHaveCSS('width', '67.5px');
+  await expect(sidebar).toHaveCSS('width', '58.5px');
   await expect(active).toHaveCSS('width', '49.5px');
   await expect(active).toHaveCSS('height', '49.5px');
   await page.evaluate(() => document.documentElement.style.removeProperty('font-size'));
-  await expect(sidebar).toHaveCSS('width', '60px');
+  await expect(sidebar).toHaveCSS('width', '52px');
   await expect(sidebar.getByRole('heading', { name: 'Bacheche recenti' })).toHaveCount(0);
   const boards = sidebar.getByRole('link', { name: 'Bacheche', exact: true });
   await boards.hover();
@@ -98,7 +98,7 @@ test('bulge: compare vicino al bordo, segue il cursore, scompare e alterna sideb
   const expand = sidebar.getByRole('button', { name: 'Espandi la barra laterale' });
   await expect(expand).toHaveCSS('opacity', '0');
   await page.reload();
-  await expect(sidebar).toHaveCSS('width', '60px');
+  await expect(sidebar).toHaveCSS('width', '52px');
   await page.mouse.move(73, 350);
   await expand.click();
   await expect(sidebar).toHaveCSS('width', '220px');
@@ -122,7 +122,7 @@ test('collapse da tastiera e accessibilità nei due temi con movimento ridotto',
   await expect(toggle).toBeFocused();
   await expect(toggle).toHaveCSS('opacity', '1');
   await page.keyboard.press('Enter');
-  await expect(sidebar).toHaveCSS('width', '60px');
+  await expect(sidebar).toHaveCSS('width', '52px');
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await expect(sidebar.getByRole('link', { name: 'Bacheche', exact: true })).toBeVisible();
   for (const colorScheme of ['light', 'dark'] as const) {
@@ -220,5 +220,5 @@ test('mobile: drawer indipendente dal collapse desktop e nessun bulge', async ({
   await expect(page.getByRole('heading', { name: 'Bacheche', level: 1 })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBe(0);
   await page.setViewportSize({ width: 1280, height: 800 });
-  await expect(page.locator('aside')).toHaveCSS('width', '60px');
+  await expect(page.locator('aside')).toHaveCSS('width', '52px');
 });
