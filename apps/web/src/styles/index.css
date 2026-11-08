@@ -189,6 +189,14 @@
     transform: none;
   }
 }
+@keyframes jobward-view-enter {
+  from {
+    opacity: 0.82;
+  }
+  to {
+    opacity: 1;
+  }
+}
 @keyframes jobward-slide-in-right {
   from {
     transform: translateX(100%);

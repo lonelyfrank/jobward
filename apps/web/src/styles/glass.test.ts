@@ -82,7 +82,12 @@ describe('materiale Glass Subtle', () => {
     expect(variant.split(';').filter((d) => d.trim() && !d.trim().startsWith('--glass-'))).toEqual(
       [],
     );
-    expect(css).not.toMatch(/\.kanban-column-glass::/);
+    expect(css).toMatch(
+      /\.glass-subtle\.board-table-glass,\s*\.glass-subtle\.kanban-column-glass\s*{/,
+    );
+    expect(css).toMatch(
+      /\.glass-subtle\.board-table-glass::after,\s*\.glass-subtle\.kanban-column-glass::after\s*{\s*display: none;/,
+    );
   });
 
   it('non ridefinisce globalmente .surface, .card, .panel, bg-surface o bg-surface-muted', () => {
@@ -91,7 +96,7 @@ describe('materiale Glass Subtle', () => {
 });
 
 /**
- * Guardia d'ambito: Glass Subtle è una finitura esclusiva delle colonne Kanban. Il comportamento
+ * Guardia d'ambito: Glass Subtle è una finitura delle colonne Kanban e della Tabella della bacheca. Il comportamento
  * è verificato in kanban-glass.test.tsx e in e2e/kanban-glass.spec.ts; questo controllo segnala
  * subito un uso della classe in qualunque altro sorgente.
  */
@@ -102,11 +107,11 @@ describe('ambito di Glass Subtle nei sorgenti', () => {
       e.isDirectory() ? walk(path.join(dir, e.name)) : [path.join(dir, e.name)],
     );
 
-  it('solo KanbanColumn applica la classe glass-subtle', () => {
+  it('solo KanbanColumn e la route Tabella applicano la classe glass-subtle', () => {
     const users = walk(root)
       .filter((f) => /\.(tsx?|html)$/.test(f) && !/\.test\.tsx?$/.test(f))
       .filter((f) => readFileSync(f, 'utf8').includes('glass-subtle'))
       .map((f) => path.relative(root, f));
-    expect(users).toEqual(['features/kanban/kanban-column.tsx']);
+    expect(users).toEqual(['features/kanban/kanban-column.tsx', 'routes/board-table.tsx']);
   });
 });

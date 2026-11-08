@@ -68,11 +68,12 @@
 }
 
 /*
- * Variante di contesto: colonne Kanban (unico uso di Glass Subtle in Jobward). Non è un secondo
+ * Variante di contesto: colonne Kanban e contenuto della vista Tabella della bacheca. Non è un secondo
  * materiale: usa il percorso CSS di Glass · Subtle (preset Jello `navbar`), con tinta adattata
  * ai temi di Jobward, senza riflessi luminosi sul bordo. Le schede restano opache;
  * solo il materiale retrostante viene sfocato.
  */
+.glass-subtle.board-table-glass,
 .glass-subtle.kanban-column-glass {
   --glass-tint: var(--surface);
   --glass-tint-alpha: 0.9;
@@ -92,6 +93,7 @@
   --glass-opaque: var(--surface-muted);
 }
 
+.dark .glass-subtle.board-table-glass,
 .dark .glass-subtle.kanban-column-glass {
   --glass-tint: var(--background);
   --glass-tint-alpha: 0.78;
@@ -152,7 +154,8 @@
       linear-gradient(#000 0 0);
   }
 
-  /* Colonne Kanban: superficie traslucida senza anello luminoso perimetrale. */
+  /* Superfici della bacheca: nessun anello luminoso perimetrale. */
+  .glass-subtle.board-table-glass::after,
   .glass-subtle.kanban-column-glass::after {
     display: none;
   }

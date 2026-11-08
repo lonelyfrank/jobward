@@ -5,7 +5,7 @@ import { board as boardItem, boardDetail } from '@/test/fixtures';
 import { mockApi, renderApp, withWorkspace } from '@/test/utils';
 
 /**
- * Ambito del materiale Glass Subtle: SOLO il contenitore esterno delle colonne Kanban.
+ * Ambito del materiale Glass Subtle: contenitori delle colonne Kanban e vista Tabella della bacheca.
  * jsdom non calcola il CSS: qui si verifica a quale elemento il codice assegna il materiale; lo
  * stile effettivo (pseudo-elementi, sfondo trasparente, schede opache) è in e2e/kanban-glass.spec.ts.
  */

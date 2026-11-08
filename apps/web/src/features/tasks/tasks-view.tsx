@@ -12,6 +12,7 @@ import { Surface } from '@/components/ui/surface';
 import { useCreationOperation } from '@/features/cards/creation-operation';
 import { LoadError, workflowError } from '@/features/cards/workflow-feedback';
 import { cn } from '@/lib/cn';
+import { useViewEnter } from '@/hooks/use-view-enter';
 import { useTaskActions, useTasks, useTaskSummary, type TaskCommand } from './api';
 import {
   sectionOf,
@@ -41,7 +42,7 @@ export function TasksView() {
   const actions = useTaskActions();
   const [dialog, setDialog] = useState<DialogState>(null);
   const heading = useRef<HTMLHeadingElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
+  const listRef = useViewEnter<HTMLDivElement>(view);
   const focusAt = useRef<number | null>(null);
 
   const asOf = list.data?.pages[0]?.asOf ?? summary.data?.asOf;
@@ -60,7 +61,7 @@ export function TasksView() {
     focusAt.current = null;
     const control = target?.querySelector<HTMLElement>('button');
     (control ?? heading.current)?.focus();
-  }, [tasks]);
+  }, [tasks, listRef]);
 
   const setView = (next: TaskView) =>
     setParams(

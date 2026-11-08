@@ -4,6 +4,7 @@ import { NoticeProvider } from '@/components/ui/notices';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Sheet } from '@/components/ui/sheet';
 import { useSidebarCollapsed } from '@/hooks/use-sidebar-collapsed';
+import { useViewEnter } from '@/hooks/use-view-enter';
 import { BRAND, documentTitle } from '@/lib/brand';
 import { cn } from '@/lib/cn';
 import type { RouteHandle } from './nav';
@@ -20,6 +21,10 @@ export function AppShell() {
   const [navOpen, setNavOpen] = useState(false);
   const location = useLocation();
   const matches = useMatches();
+  // Le sotto-rotte delle schede e i filtri non sono cambi della vista principale.
+  const viewRef = useViewEnter<HTMLDivElement>(
+    matches.filter((match) => match.handle).at(-1)?.pathname ?? location.pathname,
+  );
   // Il titolo è quello della rotta più profonda che ne dichiara uno (il pannello di dettaglio
   // è una sotto-rotta senza titolo proprio: la vista resta "Bacheca").
   const handles = matches.flatMap((m) => (m.handle ? [m.handle as RouteHandle] : []));
@@ -105,8 +110,9 @@ export function AppShell() {
                 )}
               >
                 <div
+                  ref={viewRef}
                   className={cn(
-                    'animate-[jobward-fade-in_0.15s_ease-out]',
+                    'animate-[jobward-view-enter_140ms_cubic-bezier(0.2,0,0,1)] motion-reduce:animate-none',
                     fullBleed ? 'h-full' : 'w-full min-w-0',
                   )}
                 >

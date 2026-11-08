@@ -64,7 +64,7 @@ export function SegmentedControl({
       {indicator ? (
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute top-0 left-0 rounded-full bg-primary-soft shadow-sm transition-[transform,width,height] duration-250 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
+          className="pointer-events-none absolute top-0 left-0 rounded-full bg-primary-soft shadow-sm transition-[transform,width,height] duration-180 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
           style={{
             transform: `translate3d(${indicator.x}px, ${indicator.y}px, 0)`,
             width: indicator.width,

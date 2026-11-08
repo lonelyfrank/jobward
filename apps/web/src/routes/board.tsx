@@ -18,6 +18,7 @@ import { userMessage } from '@/features/kanban/mutations';
 import { cn } from '@/lib/cn';
 import { isColorToken } from '@/lib/labels';
 import { boardBackgroundStyle, isBoardBackgroundImage } from '@/lib/board-backgrounds';
+import { useViewEnter } from '@/hooks/use-view-enter';
 
 // Il configuratore è usato di rado: non pesa sul caricamento della bacheca.
 const CustomFieldsDialog = lazy(() =>
@@ -30,6 +31,7 @@ export function BoardPage() {
   const navigate = useNavigate();
   const tableView = useMatch('/boards/:boardId/table/*') !== null;
   const density = useDensity();
+  const contentRef = useViewEnter<HTMLDivElement>(`${tableView ? 'table' : 'kanban'}:${density}`);
   const notify = useNotify();
   const board = useBoardDetail(boardId);
   const update = useUpdateBoard();
@@ -206,7 +208,9 @@ export function BoardPage() {
         style={boardBackgroundStyle(info.backgroundImage)}
         className="board-background min-h-0 flex-1 overflow-hidden rounded-xl border border-border"
       >
-        <Outlet />
+        <div ref={contentRef} className="h-full min-h-0">
+          <Outlet />
+        </div>
       </div>
 
       {changingBackground ? (
