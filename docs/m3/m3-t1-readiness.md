@@ -22,78 +22,49 @@ Nessun push su `main`, nessun merge, nessun auto-merge.
 **Lettura corretta dell'esito.** La **verifica remota del fix è verde**. `main` però **resta rossa** finché la PR non è integrata (il merge è una tua decisione: nessun auto-merge).
 La chiusura formale di M3-C3 si ha con **merge + run di `main` verde**; fino ad allora non è dichiarata.
 
-## 2. Stato PR e protezione di `main` (verificato, sola lettura)
+## 2. Protezione di `main` — verifica 2026-11-09
 
-| Controllo                | Esito                                                                                                                                           |
-| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Branch protection `main` | **assente** (`404 Branch not protected`)                                                                                                        |
-| Repository rulesets      | **nessuno** (`[]`)                                                                                                                              |
-| Repository               | pubblico; permessi dell'utente: admin; merge commit, squash e rebase consentiti; auto-merge **disattivato**; branch non eliminati dopo il merge |
-| Workflow                 | `CI` su `pull_request`, `push` su `main`, `workflow_dispatch`; job `Typecheck · Lint · Test · Build` e `E2E (Playwright)` (dipende dal primo)   |
+**M3 resta CODE COMPLETE.** Baseline verificata via API: `445d329626b4a900b2cca9cb4a19e09d9c33ec36`, PR #11 integrata dopo PR #10. [CI post-merge 42529027562, tentativo 2](https://github.com/lonelyfrank/jobward/actions/runs/42529027562/attempts/2): entrambi i job verdi, inclusi E2E e preview. Le sezioni D1 e T1 sotto restano evidenze storiche e non attestano verifiche remote nuove.
 
-### Aggiornamento verificato — 2026-11-08
+### Audit prima della modifica
 
-Main `9a48f0b`, repository pubblico, permessi admin confermati; API branch: `protected: false`, required checks vuoti; API ruleset: `[]`. Le due check run effettive della HEAD PR `30436a1` sono `Typecheck · Lint · Test · Build` e `E2E (Playwright)`, entrambe verdi. La preview è uno step del secondo job, non un terzo status check.
+Repository pubblico, `main` predefinito, utente `lonelyfrank` con permesso `ADMIN`. Nessuna branch protection (REST `404 Branch not protected`, GraphQL `branchProtectionRules.nodes: []`), nessun ruleset (`[]`), `protected: false`. Merge commit, squash e rebase abilitati; auto-merge, aggiornamento automatico del branch (`allow_update_branch`) e cancellazione automatica dopo merge disattivati. Nessuna PR aperta.
 
-Il connettore non espone la lettura delle protezioni: queste verifiche sono state completate via GitHub CLI in sola lettura. Il nome del piano account non è esposto dalla risposta disponibile; non viene ipotizzato. Per questo repository pubblico, i branch/tag ruleset e le branch protection sono disponibili anche su GitHub Free, secondo la [documentazione GitHub sui ruleset](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets) e sulle [branch protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches). La disponibilità di un push ruleset non è necessaria per proteggere main. Nessuna impostazione modificata.
+Il piano account non è esposto (`plan: null`). I branch ruleset sono disponibili per repository pubblici anche su GitHub Free, secondo la [documentazione GitHub](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets); creazione e rilettura API hanno confermato il supporto effettivo. Non serve un push ruleset.
 
-### Configurazione proposta (**NON applicata**: serve la tua approvazione separata)
+### Configurazione applicata e riletta
 
-Ruleset di repository sul branch predefinito:
+[**jobward-main-protection**, ID **26818495**](https://github.com/lonelyfrank/jobward/rules/26818495), `target: branch`, `enforcement: active`, condizione `include: ["refs/heads/main"]`, `exclude: []`.
 
-| Regola                               | Valore proposto                                                                  | Motivo                                                                                                                   |
-| ------------------------------------ | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Pull request prima del merge         | sì, **0 approvazioni richieste**                                                 | sei l'unico manutentore: GitHub non consente di approvare la propria PR; una review obbligatoria bloccherebbe ogni merge |
-| Conversazioni risolte                | richiesto                                                                        | come richiesto                                                                                                           |
-| Controlli obbligatori                | `Typecheck · Lint · Test · Build` **e** `E2E (Playwright)` (nomi esatti dei job) | Quality, E2E e preview (la preview è un passo del job E2E)                                                               |
-| Branch aggiornato prima del merge    | sì (`strict_required_status_checks_policy`)                                      | evita merge su una base diversa da quella testata                                                                        |
-| Force-push e cancellazione di `main` | bloccati                                                                         | storia lineare e non riscrivibile                                                                                        |
-| Bypass                               | **nessuno**                                                                      | come richiesto                                                                                                           |
-| Auto-merge, squash/merge/rebase      | invariati                                                                        | non richiesti                                                                                                            |
+| Regola            | Configurazione effettiva                                                                                |
+| ----------------- | ------------------------------------------------------------------------------------------------------- |
+| Pull request      | obbligatoria, `required_approving_review_count: 0`                                                      |
+| Conversazioni     | `required_review_thread_resolution: true`                                                               |
+| Review aggiuntive | code owner, ultima push e dismiss stale review disattivati; nessun reviewer imposto                     |
+| Required checks   | `Typecheck · Lint · Test · Build` e `E2E (Playwright)`                                                  |
+| Origine check     | entrambi vincolati a GitHub Actions, `integration_id: 15368`, verificato nelle check run della baseline |
+| Branch aggiornato | `strict_required_status_checks_policy: true`; `do_not_enforce_on_create: false`                         |
+| Integrità         | `deletion`, `non_fast_forward`, `required_linear_history` attivi                                        |
+| Bypass            | `bypass_actors: []`, `current_user_can_bypass: never`, anche per il maintainer                          |
+| Altre restrizioni | nessuna regola `update`, `creation`, merge queue o deploy obbligatorio                                  |
 
-```json
-{
-  "name": "protect-main",
-  "target": "branch",
-  "enforcement": "active",
-  "conditions": { "ref_name": { "include": ["~DEFAULT_BRANCH"], "exclude": [] } },
-  "bypass_actors": [],
-  "rules": [
-    { "type": "deletion" },
-    { "type": "non_fast_forward" },
-    {
-      "type": "pull_request",
-      "parameters": {
-        "required_approving_review_count": 0,
-        "dismiss_stale_reviews_on_push": false,
-        "require_code_owner_review": false,
-        "require_last_push_approval": false,
-        "required_review_thread_resolution": true
-      }
-    },
-    {
-      "type": "required_status_checks",
-      "parameters": {
-        "strict_required_status_checks_policy": true,
-        "do_not_enforce_on_create": false,
-        "required_status_checks": [
-          { "context": "Typecheck · Lint · Test · Build" },
-          { "context": "E2E (Playwright)" }
-        ]
-      }
-    }
-  ]
-}
-```
+Le impostazioni di merge del repository restano invariate. Il ruleset restituisce `allowed_merge_methods: ["merge", "squash", "rebase"]`, ma `required_linear_history` impedisce merge commit su `main`: usare squash (ordinario) o rebase. Entrambi sono già abilitati, quindi non esiste un conflitto che impedisca tutti i merge. Zero approvazioni e nessun code owner evitano il blocco delle PR proprie.
 
-Applicazione (**da eseguire solo dopo approvazione**): `gh api -X POST repos/lonelyfrank/jobward/rulesets --input ruleset.json`. La proposta usa `enforcement: active` soltanto dopo approvazione; non si presume la disponibilità della modalità `evaluate`. In caso di rifiuto API/piano, mantenere il processo PR → due check verdi sulla HEAD e base aggiornata → merge autorizzato → CI main verde, registrando il limite; non è una protezione tecnica equivalente.
+**Verifica indipendente dopo la creazione:** `GET /repos/lonelyfrank/jobward/rulesets/26818495` conferma configurazione, enforcement e bypass; `GET /repos/lonelyfrank/jobward/rules/branches/main` restituisce le cinque regole attive di questo ID; `GET /repos/lonelyfrank/jobward/branches/main` restituisce `protected: true` e SHA invariata. La richiesta `rules/branches/docs%2Fm3-main-protection` restituisce `[]`, coerente con il target esclusivo. Nessuna prova reale di force push o cancellazione di `main`.
 
-**Compromessi dichiarati**
+### Affidabilità dei required checks
 
-- Senza bypass, neppure l'admin può forzare un push d'emergenza su `main`: bisognerebbe disattivare il ruleset (si può, ma è un'azione esplicita e tracciata).
-- «Branch aggiornato» + E2E da ~13–18 minuti: ogni merge costringe le altre PR ad aggiornarsi e a rilanciare la CI. Con una sola PR alla volta è trascurabile.
-- La storia dei flake E2E (PR #6, PR #7, run 42334739111) significa che un E2E obbligatorio può bloccare un merge: va previsto il «Re-run failed jobs» **dopo** aver letto la causa, non per abitudine.
-- I nomi dei controlli contengono il carattere `·`: devono coincidere esattamente con `name:` nel workflow.
+Workflow remoto `.github/workflows/ci.yml`, blob `3e55fc487dbf2e8b114bfb243073632c1f2e0d19`, identico al file locale della baseline; non modificato. Trigger `pull_request` senza filtri di path/branch, `push` su `main` e `workflow_dispatch`. Nessuna condizione sui job o `continue-on-error`; i due nomi sono confermati dalle check run reali, entrambe `success` sulla baseline.
+
+`e2e` dipende da `quality`: se quality fallisce, il suo check obbligatorio blocca comunque il merge anche se E2E viene saltato. E2E esegue build, `pnpm test:e2e` e `pnpm test:preview` in sequenza: errori di build/E2E/preview fanno fallire il job richiesto. Se E2E fallisce, preview non viene eseguita e il check resta fallito. Solo l'upload dei report ha `if: failure()`.
+
+`concurrency: ci-${{ github.ref }}` e `cancel-in-progress: true` annullano esecuzioni obsolete della stessa PR/ref; conta l'esecuzione del commit corrente, mai il verde di una HEAD precedente. Una run annullata o incompleta non dimostra il superamento dei gate: attendere la nuova run o rilanciare quella pertinente dopo diagnosi. Non sono presenti condizioni che escludano le PR draft; il flusso ordinario usa una PR pronta per la revisione. Dopo modifiche alla configurazione della protezione, riesaminare i check pubblicati prima di cambiare i nomi richiesti.
+
+La policy strict può richiedere nuova CI quando cambia `main`: aggiornare il branch con merge di `origin/main` sul branch di lavoro oppure ricreare un branch aggiornato e una PR, senza force push; la history del branch sorgente può contenere merge, lo squash su `main` resta lineare. `allow_update_branch: false` non impedisce l'aggiornamento via Git. Con una sola PR alla volta il costo aggiuntivo è limitato.
+
+**M3S-15 resta aperto:** il flaky tastiera/zoom può bloccare un merge quando E2E è obbligatorio. Leggere log e artefatti, distinguere regressione e flake, poi eventualmente usare «Re-run failed jobs» registrando causa, run e tentativo; nessun nuovo skip, retry globale o aumento dei timeout. I retry Playwright preesistenti restano invariati. Copertura attuale Chromium; browser/device reali, D1 remoto, Access e staging restano aperti.
+
+La PR di sola documentazione di questo intervento è anche la verifica non invasiva del trigger PR e della disponibilità dei due check richiesti. Resta aperta per la decisione di integrazione del maintainer: nessun merge di prova o bypass. La CI post-merge sarà verificabile solo dopo quel merge. Procedura ordinaria, hotfix e stati di rilascio nel [piano M4](../roadmap/m4-private-release-plan.md#governance-di-integrazione-e-rilascio).
 
 ## 3. Verifica D1
 
@@ -208,7 +179,7 @@ Nessuna incompatibilità emersa con D-03, D-05, D-06 né con lo schema locale (`
 | C-2 | **Integrare la PR #8** e verificare la run di `main` verde (chiusura formale di C3)                                                                                       | ⏳ in attesa                                                     | utente   |
 | C-3 | **Verifica D1 remoto** con i comandi di §3.3 (migrazioni `0000`–`0005`, schema `tasks`, conteggio, nessuna dipendenza) **oppure** conferma che non esiste alcun D1 remoto | ⏳ in attesa (sospende l'approvazione definitiva di D-01 e D-13) | utente   |
 | C-4 | Prova di compatibilità di `0006` sul motore **remoto** (D1 usa-e-getta o copia locale di un export)                                                                       | ⏳ da approvare; richiesta solo se esiste un D1 remoto con dati  | utente   |
-| C-5 | Decisione sul **ruleset di `main`** (§2)                                                                                                                                  | ⏳ in attesa                                                     | utente   |
+| C-5 | Decisione sul **ruleset di `main`** (§2; applicato il 2026-11-09)                                                                                                         | ✅ autorizzato e applicato, ID 26818495                          | utente   |
 | C-6 | Conferma delle decisioni **non** indicate come bloccanti (D-02, D-04, D-07…D-12, D-14) o richiesta di modifiche                                                           | ⏳ in attesa                                                     | utente   |
 | C-7 | Autorizzazione a pubblicare i **documenti** (PR di sola documentazione) — oggi solo in locale                                                                             | ⏳ in attesa                                                     | utente   |
 | C-8 | In T1, **primo passo** prima di `0006`: rieseguire in repo la prova su workerd (già fatta fuori repo) e il **test di contratto Overview** contro lo schema di `5a0d056`   | per T1                                                           | sviluppo |
