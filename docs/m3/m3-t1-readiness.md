@@ -31,6 +31,12 @@ La chiusura formale di M3-C3 si ha con **merge + run di `main` verde**; fino ad 
 | Repository               | pubblico; permessi dell'utente: admin; merge commit, squash e rebase consentiti; auto-merge **disattivato**; branch non eliminati dopo il merge |
 | Workflow                 | `CI` su `pull_request`, `push` su `main`, `workflow_dispatch`; job `Typecheck · Lint · Test · Build` e `E2E (Playwright)` (dipende dal primo)   |
 
+### Aggiornamento verificato — 2026-11-08
+
+Main `9a48f0b`, repository pubblico, permessi admin confermati; API branch: `protected: false`, required checks vuoti; API ruleset: `[]`. Le due check run effettive della HEAD PR `30436a1` sono `Typecheck · Lint · Test · Build` e `E2E (Playwright)`, entrambe verdi. La preview è uno step del secondo job, non un terzo status check.
+
+Il connettore non espone la lettura delle protezioni: queste verifiche sono state completate via GitHub CLI in sola lettura. Il nome del piano account non è esposto dalla risposta disponibile; non viene ipotizzato. Per questo repository pubblico, i branch/tag ruleset e le branch protection sono disponibili anche su GitHub Free, secondo la [documentazione GitHub sui ruleset](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets) e sulle [branch protection](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches). La disponibilità di un push ruleset non è necessaria per proteggere main. Nessuna impostazione modificata.
+
 ### Configurazione proposta (**NON applicata**: serve la tua approvazione separata)
 
 Ruleset di repository sul branch predefinito:
@@ -80,7 +86,7 @@ Ruleset di repository sul branch predefinito:
 }
 ```
 
-Applicazione (**da eseguire solo dopo approvazione**): `gh api -X POST repos/lonelyfrank/jobward/rulesets --input ruleset.json`. Si può provare prima con `"enforcement": "evaluate"` (non blocca, registra), se il piano lo consente.
+Applicazione (**da eseguire solo dopo approvazione**): `gh api -X POST repos/lonelyfrank/jobward/rulesets --input ruleset.json`. La proposta usa `enforcement: active` soltanto dopo approvazione; non si presume la disponibilità della modalità `evaluate`. In caso di rifiuto API/piano, mantenere il processo PR → due check verdi sulla HEAD e base aggiornata → merge autorizzato → CI main verde, registrando il limite; non è una protezione tecnica equivalente.
 
 **Compromessi dichiarati**
 

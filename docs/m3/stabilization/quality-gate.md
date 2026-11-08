@@ -1,8 +1,14 @@
 # M3 — quality gate
 
+**Stato corrente (2026-11-08): M3 CODE COMPLETE.** PR #10 integrata con squash su `main` `9a48f0b`; [CI post-merge 42526187028](https://github.com/lonelyfrank/jobward/actions/runs/42526187028) **completed / success: 2/2 job e 13/13 gate verdi**. Evidenze e SHA completi nel [report di stabilizzazione](final-report.md).
+
+**RELEASE READY: no.** D1 remoto e Cloudflare Access non verificati in questa chiusura; nessun deploy staging né smoke test reale eseguito. Migrazioni `0000`–`0007` esclusivamente locali. Restano aperti i rischi P2/P3 e i due advisory moderati della toolchain dev; nessuna risoluzione dichiarata senza prove.
+
+Le evidenze A/B/C/D e i run PR descritti sotto sono storici, ciascuno limitato alla propria revisione.
+
 Ambiente: Fedora Linux, Node 22.23.1, pnpm 12.15.0, Chromium Playwright 1.64.1; stack Worker/workerd e D1 esclusivamente locali. Worktree `/tmp/jobward-m3-stabilization-refactor`, branch `fix/m3-stabilization-refactor`, base `fa20c06f8cee5148f39bba685c39dca55b48bd6e` con correzioni consolidate nel commit `e5bba44` (manifest B invariato).
 
-Evidenze grezze locali in `/tmp/jobward-m3-evidence`, fuori dalla repository. **Accettazione corrente della revisione verificata:** [run 42513587371](https://github.com/lonelyfrank/jobward/actions/runs/42513587371) della PR #10, HEAD `3baeabf`, main `8be8bd2`, completato con successo: 2/2 job, 13/13 gate, 1.291 test, E2E 237 passed + 1 skip preesistente, zero flaky/retry, preview 14/14. I run precedenti restano evidenze storiche distinte. Ogni commit successivo, incluso il consolidamento documentale, deve superare la CI della propria HEAD; esiti aggiornati nella PR.
+Evidenze grezze locali in `/tmp/jobward-m3-evidence`, fuori dalla repository. **Accettazione storica della revisione PR verificata:** [run 42513587371](https://github.com/lonelyfrank/jobward/actions/runs/42513587371) della PR #10, HEAD `3baeabf`, main `8be8bd2`, completato con successo: 2/2 job, 13/13 gate, 1.291 test, E2E 237 passed + 1 skip preesistente, zero flaky/retry, preview 14/14. I run precedenti restano evidenze storiche distinte. Ogni commit successivo, incluso il consolidamento documentale, deve superare la CI della propria HEAD; esiti aggiornati nella PR.
 
 ## Revisioni verificate
 
@@ -110,7 +116,7 @@ Verifica locale dopo integrazione di `ebb9c66` nel commit `43bf119`: **TypeScrip
 
 Il run intermedio [42509110535](https://github.com/lonelyfrank/jobward/actions/runs/42509110535) ha concluso **failure**: quality verde, E2E 225 passed / 5 failed / 2 flaky / 1 skipped / 5 did not run; preview saltata dopo il fallimento E2E. Cinque failure deterministiche: aspettative obsolete 60 px per la sidebar ora a 52 px su main. L'onboarding fallisce soltanto nel retry del gruppo seriale dopo la failure sidebar, perché la prima esecuzione ha già creato il workspace; la sua prima esecuzione e la riproduzione locale passano. Il flaky tastiera/zoom resta M3S-15. Log e artifact 13629811670 scaricati ed esaminati, inclusi i trace onboarding/tastiera; nessun fallimento viene omesso dal report.
 
-Riproduzione mirata sulla base aggiornata: **1 passed, 5 failed**, tutte `60px` contro `52px`. Dopo il solo allineamento delle aspettative in app.spec.ts, sidebar.spec.ts e kanban-zoom.spec.ts: **6 passed, 0 failed, 0 retry**, 41,7 s. Conservate le verifiche di scala (13 rem = 58,5 px a font-size 18 px), target 44 px, persistenza, accessibilità e fit. Log: `/tmp/jobward-m3-evidence/closure-sidebar-{red-local-bind,green}.log`. Due tentativi precedenti non hanno eseguito test per il loopback IPv6 assente: config locale temporaneo esterno alla repo, bind Wrangler 127.0.0.1 e DNS IPv4 del processo; nessuna modifica a config tracciate, timeout o asserzioni.
+Riproduzione mirata sulla base aggiornata: **1 passed, 5 failed**, tutte `60px` contro `52px`. Dopo il solo allineamento delle aspettative in app.spec.ts, sidebar.spec.ts e kanban-zoom.spec.ts: **6 passed, 0 failed, 0 retry**, 41,7 s. Conservate le verifiche di scala (3,25 rem (`w-13`) = 58,5 px a font-size 18 px), target 44 px, persistenza, accessibilità e fit. Log: `/tmp/jobward-m3-evidence/closure-sidebar-{red-local-bind,green}.log`. Due tentativi precedenti non hanno eseguito test per il loopback IPv6 assente: config locale temporaneo esterno alla repo, bind Wrangler 127.0.0.1 e DNS IPv4 del processo; nessuna modifica a config tracciate, timeout o asserzioni.
 
 Manifest D dopo la correzione dei soli test: **368 file**, SHA-256 `d152deb42d1bbdbf6bde4de9f21e71b5264529513af3852cdc9333ef59506c79`, file `/tmp/jobward-m3-evidence/closure-source-sidebar-fix.sha256`. I risultati A/B/C e i run precedenti restano riferiti alle rispettive revisioni; l'accettazione conclusiva richiede la CI completa di questa nuova HEAD, riportata nel riepilogo PR.
 
@@ -143,3 +149,27 @@ La PR #9 è stata mergiata esternamente su main `8be8bd2` alle 18:55:28 UTC, sul
 Il precedente run 42511488244 sulla HEAD 1576257, senza M3S-17, è fallito con le stesse cinque aspettative sidebar: 226 passed / 5 failed / 1 flaky onboarding nel retry seriale / 1 skipped / 5 did not run; quality verde, preview non eseguita. Il confronto dei run conferma il passaggio delle regressioni dopo il fix, senza cambiarne i timeout o la configurazione CI. M3S-15 è passato al primo tentativo nell'accettazione PR #10, senza essere dichiarato definitivamente risolto.
 
 Manifest D (368 file, `d152deb42d1bbdbf6bde4de9f21e71b5264529513af3852cdc9333ef59506c79`) ricontrollato senza drift. Il consolidamento documentale successivo non modifica sorgenti/test/configurazioni: richiede comunque tutti i check sulla nuova HEAD. La verifica conclusiva di quella HEAD viene riportata nel riepilogo PR, evitando un ciclo di commit che registrano se stessi. Nessuna attestazione CLOSED prima del merge e della verifica della nuova main.
+
+## Gate della baseline finale integrata
+
+Commit verificato: `9a48f0b25104f16ddc0e911c9f276b35668d6231`; evento `push`, branch `main`, [run 42526187028](https://github.com/lonelyfrank/jobward/actions/runs/42526187028). Stato: **M3 CODE COMPLETE**. Tutti i 13 gate sono conclusi con successo; conteggi confermati dai log del run integrato.
+
+| Controllo                                                                      | Risultato | Numero di test                    | Commit / evidenza        |
+| ------------------------------------------------------------------------------ | --------- | --------------------------------- | ------------------------ |
+| TypeScript                                                                     | PASS      | —                                 | `9a48f0b`, CI post-merge |
+| ESLint, zero warning                                                           | PASS      | —                                 | `9a48f0b`, CI post-merge |
+| Prettier                                                                       | PASS      | —                                 | `9a48f0b`, CI post-merge |
+| Contrasto dei token                                                            | PASS      | —                                 | `9a48f0b`, CI post-merge |
+| Configurazione                                                                 | PASS      | —                                 | `9a48f0b`, CI post-merge |
+| Brand                                                                          | PASS      | —                                 | `9a48f0b`, CI post-merge |
+| Identità dev                                                                   | PASS      | 5                                 | `9a48f0b`, CI post-merge |
+| Schema / migrazioni locali 0000–0007                                           | PASS      | —                                 | `9a48f0b`, CI post-merge |
+| Upgrade database precedenti, isolamento, rollback                              | PASS      | 3 script                          | `9a48f0b`, CI post-merge |
+| Shared / schemas / web / API                                                   | PASS      | 632 + 59 + 172 + 428 = 1.291      | `9a48f0b`, CI post-merge |
+| Build Vite e Worker dry-run                                                    | PASS      | —                                 | `9a48f0b`, CI post-merge |
+| Playwright E2E: responsive, axe, ricerca, sidebar, Kanban, modali, focus/touch | PASS      | 237 passati + 1 skip preesistente | `9a48f0b`, CI post-merge |
+| Preview di produzione                                                          | PASS      | 14/14                             | `9a48f0b`, CI post-merge |
+
+Nessun timeout aumentato, skip introdotto, test disabilitato o soglia modificata. I risultati della HEAD pre-merge `30436a1` (run 42519576365) restano distinti: 1.291 unitari/integrazione, 237 E2E + uno skip visuale preesistente, 14 preview, zero failure/flaky/retry. L’identità dell’albero Git è stata verificata con `git diff 30436a1 9a48f0b --exit-code`; il gate post-merge viene comunque verificato sul proprio SHA.
+
+Job quality `128870214921` concluso con successo alle 22:46:24 CET, durata 8 min 13 s; log acquisito e letto in `/tmp/jobward-m3-integration-evidence/main-quality.log`. Conteggi Vitest estratti dalle quattro suite, nessun failed/skipped. Identità: 5/5 test Node aggiuntivi. Gli upgrade coprono M1→0007, M2.5→0005 e 0005→0006, con controlli di conservazione, vincoli, isolamento e rollback. Job browser `128872284732` concluso con successo; log acquisito e letto in `/tmp/jobward-m3-integration-evidence/main-browser.log`: 237 E2E passati (18,7 min), uno skip visuale opzionale preesistente, 14/14 preview (29,2 s). Workflow concluso alle 23:06:31 CET. Nessuna failure, flaky o retry nel riepilogo e nessun nuovo skip. L’upload artifact è saltato per `if: failure()`, non è un test omesso.

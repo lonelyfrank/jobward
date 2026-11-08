@@ -1,6 +1,8 @@
 # Milestone
 
-**Stato corrente — 2026-11-08:** M3 è integrata funzionalmente in main `8be8bd2` dopo il merge esterno della PR #9 durante la validazione. La PR #10 completa le regressioni sidebar: run 42513587371 verde su `3baeabf` (2/2 job, 1.291 test, E2E 237 passati + 1 skip preesistente senza flaky/retry, preview 14/14). Il consolidamento documentale deve superare i check della propria HEAD, poi occorrono merge esplicitamente autorizzato e verifica della baseline integrata. M3 non è CLOSED. Evidenze nel [report dedicato](../m3/stabilization/final-report.md); paragrafi datati sotto storici. Passo successivo: [piano M4-C1…C5](m4-private-release-plan.md); M5 resta preparazione alla pubblicazione.
+**Stato corrente (2026-11-08): M3 CODE COMPLETE.** PR #10 integrata con squash su `main` `9a48f0b`; [CI post-merge 42526187028](https://github.com/lonelyfrank/jobward/actions/runs/42526187028) **completed / success: 2/2 job e 13/13 gate verdi**. Evidenze e SHA completi nel [report di stabilizzazione](../m3/stabilization/final-report.md).
+
+**RELEASE READY: no.** D1 remoto e Cloudflare Access non verificati in questa chiusura; nessun deploy staging né smoke test reale eseguito. Migrazioni `0000`–`0007` esclusivamente locali. Restano aperti i rischi P2/P3 e i due advisory moderati della toolchain dev; nessuna risoluzione dichiarata senza prove. Il [piano M4](m4-private-release-plan.md) è un handoff di pianificazione, senza avvio delle attività; la scope policy resta invariata. I paragrafi datati sotto sono storici.
 
 | Milestone                                             | Obiettivo                                                                              | Stato                                                                                      |
 | ----------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -9,7 +11,7 @@
 | **M1** Boards & Cards                                 | Il nucleo operativo: bacheche, colonne, schede, Kanban                                 | ✅ Integrata (PR #3; vedi [consegna](../m1/delivery.md))                                   |
 | **M2** Job Information & Customization                | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella          | ✅ Integrata in main (vedi [consegna storica](../m2/delivery.md))                          |
 | **M2.5** Smart Application Modal & Interview Tracking | Modale ampia della candidatura, colloqui a round, riepilogo e card Kanban intelligenti | ✅ Integrata in main (vedi [consegna storica](../m25/delivery.md))                         |
-| **M3** Application Workflow                           | Pipeline, colloqui, note, documenti, timeline, attività e follow-up                    | Stabilizzazione con CI verde; merge autorizzato e baseline finale ancora richiesti         |
+| **M3** Application Workflow                           | Pipeline, colloqui, note, documenti, timeline, attività e follow-up                    | M3 CODE COMPLETE; baseline main verificata, RELEASE READY no                               |
 | **M4** Insights & Private Release                     | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato              | ⏳                                                                                         |
 | **M5** Public Readiness                               | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi          | 🔮 Futuro, fuori incarico                                                                  |
 

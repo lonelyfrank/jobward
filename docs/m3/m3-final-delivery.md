@@ -1,5 +1,9 @@
 # M3 — Consegna finale: Attività, follow-up e scadenze
 
+**Stato corrente (2026-11-08): M3 CODE COMPLETE.** PR #10 integrata con squash su `main` `9a48f0b`; [CI post-merge 42526187028](https://github.com/lonelyfrank/jobward/actions/runs/42526187028) **completed / success: 2/2 job e 13/13 gate verdi**. Evidenze e SHA completi nel [report di stabilizzazione](stabilization/final-report.md).
+
+**RELEASE READY: no.** D1 remoto e Cloudflare Access non verificati in questa chiusura; nessun deploy staging né smoke test reale eseguito. Migrazioni `0000`–`0007` esclusivamente locali. Restano aperti i rischi P2/P3 e i due advisory moderati della toolchain dev; nessuna risoluzione dichiarata senza prove. Esito corrente nel [report di stabilizzazione](stabilization/final-report.md) e nel [quality gate](stabilization/quality-gate.md). Le sezioni datate 2026-11-07 sotto sono la consegna storica.
+
 **Aggiornamento 2026-11-08:** questa è la consegna storica delle Attività. Lo stato corrente di M3, integrata alla baseline `fa20c06` e in stabilizzazione, è nel [report finale di audit](stabilization/final-report.md); la chiusura formale resta subordinata alla CI remota e all'integrazione autorizzata.
 
 **Data:** 2026-11-07 · **Branch:** `m3-tasks-followups` (da `origin/main` = `7bf462e`, CI verde) · **Stato:** implementato e verificato **in locale**; **non pubblicato** (nessun push, PR, merge né deploy).
@@ -62,7 +66,7 @@ Descritti in [tasks-api-contracts.md](tasks-api-contracts.md). Punti verificati 
 
 ## 5. Risultati dei test
 
-GATE_RESULTS
+Il segnaposto della consegna originale non conteneva evidenze. Per i risultati effettivamente eseguiti e attribuiti alla rispettiva revisione, consultare il [quality gate di stabilizzazione](stabilization/quality-gate.md), inclusa la sezione «Gate della baseline finale integrata».
 
 ## 6. Problemi residui
 
