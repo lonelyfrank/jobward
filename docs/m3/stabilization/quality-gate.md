@@ -2,7 +2,7 @@
 
 Ambiente: Fedora Linux, Node 22.23.1, pnpm 12.15.0, Chromium Playwright 1.64.1; stack Worker/workerd e D1 esclusivamente locali. Worktree `/tmp/jobward-m3-stabilization-refactor`, branch `fix/m3-stabilization-refactor`, base `fa20c06f8cee5148f39bba685c39dca55b48bd6e` con correzioni consolidate nel commit `e5bba44` (manifest B invariato).
 
-Evidenze grezze locali in `/tmp/jobward-m3-evidence`; i log non sono aggiunti alla repository. Nessuna dichiarazione di CI remota verde: il run 42433287150 della baseline è fallito e non è stato avviato un run della correzione.
+Evidenze grezze locali in `/tmp/jobward-m3-evidence`; i log non sono aggiunti alla repository. Il run 42433287150 della baseline resta un fallimento storico. La correzione ha superato il [run remoto 42506245939](https://github.com/lonelyfrank/jobward/actions/runs/42506245939) sul commit `7ff0ab0`: 2/2 job conclusi con successo. Il presente aggiornamento documentale è successivo a quella prova e deve superare la CI della propria HEAD; gli esiti aggiornati sono nella PR #9.
 
 ## Revisioni verificate
 
@@ -13,7 +13,7 @@ Base Git indicata sopra + patch locale. Manifest SHA-256 di 367 file sorgenti/co
 - **A:** `c1c88e504b8aeab3b84c81897e78d9f55df6159bfec33fc55a7dd953f96b6134`, implementazione finale verificata da check ed E2E completo; elenco per-file in `source-manifest-before-preview-test-fix.sha256`.
 - **B:** `369bc4ca471fbf729fd47c5fa32f06dec6b219068d7c37fc07edc03db8c0dc52`, patch finale con il solo test preview riallineato; elenco per-file in `source-manifest.sha256`.
 
-Il confronto dei due elenchi mostra **un solo file diverso: apps/web/e2e-preview/preview.spec.ts**. Sorgenti applicativi, configurazioni, SQL, altri test e script sono identici. Dopo questa modifica sono stati rieseguiti typecheck, lint, formattazione e tutta la preview. La suite API/database e l'E2E normale non sono state ripetute per un cambiamento esclusivo del test preview. I file tracciati fuori dal manifest restano identificati dalla base Git; gli altri cambiamenti sono documentali. Commit sorgenti `e5bba44`; pubblicazione autorizzata il 2026-11-08, CI finale ancora da eseguire.
+Il confronto dei due elenchi mostra **un solo file diverso: apps/web/e2e-preview/preview.spec.ts**. Sorgenti applicativi, configurazioni, SQL, altri test e script sono identici. Dopo questa modifica sono stati rieseguiti typecheck, lint, formattazione e tutta la preview. La suite API/database e l'E2E normale non sono state ripetute per un cambiamento esclusivo del test preview. I file tracciati fuori dal manifest restano identificati dalla base Git; gli altri cambiamenti sono documentali. Commit sorgenti `e5bba44`; pubblicazione autorizzata il 2026-11-08, CI remota della revisione `7ff0ab0` superata (vedi sotto).
 
 ## Risultati di accettazione
 
@@ -75,3 +75,27 @@ Il primo riavvio E2E è uscito in 1,33 s prima dei test perché la porta 8799 er
 La prima preview della revisione A ha concluso 6 passed, 1 failed e 7 did not run in 44,75 s: il test cercava Impostazioni nella sidebar, poi avrebbe cercato Scuro come menuitemradio. Sorgenti e snapshot confermano la UI corrente: menu account navigabile, tema nei radio delle Impostazioni. Corretto esclusivamente il test (M3S-16); preview B 14/14. Log e trace precedenti conservati in `preview-obsolete-navigation.log` e `preview-obsolete-navigation-results`.
 
 Controllo finale del perimetro: 34 file modificati/nuovi, di cui 18 documenti e 16 file di codice/test; tutte le modifiche non documentali sono coperte dal manifest B e non presentano drift. Presenti tutti i 12 deliverable, nessun collegamento locale interrotto nei documenti aggiornati, git diff --check pulito. Worktree originale ancora pulito a fa20c06. Workflows, configurazioni, lockfile, schema e migrazioni storiche invariati.
+
+## Accettazione remota — PR #9
+
+Revisione `7ff0ab09e8d556031c017e7a7781204dfec0781e`, base main `fa20c06`; run [42506245939](https://github.com/lonelyfrank/jobward/actions/runs/42506245939), stato **completed / success**, tentativo 1. Due job conclusi con successo; nessun gate applicativo in esecuzione sulla revisione indicata.
+
+| Gate remoto              | Risultato                                                                             |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| TypeScript               | PASS                                                                                  |
+| ESLint                   | PASS, zero warning                                                                    |
+| Prettier                 | PASS                                                                                  |
+| Contrasto token          | PASS                                                                                  |
+| Sicurezza configurazione | PASS                                                                                  |
+| Brand                    | PASS                                                                                  |
+| Identità dev             | PASS                                                                                  |
+| Database drift           | PASS                                                                                  |
+| Upgrade database         | PASS, tutti e tre gli script, incluse verifiche 0007                                  |
+| Unitari/integrazione     | PASS, 1.291: 632 shared + 59 schemas + 172 web + 428 API                              |
+| Build                    | PASS, Vite e Worker dry-run                                                           |
+| Playwright E2E           | PASS del job: 236 passed, 1 flaky passato al retry, 1 skipped preesistente (18,4 min) |
+| Playwright preview       | PASS, 14/14, nessuno skip (27,8 s)                                                    |
+
+Totale: **13/13 gate**, raggruppati in **2/2 check/job GitHub Actions**. Le otto categorie richieste sono coperte; le due suite Playwright sono step distinti nello stesso job. L'upload degli artifact è saltato per la condizione `if: failure()`, non è un test omesso. Un verde del job non implica assenza di flaky: M3S-15 è ricomparso al primo tentativo e passato al retry già configurato; i log contengono la failure dell'annuncio di movimento da tastiera. Nessuna nuova esclusione, retry, timeout o variazione di workflow introdotta. Il trace del tentativo non è stato pubblicato dal workflow; la causa puntuale resta non dimostrata.
+
+Controllo locale aggiuntivo della review: **18/18** regressioni ricerca/Glass passate; manifest B verificato su 367 file senza drift, formattazione e diff puliti. I risultati locali precedenti conservano il proprio perimetro A/B; quelli remoti provengono dall'esecuzione GitHub e non sono una ripetizione della dichiarazione locale. Nessuna correzione applicativa aggiuntiva necessaria per ottenere i due job verdi. Il consolidamento di questi risultati modifica solo documenti e richiede la CI sulla nuova HEAD: consultare i [check correnti della PR](https://github.com/lonelyfrank/jobward/pull/9/checks) prima del merge.

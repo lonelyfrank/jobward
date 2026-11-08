@@ -1,6 +1,6 @@
 # M4 — Insights & Private Release
 
-Piano di handoff, 2026-11-08. Nessuna funzionalità M4 implementata. M3 resta soggetta al [report di stabilizzazione](../m3/stabilization/final-report.md) e alla verifica della CI remota sulla revisione finale autorizzata.
+Piano di handoff, 2026-11-08. Nessuna funzionalità M4 implementata. M3 resta soggetta al [report di stabilizzazione](../m3/stabilization/final-report.md) e ai check della HEAD finale della PR #9: run 42506245939 già verde su `7ff0ab0`, merge e verifica della baseline integrata ancora richiesti.
 
 | Checkpoint                                     | Obiettivo e deliverable                                                                                                                                                | Criteri di uscita                                                                                                                |
 | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |

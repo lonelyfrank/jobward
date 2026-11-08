@@ -1,6 +1,6 @@
 # M3 — report finale di stabilizzazione
 
-**Stato formale: CI PENDING.** La stabilizzazione locale è verificata; pubblicazione del solo branch e apertura PR verso main autorizzate il 2026-11-08. La CI remota sulla correzione deve ancora concludersi. Merge subordinato a una successiva autorizzazione esplicita; distribuzione esclusa. Risultati e revisioni effettivamente verificate nel [quality gate](quality-gate.md).
+**Stato della revisione verificata: READY TO MERGE, non CLOSED.** La [PR #9](https://github.com/lonelyfrank/jobward/pull/9) verso main è aperta; il [run remoto 42506245939](https://github.com/lonelyfrank/jobward/actions/runs/42506245939) sul commit `7ff0ab09e8d556031c017e7a7781204dfec0781e` è concluso con **2/2 job verdi e 13/13 gate applicativi superati**. E2E: 236 passati al primo tentativo, uno passato al retry (flaky storico), uno skip preesistente; preview 14/14. Ogni commit successivo, incluso il consolidamento documentale di questi risultati, richiede nuovamente tutti i controlli verdi sulla HEAD della PR; il riepilogo aggiornato è nella PR. Risultati locali e remoti distinti nel [quality gate](quality-gate.md). Merge subordinato a una successiva autorizzazione esplicita; M3 CLOSED richiede anche verifica della baseline integrata su main.
 
 ## Executive summary
 
@@ -48,11 +48,11 @@ Risultati reali e limiti nel [quality gate](quality-gate.md). Schema/migrazioni 
 
 ## Problemi residui e readiness
 
-Nessun P0 rilevato. P1: verifica CI remota della revisione finale, blocco formale di chiusura. P2: advisory moderate nella toolchain dev e verifica Access/D1 remoti prima del rilascio privato. P3: altri browser, lettori di schermo/device reali, warning HydrateFallback e un flaky tastiera/zoom storico non riprodotto localmente, la cui causa puntuale resta da confermare. [Registro prioritizzato](issue-register.md).
+Nessun P0/P1 aperto nel perimetro verificato: le due regressioni P1 della ricerca sono corrette e il gate remoto M3S-11 è soddisfatto sulla revisione indicata. P2: advisory moderate nella toolchain dev e verifica Access/D1 remoti prima del rilascio privato. P3: altri browser, lettori di schermo/device reali, warning HydrateFallback e un flaky tastiera/zoom storico ricomparso in CI e passato al retry, la cui causa puntuale resta da confermare. [Registro prioritizzato](issue-register.md).
 
 ## Proposta di chiusura
 
-**CI PENDING sulla correzione.** I gate locali passano, con il perimetro A/B dichiarato. La readiness tecnica locale non sostituisce i criteri formali: non usare CLOSED finché CI e integrazione richieste non sono effettivamente soddisfatte. Al momento del consolidamento locale nessun push/PR ancora eseguito; nessun merge, modifica settings GitHub, deploy o migrazione remota autorizzati.
+**READY TO MERGE per la revisione remota verificata**, con controllo obbligatorio della CI sulla HEAD finale della PR. Gate locali e remoti passati, con un flaky E2E esplicito e nessun nuovo skip. Nessuna correzione applicativa aggiuntiva dopo `e5bba44`; il consolidamento finale aggiorna soltanto i documenti. Non usare CLOSED prima del merge autorizzato e della verifica della baseline integrata su main. Nessun merge, deploy, modifica Cloudflare o migrazione remota eseguiti.
 
 ## Handoff M4-C1
 
@@ -78,3 +78,11 @@ Inventario dei **12 deliverable**:
 | 10  | Report finale                   | Questo documento                                                       |
 | 11  | Registro problemi               | [issue-register.md](issue-register.md)                                 |
 | 12  | Handoff M4, solo pianificazione | [m4-private-release-plan.md](../../roadmap/m4-private-release-plan.md) |
+
+## Verifiche remote e preparazione al merge
+
+Run 42506245939 concluso con successo: quality job `128809402393`, E2E/preview job `128811414299`. Log letti: shared 632, schemas 59, web 172, API 428 = **1.291 test**, database e build verdi. Browser: **236 passed + 1 flaky passato al retry + 1 skipped**, preview **14 passed**. Lo skip è il visuale opzionale già esistente; retry/configurazione invariati. M3S-15 ricompare allo stesso annuncio di movimento da tastiera già documentato, senza una causa puntuale dimostrata; mantenuto P3 aperto. Upload artifact saltato dal workflow perché condizionato al fallimento del job: il trace del tentativo flaky non è disponibile come artifact di questo run. Log conservati fuori dalla repository in `/tmp/jobward-m3-evidence/closure-ci-42506245939-{quality,browser}.log`.
+
+Review della PR: diff limitato ai 34 file M3 revisionati, nessuna nuova funzionalità; main alla base `fa20c06`, mergeability positiva e nessun conflitto. Nessuna issue GitHub aperta, review o discussione pendente rilevata. Main non ha branch protection né ruleset applicabili (API: Branch not protected; regole vuote); tutti i gate richiesti dall'incarico vengono comunque verificati, senza modificare i settings. Ripetere il controllo della HEAD, di main e delle discussioni dopo il commit documentale; qualsiasi check ancora in corso impedisce la readiness finale.
+
+M4-C1 è pronto per la specifica dopo merge e verifica della baseline. Advisory dev, Access/D1 remoti, copertura assistiva/browser e flaky P3 restano nel registro per M4. Nessuna implementazione M4/M5 eseguita.

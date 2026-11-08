@@ -1,6 +1,6 @@
 # Milestone
 
-**Stato corrente — 2026-11-08:** M3 è integrata funzionalmente in `main` alla baseline `fa20c06`, ma la CI remota 42433287150 è fallita. La stabilizzazione locale è documentata nel [report dedicato](../m3/stabilization/final-report.md); i paragrafi datati sotto restano storici. M3 non è formalmente chiusa. Il passo successivo, dopo i gate di chiusura, è il [piano M4-C1…C5](m4-private-release-plan.md); M5 rimane la preparazione finale alla pubblicazione.
+**Stato corrente — 2026-11-08:** M3 è integrata funzionalmente in `main` alla baseline `fa20c06`, con stabilizzazione proposta nella PR #9 e run remoto 42506245939 verde su `7ff0ab0` (2/2 job; un flaky E2E passato al retry). La HEAD finale deve superare tutti i check prima del merge esplicitamente autorizzato e della verifica della baseline integrata. La stabilizzazione locale è documentata nel [report dedicato](../m3/stabilization/final-report.md); i paragrafi datati sotto restano storici. M3 non è formalmente chiusa. Il passo successivo, dopo i gate di chiusura, è il [piano M4-C1…C5](m4-private-release-plan.md); M5 rimane la preparazione finale alla pubblicazione.
 
 | Milestone                                             | Obiettivo                                                                              | Stato                                                                                      |
 | ----------------------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
@@ -9,7 +9,7 @@
 | **M1** Boards & Cards                                 | Il nucleo operativo: bacheche, colonne, schede, Kanban                                 | ✅ Integrata (PR #3; vedi [consegna](../m1/delivery.md))                                   |
 | **M2** Job Information & Customization                | Dati professionali, campi personalizzati, etichette, filtri, ricerca, tabella          | ✅ Integrata in main (vedi [consegna storica](../m2/delivery.md))                          |
 | **M2.5** Smart Application Modal & Interview Tracking | Modale ampia della candidatura, colloqui a round, riepilogo e card Kanban intelligenti | ✅ Integrata in main (vedi [consegna storica](../m25/delivery.md))                         |
-| **M3** Application Workflow                           | Pipeline, colloqui, note, documenti, timeline, attività e follow-up                    | Integrata funzionalmente; stabilizzazione, chiusura bloccata dalla CI finale               |
+| **M3** Application Workflow                           | Pipeline, colloqui, note, documenti, timeline, attività e follow-up                    | Stabilizzazione con CI verde; merge autorizzato e baseline finale ancora richiesti         |
 | **M4** Insights & Private Release                     | Statistiche, export, sicurezza, accessibilità, responsive, deploy privato              | ⏳                                                                                         |
 | **M5** Public Readiness                               | Registrazione pubblica, multiutente, quote, GDPR, backup, monitoraggio, costi          | 🔮 Futuro, fuori incarico                                                                  |
 
