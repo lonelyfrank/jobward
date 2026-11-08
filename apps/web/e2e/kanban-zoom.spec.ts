@@ -7,6 +7,7 @@ import {
   expectNoA11yViolations,
   seedApi,
   titlesIn,
+  waitForAnimationsToSettle,
 } from './helpers';
 
 let boardId: string;
@@ -38,6 +39,9 @@ const launcher = (page: Page) =>
 async function openZoom(page: Page) {
   await launcher(page).hover();
   await expect(launcher(page)).toHaveAttribute('aria-expanded', 'true');
+  // aria-expanded cambia all'inizio della transizione di max-width (200 ms).
+  // Le misure e i sensori DnD devono usare il layout finale, senza tolleranze numeriche nuove.
+  await waitForAnimationsToSettle(page);
 }
 const reset = (page: Page) => controls(page).getByRole('button', { name: /Ripristina lo zoom/ });
 const firstWidth = (page: Page) =>
@@ -256,7 +260,7 @@ test('il ritorno alle bacheche è un pulsante tondo tra ricerca e Azioni con too
   page,
 }) => {
   const header = page.getByTestId('workspace-page-header');
-  const back = header.getByRole('link', { name: 'torna a tutte le bacheche' });
+  const back = header.getByRole('link', { name: 'Torna alle bacheche', exact: true });
   await expect(back).toHaveAttribute('href', '/boards');
   const searchBox = (await header.getByRole('button', { name: 'Cerca in Jobward' }).boundingBox())!;
   const backBox = (await back.boundingBox())!;
@@ -268,7 +272,9 @@ test('il ritorno alle bacheche è un pulsante tondo tra ricerca e Azioni con too
     await back.evaluate((el) => parseFloat(getComputedStyle(el).borderRadius)),
   ).toBeGreaterThanOrEqual(backBox.width / 2);
   await back.hover();
-  await expect(page.getByRole('tooltip', { name: 'torna a tutte le bacheche' })).toBeVisible();
+  await expect(
+    page.getByRole('tooltip', { name: 'Torna alle bacheche', exact: true }),
+  ).toBeVisible();
   await header.getByRole('button', { name: 'Azioni della vista' }).click();
   await expect(page.getByRole('menuitem', { name: 'Tutte le bacheche' })).toHaveCount(0);
   await page.keyboard.press('Escape');

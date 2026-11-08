@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { ensureWorkspace, expectNoA11yViolations, seedApi } from './helpers';
+import { ensureWorkspace, expectNoA11yViolations, seedApi, smallTouchTargets } from './helpers';
 
 const PATHS = [
   '/',
@@ -125,24 +125,7 @@ test.describe('responsive: 320 / 390 / 768 / 1024 / 1360 px', () => {
     for (const path of ['/', '/boards', '/settings']) {
       await page.goto(path);
       await expect(page.getByRole('main')).toBeVisible();
-      small.push(
-        ...(await page.evaluate((p) => {
-          const out: string[] = [];
-          for (const el of document.querySelectorAll<HTMLElement>(
-            'a[href],button,input:not([type=radio]),select,label:has(input[type=radio])',
-          )) {
-            const r = el.getBoundingClientRect();
-            if (r.width === 0 || r.height === 0 || el.matches('.sr-only') || el.closest('p'))
-              continue;
-            if (el.matches('a.sr-only')) continue;
-            if (r.height < 43.5 || r.width < 43.5)
-              out.push(
-                `${p} ${el.tagName} "${(el.getAttribute('aria-label') ?? el.textContent ?? '').trim().slice(0, 22)}" ${Math.round(r.width)}x${Math.round(r.height)}`,
-              );
-          }
-          return out;
-        }, path)),
-      );
+      small.push(...(await smallTouchTargets(page, 'body')).map((target) => `${path} ${target}`));
     }
     expect(small).toEqual([]);
   });
@@ -240,7 +223,8 @@ test.describe('tastiera e focus', () => {
     await page.keyboard.press('Enter');
     await expect(page.getByRole('menu')).toBeVisible();
     // Aperto da tastiera, il focus va subito sulla prima voce; le frecce scorrono le altre.
-    const items = page.getByRole('menuitemradio');
+    const items = page.getByRole('menu', { name: 'Menu account' }).getByRole('menuitem');
+    await expect(items).toHaveText(['Profilo', 'Impostazioni', 'Aiuto']);
     await expect(items.first()).toBeFocused();
     await page.keyboard.press('ArrowDown');
     await expect(items.nth(1)).toBeFocused();

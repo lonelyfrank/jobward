@@ -105,6 +105,7 @@ try {
     INSERT INTO labels (id,workspace_id,name,color,created_at) VALUES ('l1','w1','Interessante','green',${now});
   `);
   const before = {
+    boards: query('SELECT * FROM boards ORDER BY id'),
     cards: query('SELECT count(*) n FROM cards')[0].n,
     archived: query('SELECT count(*) n FROM cards WHERE archived_at IS NOT NULL')[0].n,
     details: query(
@@ -119,6 +120,30 @@ try {
   console.log(`2. Aggiornamento: ${upgrade.join(', ')}`);
   for (const f of upgrade) fs.copyFileSync(path.join(source, f), path.join(migrations, f));
   wrangler(['d1', 'migrations', 'apply', 'DB', '--local']);
+
+  // 0007 è additiva: tutte le colonne storiche e le preferenze già salvate devono restare intatte.
+  const boardColumns = Object.keys(before.boards[0])
+    .map((name) => `"${name}"`)
+    .join(', ');
+  expect(
+    JSON.stringify(query(`SELECT ${boardColumns} FROM boards ORDER BY id`)) ===
+      JSON.stringify(before.boards),
+    'bacheche legacy identiche campo per campo dopo 0007',
+  );
+  expect(
+    query('SELECT count(*) n FROM boards WHERE background_image IS NOT NULL')[0].n === 0,
+    '0007 inizializza gli sfondi legacy a NULL senza scegliere un nuovo sfondo',
+  );
+  run("UPDATE boards SET background_image='lake' WHERE id='b1'");
+  wrangler(['d1', 'migrations', 'apply', 'DB', '--local']);
+  expect(
+    query("SELECT background_image FROM boards WHERE id='b1'")[0].background_image === 'lake' &&
+      query("SELECT count(*) n FROM boards WHERE id!='b1' AND background_image IS NOT NULL")[0]
+        .n === 0,
+    'riapplicare il runner non modifica lo sfondo salvato né le altre bacheche/workspace',
+  );
+  // D1 rifiuta integrity_check (SQLITE_AUTH), anche in locale: usiamo il controllo supportato.
+  expect(query('PRAGMA foreign_key_check').length === 0, 'foreign_key_check dopo 0007: pulito');
 
   const after = {
     cards: query('SELECT count(*) n FROM cards')[0].n,

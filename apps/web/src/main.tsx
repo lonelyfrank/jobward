@@ -2,7 +2,7 @@ import './lib/zod-config'; // deve precedere qualunque import che crea schemi Zo
 import '@fontsource-variable/inter';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { RouterProvider } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import { Providers } from './app/providers';
 import { createAppRouter } from './app/router';
 import './styles/index.css';
