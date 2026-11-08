@@ -120,7 +120,7 @@ test('mostra tutte le colonne e si adatta al cambio di finestra e sidebar', asyn
   await expectAllColumnsVisible(page);
   await page.getByRole('button', { name: 'Comprimi la barra laterale' }).focus();
   await page.keyboard.press('Enter');
-  await expect(page.locator('aside')).toHaveCSS('width', '60px');
+  await expect(page.locator('aside')).toHaveCSS('width', '52px');
   await expectAllColumnsVisible(page);
   await page.setViewportSize({ width: 900, height: 700 });
   await expectAllColumnsVisible(page);

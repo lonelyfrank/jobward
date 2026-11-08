@@ -2,7 +2,7 @@
 
 Ambiente: Fedora Linux, Node 22.23.1, pnpm 12.15.0, Chromium Playwright 1.64.1; stack Worker/workerd e D1 esclusivamente locali. Worktree `/tmp/jobward-m3-stabilization-refactor`, branch `fix/m3-stabilization-refactor`, base `fa20c06f8cee5148f39bba685c39dca55b48bd6e` con correzioni consolidate nel commit `e5bba44` (manifest B invariato).
 
-Evidenze grezze locali in `/tmp/jobward-m3-evidence`; i log non sono aggiunti alla repository. Il run 42433287150 della baseline resta un fallimento storico. La correzione ha superato il [run remoto 42506245939](https://github.com/lonelyfrank/jobward/actions/runs/42506245939) sul commit `7ff0ab0`: 2/2 job conclusi con successo. Il presente aggiornamento documentale è successivo a quella prova e deve superare la CI della propria HEAD; gli esiti aggiornati sono nella PR #9.
+Evidenze grezze locali in `/tmp/jobward-m3-evidence`, fuori dalla repository. **Accettazione corrente della revisione verificata:** [run 42513587371](https://github.com/lonelyfrank/jobward/actions/runs/42513587371) della PR #10, HEAD `3baeabf`, main `8be8bd2`, completato con successo: 2/2 job, 13/13 gate, 1.291 test, E2E 237 passed + 1 skip preesistente, zero flaky/retry, preview 14/14. I run precedenti restano evidenze storiche distinte. Ogni commit successivo, incluso il consolidamento documentale, deve superare la CI della propria HEAD; esiti aggiornati nella PR.
 
 ## Revisioni verificate
 
@@ -98,10 +98,48 @@ Revisione `7ff0ab09e8d556031c017e7a7781204dfec0781e`, base main `fa20c06`; run [
 
 Totale: **13/13 gate**, raggruppati in **2/2 check/job GitHub Actions**. Le otto categorie richieste sono coperte; le due suite Playwright sono step distinti nello stesso job. L'upload degli artifact è saltato per la condizione `if: failure()`, non è un test omesso. Un verde del job non implica assenza di flaky: M3S-15 è ricomparso al primo tentativo e passato al retry già configurato; i log contengono la failure dell'annuncio di movimento da tastiera. Nessuna nuova esclusione, retry, timeout o variazione di workflow introdotta. Il trace del tentativo non è stato pubblicato dal workflow; la causa puntuale resta non dimostrata.
 
-Controllo locale aggiuntivo della review: **18/18** regressioni ricerca/Glass passate; manifest B verificato su 367 file senza drift, formattazione e diff puliti. I risultati locali precedenti conservano il proprio perimetro A/B; quelli remoti provengono dall'esecuzione GitHub e non sono una ripetizione della dichiarazione locale. Nessuna correzione applicativa aggiuntiva necessaria per ottenere i due job verdi. Il consolidamento di questi risultati modifica solo documenti e richiede la CI sulla nuova HEAD: consultare i [check correnti della PR](https://github.com/lonelyfrank/jobward/pull/9/checks) prima del merge.
+Controllo locale aggiuntivo della review: **18/18** regressioni ricerca/Glass passate; manifest B verificato su 367 file senza drift, formattazione e diff puliti. I risultati locali precedenti conservano il proprio perimetro A/B; quelli remoti provengono dall'esecuzione GitHub e non sono una ripetizione della dichiarazione locale. Nessuna correzione applicativa aggiuntiva necessaria per ottenere i due job verdi. Il consolidamento di questi risultati modifica solo documenti e richiede la CI sulla nuova HEAD: consultare i [check correnti della PR di completamento](https://github.com/lonelyfrank/jobward/pull/10/checks) prima del merge.
 
 ## Nuova base main durante la validazione
 
 Main è avanzato esternamente a `ebb9c66` mentre la PR era in validazione. Il branch è stato aggiornato con merge di main senza conflitti; il diff M3 conserva i 34 file revisionati. I nove file applicativi diversi dal manifest B provengono esclusivamente dal commit main, non da altre correzioni M3. La CI verde precedente su `7ff0ab0` resta distinta dalla prova richiesta sulla nuova combinazione. Controlli locali e run conclusivo della HEAD aggiornata sono riportati nella PR; nessun risultato del run precedente viene attribuito automaticamente alla nuova base.
 
 Verifica locale dopo integrazione di `ebb9c66` nel commit `43bf119`: **TypeScript PASS, ESLint PASS, 172/172 test frontend PASS** (19 file). Il confronto Git conferma che i nove file acquisiti coincidono esattamente col commit esterno main. Manifest C: 368 file, SHA-256 `e0a3df8902a86d890802f182f50010d0da1c44230d44f30efdcac109e802c39c`, conservato in `/tmp/jobward-m3-evidence/closure-source-main-ebb9c66.sha256`; include il nuovo BoardScrollbar proveniente da main. Contratti/backend/database e correzioni M3 restano invariati. Il commit documentale successivo non modifica questi sorgenti.
+
+## Regressioni dei test introdotte dalla nuova base
+
+Il run intermedio [42509110535](https://github.com/lonelyfrank/jobward/actions/runs/42509110535) ha concluso **failure**: quality verde, E2E 225 passed / 5 failed / 2 flaky / 1 skipped / 5 did not run; preview saltata dopo il fallimento E2E. Cinque failure deterministiche: aspettative obsolete 60 px per la sidebar ora a 52 px su main. L'onboarding fallisce soltanto nel retry del gruppo seriale dopo la failure sidebar, perché la prima esecuzione ha già creato il workspace; la sua prima esecuzione e la riproduzione locale passano. Il flaky tastiera/zoom resta M3S-15. Log e artifact 13629811670 scaricati ed esaminati, inclusi i trace onboarding/tastiera; nessun fallimento viene omesso dal report.
+
+Riproduzione mirata sulla base aggiornata: **1 passed, 5 failed**, tutte `60px` contro `52px`. Dopo il solo allineamento delle aspettative in app.spec.ts, sidebar.spec.ts e kanban-zoom.spec.ts: **6 passed, 0 failed, 0 retry**, 41,7 s. Conservate le verifiche di scala (13 rem = 58,5 px a font-size 18 px), target 44 px, persistenza, accessibilità e fit. Log: `/tmp/jobward-m3-evidence/closure-sidebar-{red-local-bind,green}.log`. Due tentativi precedenti non hanno eseguito test per il loopback IPv6 assente: config locale temporaneo esterno alla repo, bind Wrangler 127.0.0.1 e DNS IPv4 del processo; nessuna modifica a config tracciate, timeout o asserzioni.
+
+Manifest D dopo la correzione dei soli test: **368 file**, SHA-256 `d152deb42d1bbdbf6bde4de9f21e71b5264529513af3852cdc9333ef59506c79`, file `/tmp/jobward-m3-evidence/closure-source-sidebar-fix.sha256`. I risultati A/B/C e i run precedenti restano riferiti alle rispettive revisioni; l'accettazione conclusiva richiede la CI completa di questa nuova HEAD, riportata nel riepilogo PR.
+
+## Baseline integrata esternamente e PR #10
+
+La PR #9 è stata mergiata esternamente su main `8be8bd2` alle 18:55:28 UTC, sulla HEAD `1576257`, durante la CI e prima del fix sidebar `ebe02f3`. Nessun merge è stato eseguito dall'agente. La PR #10 mantiene lo stesso branch autorizzato e completa le sole correzioni/evidenze rimaste fuori. La base main viene integrata nel branch; manifest D invariato nei sorgenti. La CI da completare è quella della HEAD della PR #10; la baseline main attuale non soddisfa ancora il gate finale e M3 resta non CLOSED.
+
+## Accettazione remota della PR #10 sulla nuova base integrata
+
+[Run 42513587371](https://github.com/lonelyfrank/jobward/actions/runs/42513587371), HEAD `3baeabfb65245bd9b04c0843ccd168883e108fc8`, base main `8be8bd2a2d77b77ba74ad394dfba6be495072217`, tentativo workflow 1: **completed / success**.
+
+| Gate remoto              | Esito effettivo                                                    |
+| ------------------------ | ------------------------------------------------------------------ |
+| TypeScript               | PASS                                                               |
+| ESLint                   | PASS, zero warning                                                 |
+| Prettier                 | PASS                                                               |
+| Contrasto                | PASS                                                               |
+| Configurazione sicurezza | PASS                                                               |
+| Brand                    | PASS                                                               |
+| Identità dev             | PASS                                                               |
+| Database drift           | PASS                                                               |
+| Upgrade database         | PASS, tre script, 0000–0007 locali                                 |
+| Unitari/integrazione     | PASS: 632 shared + 59 schemas + 172 web + 428 API = 1.291          |
+| Build                    | PASS, Vite e Worker dry-run                                        |
+| Playwright E2E           | 237 passed, 1 skipped preesistente, 0 failed/flaky/retry, 13,0 min |
+| Playwright preview       | 14/14 passed, 0 skipped, 22,2 s                                    |
+
+**13/13 gate in 2/2 job conclusi con successo.** Quality job 128831734093; browser job 128833824231. Nessun gate richiesto omesso o in esecuzione sulla revisione indicata. Upload artifact saltato dalla condizione del workflow, non un test mancante. Log scaricati e letti: `closure-ci-42513587371-{quality,browser}.log`, fuori dal repository.
+
+Il precedente run 42511488244 sulla HEAD 1576257, senza M3S-17, è fallito con le stesse cinque aspettative sidebar: 226 passed / 5 failed / 1 flaky onboarding nel retry seriale / 1 skipped / 5 did not run; quality verde, preview non eseguita. Il confronto dei run conferma il passaggio delle regressioni dopo il fix, senza cambiarne i timeout o la configurazione CI. M3S-15 è passato al primo tentativo nell'accettazione PR #10, senza essere dichiarato definitivamente risolto.
+
+Manifest D (368 file, `d152deb42d1bbdbf6bde4de9f21e71b5264529513af3852cdc9333ef59506c79`) ricontrollato senza drift. Il consolidamento documentale successivo non modifica sorgenti/test/configurazioni: richiede comunque tutti i check sulla nuova HEAD. La verifica conclusiva di quella HEAD viene riportata nel riepilogo PR, evitando un ciclo di commit che registrano se stessi. Nessuna attestazione CLOSED prima del merge e della verifica della nuova main.
