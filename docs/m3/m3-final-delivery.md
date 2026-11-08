@@ -1,5 +1,7 @@
 # M3 — Consegna finale: Attività, follow-up e scadenze
 
+**Aggiornamento 2026-11-08:** questa è la consegna storica delle Attività. Lo stato corrente di M3, integrata alla baseline `fa20c06` e in stabilizzazione, è nel [report finale di audit](stabilization/final-report.md); la chiusura formale resta subordinata alla CI remota e all'integrazione autorizzata.
+
 **Data:** 2026-11-07 · **Branch:** `m3-tasks-followups` (da `origin/main` = `7bf462e`, CI verde) · **Stato:** implementato e verificato **in locale**; **non pubblicato** (nessun push, PR, merge né deploy).
 Questa consegna realizza la progettazione approvata in [tasks-index.md](tasks-index.md) (decisioni D-01, D-03, D-05, D-06, D-13 e Overview retrocompatibile). Non introduce nuovi checkpoint.
 

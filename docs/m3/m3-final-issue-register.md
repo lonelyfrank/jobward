@@ -1,5 +1,7 @@
 # M3 — Registro dei problemi (consegna finale)
 
+**Aggiornamento 2026-11-08:** questo documento conserva il registro della consegna storica. Lo stato corrente, le regressioni UI e i blocchi di chiusura sono nel [registro di stabilizzazione](stabilization/issue-register.md) e nel [report finale](stabilization/final-report.md). Il working tree iniziale dell'audit era pulito; le modifiche UI citate in M3F-03 sono ora integrate nella baseline `fa20c06`.
+
 **Data:** 2026-11-07 · **Branch:** `m3-tasks-followups`. Vedi [consegna finale](m3-final-delivery.md). I registri storici ([C3](c3-issue-register.md), [C2](c2-delivery.md)) restano invariati.
 
 ## Aperti
