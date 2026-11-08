@@ -1,6 +1,6 @@
 # M4 — Insights & Private Release
 
-Piano di handoff, 2026-11-08. Nessuna funzionalità M4 implementata. M3 resta soggetta al [report di stabilizzazione](../m3/stabilization/final-report.md) e ai check della HEAD finale della PR #10, aperta dopo il merge esterno della PR #9 prima della fine della validazione. Il run 42506245939 resta verde storico su `7ff0ab0`; completamento e verifica della baseline finale integrata ancora richiesti.
+Piano di handoff, 2026-11-08. Nessuna funzionalità M4 implementata. La PR #10 ha superato il run 42513587371 su `3baeabf`: 2/2 job verdi, E2E senza flaky/retry e preview 14/14. Il consolidamento documentale richiede tutti i check sulla propria HEAD. Handoff attuabile dopo merge autorizzato e verifica della baseline finale integrata; M3 non CLOSED. Evidenze nel [report di stabilizzazione](../m3/stabilization/final-report.md).
 
 | Checkpoint                                     | Obiettivo e deliverable                                                                                                                                                | Criteri di uscita                                                                                                                |
 | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |

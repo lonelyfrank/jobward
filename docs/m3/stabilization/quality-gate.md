@@ -2,7 +2,7 @@
 
 Ambiente: Fedora Linux, Node 22.23.1, pnpm 12.15.0, Chromium Playwright 1.64.1; stack Worker/workerd e D1 esclusivamente locali. Worktree `/tmp/jobward-m3-stabilization-refactor`, branch `fix/m3-stabilization-refactor`, base `fa20c06f8cee5148f39bba685c39dca55b48bd6e` con correzioni consolidate nel commit `e5bba44` (manifest B invariato).
 
-Evidenze grezze locali in `/tmp/jobward-m3-evidence`; i log non sono aggiunti alla repository. Il run 42433287150 della baseline resta un fallimento storico. La correzione ha superato il [run remoto 42506245939](https://github.com/lonelyfrank/jobward/actions/runs/42506245939) sul commit `7ff0ab0`: 2/2 job conclusi con successo. Il presente aggiornamento documentale è successivo a quella prova e deve superare la CI della propria HEAD; gli esiti aggiornati sono nella PR #9.
+Evidenze grezze locali in `/tmp/jobward-m3-evidence`, fuori dalla repository. **Accettazione corrente della revisione verificata:** [run 42513587371](https://github.com/lonelyfrank/jobward/actions/runs/42513587371) della PR #10, HEAD `3baeabf`, main `8be8bd2`, completato con successo: 2/2 job, 13/13 gate, 1.291 test, E2E 237 passed + 1 skip preesistente, zero flaky/retry, preview 14/14. I run precedenti restano evidenze storiche distinte. Ogni commit successivo, incluso il consolidamento documentale, deve superare la CI della propria HEAD; esiti aggiornati nella PR.
 
 ## Revisioni verificate
 
@@ -117,3 +117,29 @@ Manifest D dopo la correzione dei soli test: **368 file**, SHA-256 `d152deb42d1b
 ## Baseline integrata esternamente e PR #10
 
 La PR #9 è stata mergiata esternamente su main `8be8bd2` alle 18:55:28 UTC, sulla HEAD `1576257`, durante la CI e prima del fix sidebar `ebe02f3`. Nessun merge è stato eseguito dall'agente. La PR #10 mantiene lo stesso branch autorizzato e completa le sole correzioni/evidenze rimaste fuori. La base main viene integrata nel branch; manifest D invariato nei sorgenti. La CI da completare è quella della HEAD della PR #10; la baseline main attuale non soddisfa ancora il gate finale e M3 resta non CLOSED.
+
+## Accettazione remota della PR #10 sulla nuova base integrata
+
+[Run 42513587371](https://github.com/lonelyfrank/jobward/actions/runs/42513587371), HEAD `3baeabfb65245bd9b04c0843ccd168883e108fc8`, base main `8be8bd2a2d77b77ba74ad394dfba6be495072217`, tentativo workflow 1: **completed / success**.
+
+| Gate remoto              | Esito effettivo                                                    |
+| ------------------------ | ------------------------------------------------------------------ |
+| TypeScript               | PASS                                                               |
+| ESLint                   | PASS, zero warning                                                 |
+| Prettier                 | PASS                                                               |
+| Contrasto                | PASS                                                               |
+| Configurazione sicurezza | PASS                                                               |
+| Brand                    | PASS                                                               |
+| Identità dev             | PASS                                                               |
+| Database drift           | PASS                                                               |
+| Upgrade database         | PASS, tre script, 0000–0007 locali                                 |
+| Unitari/integrazione     | PASS: 632 shared + 59 schemas + 172 web + 428 API = 1.291          |
+| Build                    | PASS, Vite e Worker dry-run                                        |
+| Playwright E2E           | 237 passed, 1 skipped preesistente, 0 failed/flaky/retry, 13,0 min |
+| Playwright preview       | 14/14 passed, 0 skipped, 22,2 s                                    |
+
+**13/13 gate in 2/2 job conclusi con successo.** Quality job 128831734093; browser job 128833824231. Nessun gate richiesto omesso o in esecuzione sulla revisione indicata. Upload artifact saltato dalla condizione del workflow, non un test mancante. Log scaricati e letti: `closure-ci-42513587371-{quality,browser}.log`, fuori dal repository.
+
+Il precedente run 42511488244 sulla HEAD 1576257, senza M3S-17, è fallito con le stesse cinque aspettative sidebar: 226 passed / 5 failed / 1 flaky onboarding nel retry seriale / 1 skipped / 5 did not run; quality verde, preview non eseguita. Il confronto dei run conferma il passaggio delle regressioni dopo il fix, senza cambiarne i timeout o la configurazione CI. M3S-15 è passato al primo tentativo nell'accettazione PR #10, senza essere dichiarato definitivamente risolto.
+
+Manifest D (368 file, `d152deb42d1bbdbf6bde4de9f21e71b5264529513af3852cdc9333ef59506c79`) ricontrollato senza drift. Il consolidamento documentale successivo non modifica sorgenti/test/configurazioni: richiede comunque tutti i check sulla nuova HEAD. La verifica conclusiva di quella HEAD viene riportata nel riepilogo PR, evitando un ciclo di commit che registrano se stessi. Nessuna attestazione CLOSED prima del merge e della verifica della nuova main.

@@ -2,22 +2,22 @@
 
 Data 2026-11-08; supersede lo stato corrente del registro storico M3F senza cancellarne le evidenze.
 
-| ID     | Priorità | Stato                                            | Problema / criterio di uscita                                                                               |
-| ------ | -------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------- |
-| M3S-01 | P2       | Corretto, verificato in locale e CI              | Locator radio ambiguo; light/dark e opzioni conservate.                                                     |
-| M3S-02 | P2       | Corretto, verificato in locale e CI              | Test menu account obsoleto; focus e tastiera.                                                               |
-| M3S-03 | P2       | Corretto, verificato in locale e CI              | Misuratore touch ignora area estesa della card; test negativo e click reale.                                |
-| M3S-04 | P2       | Corretto, verificato in locale e CI              | Table eredita Glass oltre lo scope esplicito; guardie unitarie/browser.                                     |
-| M3S-05 | P2       | Corretto, verificato in locale e CI              | Misura toolbar durante transizione; uguaglianza esatta a riposo.                                            |
-| M3S-06 | P2       | Corretto, verificato in locale e CI              | Nome precedente del link ritorno.                                                                           |
-| M3S-07 | P1       | Corretto, verificato in locale e CI              | Back rapido lascia filtro ottimistico attivo e risultati errati.                                            |
-| M3S-08 | P2       | Già risolto nella baseline, contratto verificato | Guardia pseudo-elementi troppo ampia; scope Kanban protetto.                                                |
-| M3S-09 | P2       | Già risolto nella baseline, upgrade finale verde | Fixture della prova API ferma a 0005, incompatibile con la timeline Tasks corrente (richiede 0006).         |
-| M3S-10 | P1       | Corretto, verificato in locale e CI              | Debounce cancella filtro appena scelto.                                                                     |
-| M3S-11 | P1       | Risolto sulla revisione 7ff0ab0                  | PR #9, run 42506245939: quality/E2E/preview completati verdi; ogni nuova HEAD richiede tutti i check verdi. |
-| M3S-12 | P2       | Aperto, M4-C3                                    | Due advisory moderate di dipendenze dev transitive; aggiornamento compatibile da pianificare.               |
-| M3S-13 | P2       | Aperto, prima di M4-C4                           | Access e D1 remoti non verificati; backup e procedure autorizzate prima di qualsiasi migrazione/deploy.     |
-| M3S-14 | P3       | Aperto                                           | Chromium soltanto, niente device fisici/lettore di schermo reale; warning HydrateFallback lazy route.       |
+| ID     | Priorità | Stato                                            | Problema / criterio di uscita                                                                                |
+| ------ | -------- | ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| M3S-01 | P2       | Corretto, verificato in locale e CI              | Locator radio ambiguo; light/dark e opzioni conservate.                                                      |
+| M3S-02 | P2       | Corretto, verificato in locale e CI              | Test menu account obsoleto; focus e tastiera.                                                                |
+| M3S-03 | P2       | Corretto, verificato in locale e CI              | Misuratore touch ignora area estesa della card; test negativo e click reale.                                 |
+| M3S-04 | P2       | Corretto, verificato in locale e CI              | Table eredita Glass oltre lo scope esplicito; guardie unitarie/browser.                                      |
+| M3S-05 | P2       | Corretto, verificato in locale e CI              | Misura toolbar durante transizione; uguaglianza esatta a riposo.                                             |
+| M3S-06 | P2       | Corretto, verificato in locale e CI              | Nome precedente del link ritorno.                                                                            |
+| M3S-07 | P1       | Corretto, verificato in locale e CI              | Back rapido lascia filtro ottimistico attivo e risultati errati.                                             |
+| M3S-08 | P2       | Già risolto nella baseline, contratto verificato | Guardia pseudo-elementi troppo ampia; scope Kanban protetto.                                                 |
+| M3S-09 | P2       | Già risolto nella baseline, upgrade finale verde | Fixture della prova API ferma a 0005, incompatibile con la timeline Tasks corrente (richiede 0006).          |
+| M3S-10 | P1       | Corretto, verificato in locale e CI              | Debounce cancella filtro appena scelto.                                                                      |
+| M3S-11 | P1       | Risolto sulla revisione 3baeabf                  | PR #10, run 42513587371: quality/E2E/preview completati verdi; ogni nuova HEAD richiede tutti i check verdi. |
+| M3S-12 | P2       | Aperto, M4-C3                                    | Due advisory moderate di dipendenze dev transitive; aggiornamento compatibile da pianificare.                |
+| M3S-13 | P2       | Aperto, prima di M4-C4                           | Access e D1 remoti non verificati; backup e procedure autorizzate prima di qualsiasi migrazione/deploy.      |
+| M3S-14 | P3       | Aperto                                           | Chromium soltanto, niente device fisici/lettore di schermo reale; warning HydrateFallback lazy route.        |
 
 Nessun P0/P1 aperto nel perimetro esaminato sulla revisione remota verificata. Non significa assenza dimostrata di ogni difetto possibile. Stato di chiusura e risultati finali nel [report finale](final-report.md).
 
@@ -25,6 +25,8 @@ Nessun P0/P1 aperto nel perimetro esaminato sulla revisione remota verificata. N
 
 **M3S-15 — P3, aperto/monitoraggio:** flaky tastiera/zoom del run storico 42393464315, ricomparso nel run 42506245939 della PR #9 e passato al retry esistente. Non riprodotto localmente. Trace esaminato; annuncio iniziale presente, ArrowUp senza annuncio di movimento. Race sospetta nella disponibilità di sensore/misure, causa esatta non isolata. Asserzioni conservate, nessuna quarantena o esclusione; confermare nella CI finale. Dettagli nella [RCA](ci-root-cause-analysis.md).
 
-**M3S-17 — P2, corretto e verificato localmente, CI finale richiesta:** main `ebb9c66` ha ridotto la sidebar a 13 rem, ma cinque E2E conservavano 60 px / 67,5 px. Run 42509110535 fallito; riproduzione locale 1 passed + 5 failed, dopo allineamento 6/6 passed. Aggiornati soltanto i valori esatti nei tre file E2E; nessun requisito di comportamento/accessibilità eliminato. Il gate CI della HEAD aggiornata è nuovamente obbligatorio prima della readiness finale. L'onboarding al retry è un effetto del gruppo seriale con D1 già popolato dopo la prima esecuzione, non una nuova failure autonoma del prodotto.
+**M3S-17 — P2, corretto e verificato in locale e CI:** main `ebb9c66` ha ridotto la sidebar a 13 rem, ma cinque E2E conservavano 60 px / 67,5 px. Run 42509110535 fallito; riproduzione locale 1 passed + 5 failed, dopo allineamento 6/6 passed. Aggiornati soltanto i valori esatti nei tre file E2E; nessun requisito di comportamento/accessibilità eliminato. Il gate CI della HEAD aggiornata è nuovamente obbligatorio prima della readiness finale. L'onboarding al retry è un effetto del gruppo seriale con D1 già popolato dopo la prima esecuzione, non una nuova failure autonoma del prodotto.
 
-**Stato della pubblicazione:** PR #9 mergiata esternamente prima del fix M3S-17 e prima della conclusione dei controlli. PR #10 aperta dallo stesso branch per il completamento. M3S-11 deve essere soddisfatto sulla HEAD finale della PR #10; il verde storico su `7ff0ab0` non attesta la nuova baseline integrata. M3 non CLOSED.
+**Stato della pubblicazione:** PR #9 mergiata esternamente prima del fix M3S-17 e prima della conclusione dei controlli. PR #10 aperta dallo stesso branch per il completamento. M3S-11 è soddisfatto sulla revisione 3baeabf della PR #10 (run 42513587371); ogni nuova HEAD richiede tutti i check verdi; il verde storico su `7ff0ab0` non attesta la nuova baseline integrata. M3 non CLOSED.
+
+**Accettazione PR #10 — revisione 3baeabf:** run 42513587371 concluso con successo, 2/2 job e 13/13 gate; 1.291 test, 237 E2E passati + 1 skip preesistente, zero flaky/retry, preview 14/14. M3S-17 verificato remotamente; M3S-15 non ricompare nel run corrente e resta monitoraggio P3 storico. Nessun P0/P1 aperto nel perimetro verificato. M3 non CLOSED: merge autorizzato e baseline post-merge ancora richiesti. Il commit documentale successivo è subordinato alla CI della propria HEAD.
