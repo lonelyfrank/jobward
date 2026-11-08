@@ -5,7 +5,7 @@ import { board as boardItem, boardDetail } from '@/test/fixtures';
 import { mockApi, renderApp, withWorkspace } from '@/test/utils';
 
 /**
- * Ambito del materiale Glass Subtle: contenitori delle colonne Kanban e vista Tabella della bacheca.
+ * Ambito del materiale Glass Subtle: solo contenitori delle colonne Kanban.
  * jsdom non calcola il CSS: qui si verifica a quale elemento il codice assegna il materiale; lo
  * stile effettivo (pseudo-elementi, sfondo trasparente, schede opache) è in e2e/kanban-glass.spec.ts.
  */
@@ -56,6 +56,22 @@ describe('Glass Subtle: ambito', () => {
     const { container } = renderApp('/');
     await screen.findByRole('heading', { level: 1 });
     expect(container.querySelectorAll(GLASS)).toHaveLength(0);
+  });
+
+  it('la Tabella della bacheca mantiene una superficie opaca senza Glass', async () => {
+    mockApi({
+      ...withWorkspace(),
+      'GET /boards/b1': () => ({ body: boardDetail() }),
+      'GET /boards': () => ({ body: { boards: [boardItem()] } }),
+      'GET /labels': () => ({ body: { labels: [] } }),
+      'GET /opportunities': () => ({
+        body: { items: [], total: 0, page: 1, pageSize: 25, pageCount: 0 },
+      }),
+    });
+    const { container } = renderApp('/boards/b1/table');
+    await screen.findByRole('searchbox', { name: 'Cerca in questa bacheca' });
+    expect(container.querySelectorAll(GLASS)).toHaveLength(0);
+    expect(container.querySelector('.board-table > div')).toHaveClass('bg-surface');
   });
 
   it('Surface mantiene lo sfondo opaco predefinito', () => {

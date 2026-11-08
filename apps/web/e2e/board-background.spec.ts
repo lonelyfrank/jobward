@@ -118,6 +118,7 @@ for (const theme of ['light', 'dark'] as const) {
     await page.reload();
     await expect(surface).toHaveAttribute('data-board-image', lastImage);
     await page.getByRole('link', { name: 'Tabella', exact: true }).click();
+    await expect(page.getByRole('searchbox', { name: 'Cerca in questa bacheca' })).toBeVisible();
     await expect(surface).toHaveAttribute('data-board-image', lastImage);
     await expectNoA11yViolations(page, `tabella con paesaggio ${theme}`);
     await page.goto('/boards/b2');
@@ -152,7 +153,7 @@ for (const theme of ['light', 'dark'] as const) {
     await openBackground(page);
     const dialog = page.getByRole('dialog', { name: 'Cambia background' });
     await expectNoA11yViolations(page, `selettore background ${theme}`);
-    await dialog.getByRole('radio', { name: 'Verde' }).check();
+    await dialog.getByRole('radio', { name: 'Verde', exact: true }).check();
     await dialog.getByRole('button', { name: 'Salva sfondo' }).click();
     await expect(dialog).toBeHidden();
     await expect(surface).toHaveAttribute('data-board-color', 'green');
@@ -187,7 +188,10 @@ for (const theme of ['light', 'dark'] as const) {
       await openBackground(page);
       const dialog = page.getByRole('dialog', { name: 'Cambia background' });
       await dialog
-        .getByRole('radio', { name: color === null ? 'Predefinito' : COLOR_LABELS[color] })
+        .getByRole('radio', {
+          name: color === null ? 'Predefinito' : COLOR_LABELS[color],
+          exact: true,
+        })
         .check();
       await dialog.getByRole('button', { name: 'Salva sfondo' }).click();
       await expect(dialog).toBeHidden();
@@ -279,7 +283,7 @@ test('board contenuta, zoom completo e selettore accessibile su telefono', async
   await openBackground(page);
   const dialog = page.getByRole('dialog', { name: 'Cambia background' });
   await expect(dialog).toBeVisible();
-  await dialog.getByRole('radio', { name: 'Arancione' }).check();
+  await dialog.getByRole('radio', { name: 'Arancione', exact: true }).check();
   await expectNoA11yViolations(page, 'background su telefono');
   await page.screenshot({ path: info.outputPath('background-mobile.png') });
   await dialog.getByRole('button', { name: 'Annulla' }).click();

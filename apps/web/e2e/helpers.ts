@@ -216,7 +216,20 @@ export async function smallTouchTargets(page: Page, rootSelector: string) {
     )) {
       if (el.matches('.sr-only, .sr-only *') || el.closest('p, [hidden]')) continue;
       const isToggle = el instanceof HTMLInputElement && ['checkbox', 'radio'].includes(el.type);
-      const box = (isToggle ? (el.closest('label') ?? el) : el).getBoundingClientRect();
+      let box = (isToggle ? (el.closest('label') ?? el) : el).getBoundingClientRect();
+      // Un link "stretched" estende il target al suo containing block tramite ::after.
+      // Si riconosce la geometria effettiva, senza esentare tutti i link delle card.
+      const after = getComputedStyle(el, '::after');
+      if (
+        el.matches('a[href]') &&
+        after.content !== 'none' &&
+        after.position === 'absolute' &&
+        after.pointerEvents !== 'none' &&
+        [after.top, after.right, after.bottom, after.left].every((inset) => inset === '0px') &&
+        el.offsetParent instanceof HTMLElement
+      ) {
+        box = el.offsetParent.getBoundingClientRect();
+      }
       if (box.width === 0 || box.height === 0) continue;
       if (Math.min(box.width, box.height) < 43.5) {
         const name =

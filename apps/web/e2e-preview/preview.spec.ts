@@ -147,16 +147,27 @@ test.describe('app reale sotto la CSP di produzione', () => {
     await expect(page.getByRole('heading', { name: 'Inizia da qui' })).toBeVisible();
 
     const nav = page.getByRole('navigation', { name: 'Navigazione principale' });
-    for (const link of ['Bacheche', 'Opportunità', 'Attività', 'Insights', 'Impostazioni']) {
+    for (const link of ['Bacheche', 'Opportunità', 'Attività', 'Insights']) {
       await nav.getByRole('link', { name: link }).click();
       await expect(page.getByRole('heading', { level: 1, name: link })).toBeVisible();
     }
 
-    // Menu a comparsa (Radix: portali e stili inline) e cambio tema.
-    await page.getByRole('button', { name: 'Menu account' }).click();
-    await page.getByRole('menuitemradio', { name: 'Scuro' }).click();
-    await expect(page.locator('html')).toHaveClass(/dark/);
+    // Il menu account naviga; il tema si sceglie nelle Impostazioni.
+    const account = page.getByRole('button', { name: /^Menu account/ });
+    await account.click();
+    const menu = page.getByRole('menu', { name: 'Menu account' });
+    await expect(menu.getByRole('menuitem')).toHaveText(['Profilo', 'Impostazioni', 'Aiuto']);
     await page.keyboard.press('Escape');
+    await expect(menu).toBeHidden();
+    await expect(account).toBeFocused();
+    await account.click();
+    await menu.getByRole('menuitem', { name: 'Impostazioni', exact: true }).click();
+    await expect(page).toHaveURL('/settings');
+    await expect(page.getByRole('heading', { level: 1, name: 'Impostazioni' })).toBeVisible();
+    const dark = page.getByRole('radio', { name: /^Scuro/ });
+    await dark.check();
+    await expect(dark).toBeChecked();
+    await expect(page.locator('html')).toHaveClass(/dark/);
 
     // Drawer mobile (Dialog Radix).
     await page.setViewportSize({ width: 390, height: 844 });

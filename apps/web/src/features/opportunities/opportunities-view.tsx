@@ -64,12 +64,12 @@ export function OpportunitiesView({ fixedBoardId }: { fixedBoardId?: string }) {
   const [params, setParams] = useSearchParams();
   const urlKey = params.toString();
   const urlState = useMemo(() => readTableState(params), [params]);
-  // Stato ottimistico: l'indirizzo si aggiorna in modo asincrono, la spunta deve cambiare subito.
-  // Vale finché l'indirizzo non cambia (qualunque ne sia la causa: poi torna la fonte di verità).
-  const [pending, setPending] = useState<{ state: TableState; base: string } | null>(null);
-  if (pending && urlKey !== pending.base) setPending(null);
-  const baseState: TableState = pending?.state ?? urlState;
-  const state: TableState = fixedBoardId ? { ...baseState, board: fixedBoardId } : baseState;
+  // L'URL è l'unica fonte dei filtri. Il commit sincrono nelle azioni mantiene reattive le
+  // spunte senza una copia ottimistica che possa sopravvivere a Back/Forward.
+  const state = useMemo(
+    () => (fixedBoardId ? { ...urlState, board: fixedBoardId } : urlState),
+    [urlState, fixedBoardId],
+  );
 
   const boards = useBoards();
   const labels = useLabels();
@@ -83,10 +83,9 @@ export function OpportunitiesView({ fixedBoardId }: { fixedBoardId?: string }) {
     };
     const nextParams = writeTableState({ ...next, board: fixedBoardId ? '' : next.board });
     if (nextParams.toString() === urlKey) return;
-    setPending({ state: next, base: urlKey });
     // Filtri, ordine e pagina sono passi di navigazione ("indietro" li annulla uno per volta);
     // la digitazione nella ricerca invece sostituisce la voce, per non riempire la cronologia.
-    setParams(nextParams);
+    setParams(nextParams, { flushSync: true });
   };
 
   // --- ricerca con attesa: nessuna richiesta a ogni carattere ---------------------------------
@@ -103,13 +102,13 @@ export function OpportunitiesView({ fixedBoardId }: { fixedBoardId?: string }) {
       const next: TableState = { ...state, q: input, page: 1 };
       setParams(writeTableState({ ...next, board: fixedBoardId ? '' : next.board }), {
         replace: true,
+        flushSync: true,
       });
       setSyncedQ(input);
     }, DEBOUNCE_MS);
     return () => window.clearTimeout(timer);
-    // `state` cambia a ogni render: la dipendenza utile è il testo digitato e quello nell'indirizzo.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [input, state.q]);
+    // Anche i filtri fanno parte della ricerca: un timer precedente non deve ripristinarli.
+  }, [input, state, fixedBoardId, setParams]);
 
   // --- colonne visibili: preferenza locale al dispositivo -------------------------------------
   const [hidden, setHidden] = useState(() => parseHiddenColumns(readStorage(COLUMNS_STORAGE_KEY)));
@@ -246,8 +245,7 @@ export function OpportunitiesView({ fixedBoardId }: { fixedBoardId?: string }) {
   const clear = () => {
     setInput('');
     const cleared = clearFilters(state, Boolean(fixedBoardId));
-    setPending({ state: cleared, base: urlKey });
-    setParams(writeTableState(cleared));
+    setParams(writeTableState(cleared), { flushSync: true });
   };
 
   return (

@@ -1,0 +1,26 @@
+# M3 — audit backend e contratti
+
+Revisione mirata su baseline `fa20c06`, 2026-11-08. Nessuna modifica ai contratti pubblici o ai servizi applicativi in questo intervento. Le verifiche eseguite sono registrate nel [quality gate](quality-gate.md); quanto segue distingue proprietà del codice e limiti.
+
+| Modulo          | Evidenza nel codice e nelle suite                                                                                                                                              | Valutazione                                                                                                                                          |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pipeline        | `services/pipeline.ts`: rilettura scheda nel workspace, fingerprint immutabile della richiesta, claim evento, scritture D1 batch; `pipeline.test.ts` e test idempotenza.       | Preservare separazione colonna/fase/esito e replay. Nessuna correzione dimostrata necessaria.                                                        |
+| Colloqui        | Validazione Zod, sequence per candidatura, fingerprint stabile, sommari condivisi con card e Overview; suite interviews e interview-idempotency.                               | Retry non deve creare round duplicati. Nessun cambio di contratto.                                                                                   |
+| Note            | Paginazione a cursore, tombstone, expectedUpdatedAt, limiti atomici, ownership; suite notes/notes-pagination.                                                                  | I testi restano note; non copiati nella timeline come metadati evento.                                                                               |
+| Documenti       | Riferimenti con titolo/tipo/URL http(s); il server non scarica file né apre URL. Fingerprint e tombstone analoghi alle note.                                                   | Nessuna superficie di upload o fetch remoto introdotta.                                                                                              |
+| Timeline        | Aggregazione eventi, note e voci task derivate; cursore include istante, id, fonte; whitelist dei metadati. Suite timeline.                                                    | Nessun evento task duplicato in activity_events. Lettura delle task per card in memoria: limite prestazionale da misurare con dati reali.            |
+| Tasks/follow-up | `services/tasks.ts`: query nel workspace, date di calendario nel fuso del workspace, paginazione a cursore, expectedUpdatedAt nelle modifiche e guardie SQL nelle transizioni. | Suggerimenti deterministici; nessuno scheduler. Contatori riutilizzati da Overview.                                                                  |
+| Ricerca         | opportunities costruisce frammenti SQL da insiemi chiusi e lega i valori; global-search estende il documento testuale condividendo la ricerca delle opportunità.               | OR entro un gruppo, AND fra gruppi; literalPattern/search-text per caratteri speciali. La regressione CI Back è nel frontend, non nel risultato SQL. |
+| Errori          | Middleware unico, errori di dominio standard, requestId; route validano input e output con gli schemi condivisi.                                                               | Conservare messaggi pubblici senza stack/SQL; retry client limitato sugli errori temporanei.                                                         |
+
+## Ownership e sicurezza
+
+`workspaceScope` verifica membership prima del servizio, non accetta workspace dal body e dà 404 indistinguibile per workspace inesistente/altrui. Viewer resta sola lettura; non sono aggiunti inviti o multiutenza. I servizi filtrano le risorse per workspace e le chiavi/trigger del database costituiscono una seconda barriera. Suite dedicate: ownership, tenant-integrity, m2-isolation, kanban-isolation, tasks.
+
+Autenticazione Access fail closed, JWT verificato e proprietario esplicito; modalità dev ammessa solo in development su loopback. Guardie CSRF: content-type JSON esatto, controllo Origin e Sec-Fetch-Site, nessun CORS permissivo. I controlli remoti di Access restano da eseguire prima del rilascio privato; i test locali non li sostituiscono.
+
+## Compatibilità UI
+
+I client validano le risposte Zod; le chiavi Query comprendono workspace e parametri. La mutazione Tasks invalida liste, sommario, Overview e timeline delle card vecchia/nuova. Pipeline e colloqui aggiornano gli stessi dati usati da card e ricerca. L'audit non giustifica un cambio di protocollo o un servizio CRUD generico.
+
+Debito accettabile: paginazione opportunità a offset, nessuna transazione di snapshot fra pagine; modifiche degli stessi campi card possono seguire la politica ultima scrittura, mentre note/documenti/task usano token di concorrenza. Non promettere serializzazione globale delle interazioni concorrenti oltre i contratti verificati.
