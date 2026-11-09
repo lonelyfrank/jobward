@@ -6,8 +6,8 @@
   "observability": { "enabled": true },
 
   // Il Worker deve essere raggiungibile SOLO dal dominio protetto da Cloudflare Access.
-  // L'indirizzo *.workers.dev e gli URL di anteprima non sono coperti dalla policy Access:
-  // disattivarli evita un secondo ingresso (gli asset statici sarebbero serviti senza login).
+  // Gli URL workers.dev e preview restano disabilitati come difesa aggiuntiva alla policy.
+  // Access può proteggerli con uno scope Worker dedicato: vedi il runbook M4.0.1.
   "workers_dev": false,
   "preview_urls": false,
 

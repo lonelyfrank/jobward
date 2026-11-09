@@ -2,13 +2,27 @@
 
 Data: 2026-11-09, Europe/Rome. Repository: `lonelyfrank/jobward`.
 
-**Esito: M4.0 AUDIT COMPLETE — BLOCKED FOR STAGING PROVISIONING.**
+**Stato corrente M4.0.1: CODE READY — CLOUD INVENTORY PENDING.** Vedere l’aggiornamento e il report collegato sotto.
 
-Il primo provisioning rimane **NO-GO**. È stato riprodotto un problema di compatibilità della ricerca con D1; mancano inoltre la configurazione staging con le relative guardie e l'inventario dell'account. Non viene attribuito lo stato richiesto `READY FOR STAGING PROVISIONING`. M3 resta CODE COMPLETE; **RELEASE READY: no**.
+**Esito storico dell’audit M4.0: M4.0 AUDIT COMPLETE — BLOCKED FOR STAGING PROVISIONING.**
+
+Al termine dell’audit M4.0 il primo provisioning era **NO-GO**. Era stato riprodotto un problema di compatibilità della ricerca con D1; mancavano inoltre la configurazione staging con le relative guardie e l'inventario dell'account. Non viene attribuito lo stato richiesto `READY FOR STAGING PROVISIONING`. M3 resta CODE COMPLETE; **RELEASE READY: no**.
 
 Baseline richiesta: `445d329626b4a900b2cca9cb4a19e09d9c33ec36`. Checkout analizzato: `8071e38251f5529404ffec37fa77355eac7cfb10`. Il checkout differisce dalla baseline soltanto per tre documenti di governance (`docs/m3/m3-t1-readiness.md`, `docs/roadmap/m4-private-release-plan.md`, `docs/roadmap/milestones.md`); codice, migrazioni e configurazione applicativa coincidono. Working tree inizialmente pulito. Non è stato eseguito fetch e non si attesta che questo sia l'ultimo SHA remoto.
 
 Questo incarico aggiunge solo il report. Nessuna modifica al codice applicativo, alle migrazioni, alla configurazione Wrangler attiva, ai segreti, a GitHub o a Cloudflare. Nessun database legacy aperto o modificato. Le prove D1 utilizzano esclusivamente database temporanei locali e dati sintetici. I comandi remoti riportati sotto sono una procedura futura, **non eseguita**.
+
+## Aggiornamento M4.0.1 — hardening pre-staging
+
+La baseline M4.0 resta registrata nelle sezioni A–I sotto. Il seguito implementa soltanto l'hardening necessario, descritto nel [report M4.0.1](m4-0-1-pre-staging-hardening.md); le istruzioni operative aggiornate e i wrapper `staging:*` prevalgono sui comandi diretti storici della sezione G.
+
+- **M40-B01 corretto nel codice:** ricerca letterale con `instr` e `lower` SQL, senza pattern LIKE e senza cambiare il limite di 100 caratteri. Normalizzazione e case-fold preesistenti preservati, nessun nuovo schema o dipendenza. Caratterizzazione API/D1 prima del fix: 8 regressioni fallite su 13; dopo fix: 38 test ricerca D1/workerd verdi.
+- **M40-B02 predisposto:** template staging separato con ID vuoti, nessun binding legacy, variabili di sicurezza production/access, URL alternativi e route disabilitati. Guardie su configurazione risolta da Wrangler, UUID/account inventariati, credenziali dedicate, policy owner-only e approvazione legata a SHA/hash/scadenza. 39 test positivi/negativi delle guardie verdi. Dry-run staging riuscito con binding esplicitamente locale, senza credenziali.
+- **M40-B03 resta aperto:** inventario Cloudflare reale non effettuato. Nomi, account, UUID, policy Access reali, credenziali e quote non sono stati dichiarati verificati né inventati. Il token e il file di approvazione per le mutazioni non sono stati creati.
+- **M40-B04/B05 restano gate remoti:** copertura Access sull'intero Worker, binding D1 live, migrazioni remote, backup/restore, quote CPU Free e smoke dopo provisioning. Nessun deploy o modifica Cloudflare è stato eseguito.
+- **Quality gate locali verdi:** `pnpm check`, 1.304 test Vitest, 39 test guardie, 5 test identità, migrazioni/upgrade locali e build default/staging dry-run; E2E finale 237 passati + 1 skip visuale preesistente, zero flaky/retry; preview 14/14. Typecheck/lint ripetuti dopo il fix della fixture Kanban. Primo tentativo E2E interrotto e diagnosi descritti separatamente nel report M4.0.1. Nessun test disabilitato o timeout aumentato; M3S-15 e i flaky preesistenti rimangono aperti/distinti. I due check CI richiesti sulla HEAD della PR restano obbligatori prima del merge.
+
+Stato M4.0.1: **CODE READY — CLOUD INVENTORY PENDING**. Non si dichiara `READY FOR STAGING PROVISIONING` sulla base di questi test.
 
 ## A. Architettura attuale verificata
 

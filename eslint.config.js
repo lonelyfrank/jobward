@@ -8,6 +8,8 @@ export default tseslint.config(
   {
     ignores: [
       '**/node_modules/**',
+      '**/.env.*',
+      '**/.dev.vars*',
       '**/dist/**',
       '**/.wrangler/**',
       '**/coverage/**',
