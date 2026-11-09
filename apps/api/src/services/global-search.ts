@@ -2,7 +2,7 @@ import type { Database } from '@jobward/database';
 import { opportunitiesQuery, type GlobalSearchResponse } from '@jobward/schemas';
 import { listBoards } from './boards';
 import { searchOpportunities } from './opportunities';
-import { foldSql, foldText, literalPattern, searchTerms } from './search-text';
+import { containsSql, foldSql, foldText, searchTerms } from './search-text';
 
 /** Proiezioni limitate, isolate dal workspace verificato dal middleware. */
 export async function searchWorkspace(
@@ -34,10 +34,10 @@ export async function searchWorkspace(
       LEFT JOIN application_details d ON d.card_id = k.id AND d.workspace_id = k.workspace_id
       WHERE i.workspace_id = ?1)
       SELECT id, title, type, scheduledAt, cardTitle, cardId, boardId, company FROM search_interviews
-      WHERE ${terms.map((_, index) => `searchText LIKE ?${index + 2} ESCAPE '\\'`).join(' AND ')}
+      WHERE ${terms.map((_, index) => containsSql('searchText', `?${index + 2}`)).join(' AND ')}
       ORDER BY updatedAt DESC, id ASC LIMIT 10`,
       )
-      .bind(ws, ...terms.map(literalPattern))
+      .bind(ws, ...terms)
       .all<{
         id: string;
         title: string;

@@ -27,4 +27,10 @@ export function foldSql(expression: string): string {
 }
 
 export const searchTerms = (text: string) => foldText(text).split(/\s+/).filter(Boolean);
-export const literalPattern = (term: string) => `%${term.replace(/[\\%_]/g, (m) => `\\${m}`)}%`;
+/**
+ * Sottostringa letterale senza pattern LIKE (D1 li limita a 50 byte).
+ * lower SQL conserva il case-fold ASCII di LIKE; non applica un nuovo fold Unicode.
+ * Entrambi i frammenti sono espressioni SQL costanti/placeholder, mai valori utente.
+ */
+export const containsSql = (text: string, parameter: string) =>
+  `instr(lower(${text}), lower(${parameter})) > 0`;

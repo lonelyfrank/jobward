@@ -67,7 +67,7 @@ expect(!('DEV_USER_EMAIL' in prod), 'produzione: DEV_USER_EMAIL non deve esister
 expect(!('APP_ORIGIN' in prod), 'produzione: APP_ORIGIN non è previsto (stessa origine)');
 expect(
   cfg.workers_dev === false,
-  'produzione: workers_dev deve essere false (Access non protegge *.workers.dev)',
+  'produzione: workers_dev deve essere false (nessun ingresso alternativo)',
 );
 expect(cfg.preview_urls === false, 'produzione: preview_urls deve essere false');
 expect(

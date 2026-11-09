@@ -6,3 +6,6 @@ packages/database/migrations
 .e2e-state
 playwright-report
 test-results
+
+**/.env.*
+**/.dev.vars*
