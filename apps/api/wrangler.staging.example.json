@@ -1,0 +1,34 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jobward-staging-unconfigured",
+  "main": "src/index.ts",
+  "account_id": "",
+  "compatibility_date": "2026-10-01",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [],
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "../web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "env": {
+    "staging": {
+      "name": "jobward-staging",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [],
+      "vars": { "ENVIRONMENT": "production", "AUTH_MODE": "access" },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "jobward-staging-db",
+          "database_id": "",
+          "migrations_dir": "../../packages/database/migrations"
+        }
+      ]
+    }
+  }
+}

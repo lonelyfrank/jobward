@@ -4,7 +4,7 @@ import { CONTRACT_TYPES, OUTCOMES, PRIORITIES, STAGES, WORK_MODES } from '@jobwa
 import type { Database } from '@jobward/database';
 import { toCard } from './card-rows';
 import { summariesForCards, withSummaries } from './interview-summaries';
-import { foldSql, searchTerms, literalPattern } from './search-text';
+import { containsSql, foldSql, searchTerms } from './search-text';
 
 /**
  * Ricerca server-side sulle opportunità del workspace (M2.3).
@@ -38,9 +38,6 @@ const SORT_EXPRESSIONS: Record<OpportunitySort, string> = {
   updatedAt: 'k.updated_at',
   createdAt: 'k.created_at',
 };
-
-/** Neutralizza i caratteri jolly di LIKE: la ricerca è per sottostringa letterale. */
-const likePattern = (term: string) => `%${term.replace(/[\\%_]/g, (m) => `\\${m}`)}%`;
 
 const SEARCH_COLUMNS = [
   'k.title',
@@ -94,11 +91,11 @@ export async function searchOpportunities(
   const terms = global ? searchTerms(query.q ?? '') : (query.q ?? '').split(/\s+/).filter(Boolean);
   // Ogni parola deve comparire (AND) in almeno un campo (OR). Un parametro per parola.
   for (const term of terms) {
-    const p = bind(global ? literalPattern(term) : likePattern(term));
+    const p = bind(term);
     where.push(
       global
-        ? `search_documents.text LIKE ${p} ESCAPE '\\'`
-        : `(${SEARCH_COLUMNS.map((column) => `${column} LIKE ${p} ESCAPE '\\'`).join(' OR ')})`,
+        ? containsSql('search_documents.text', p)
+        : `(${SEARCH_COLUMNS.map((column) => containsSql(column, p)).join(' OR ')})`,
     );
   }
 

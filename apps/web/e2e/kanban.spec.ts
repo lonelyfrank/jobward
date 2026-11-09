@@ -16,6 +16,7 @@ import {
 test.describe.configure({ mode: 'serial' });
 
 const colTitles = (page: Page) => page.locator('[data-column-id] h3').allTextContents();
+let boardUrl: string;
 
 test.beforeAll(async ({ browser }) => {
   const page = await browser.newPage();
@@ -23,12 +24,13 @@ test.beforeAll(async ({ browser }) => {
   await createBoard(page, 'Kanban DnD', 'Minimal');
   for (const t of ['Alfa', 'Beta', 'Gamma']) await quickAdd(page, 'Da fare', t);
   await quickAdd(page, 'In corso', 'Delta');
+  boardUrl = page.url();
   await page.close();
 });
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/boards');
-  await page.getByRole('main').getByRole('link', { name: 'Kanban DnD' }).click();
+  // Retry seriale: beforeAll crea una nuova fixture. Usare il suo ID, non il nome duplicabile.
+  await page.goto(boardUrl);
   await expect(column(page, 'Da fare')).toBeVisible();
 });
 
@@ -288,10 +290,6 @@ test.describe('touch (telefono)', () => {
   test('pressione prolungata e trascinamento spostano la scheda; un tocco breve apre il dettaglio', async ({
     page,
   }) => {
-    await page.goto('/boards');
-    await page.getByRole('main').getByRole('link', { name: 'Kanban DnD' }).click();
-    await expect(column(page, 'Da fare')).toBeVisible();
-
     const before = await titlesIn(page, 'Da fare');
     expect(before).toContain('Epsilon');
 
@@ -323,14 +321,13 @@ test.describe('touch (telefono)', () => {
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await expect.poll(() => titlesIn(page, 'In corso')).toContain('Epsilon');
     await page.reload();
+    await expect(column(page, 'In corso')).toBeVisible();
     await expect.poll(() => titlesIn(page, 'In corso')).toContain('Epsilon');
   });
 
   test('senza trascinamento: tutto il flusso (crea, sposta da menu, archivia) è eseguibile con il tocco', async ({
     page,
   }) => {
-    await page.goto('/boards');
-    await page.getByRole('main').getByRole('link', { name: 'Kanban DnD' }).click();
     await quickAdd(page, 'Completate', 'Zeta');
     await page.getByRole('button', { name: 'Azioni per la scheda “Zeta”' }).tap();
     await page.getByRole('menuitem', { name: 'In corso' }).tap();

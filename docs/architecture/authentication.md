@@ -65,14 +65,11 @@ Il Worker non si fida mai di header "email", cookie o altro: **solo del JWT vali
 ## Configurazione del deploy privato (non eseguita)
 
 > Elenco completo (configurazione pronta/mancante) e **checklist di collaudo su Cloudflare**: [`docs/m0h/cloudflare-readiness.md`](../m0h/cloudflare-readiness.md).
-> Estensioni di M0.H: `workers_dev` e `preview_urls` sono **disattivati** (Access non protegge `*.workers.dev`), quindi serve un **dominio personalizzato** (`routes` con `custom_domain`); il Worker rifiuta i token con algoritmo diverso da RS256 (provati HS256 e `alg: none`); `pnpm check:config` impedisce di indebolire la configurazione di produzione.
+> Estensioni di M0.H: `workers_dev` e `preview_urls` sono **disattivati** (nessun ingresso alternativo), quindi serve un **dominio personalizzato** (`routes` con `custom_domain`); il Worker rifiuta i token con algoritmo diverso da RS256 (provati HS256 e `alg: none`); `pnpm check:config` impedisce di indebolire la configurazione di produzione.
 
-1. Creare il database: `wrangler d1 create jobward` (solo per un ambiente nuovo; per risorse esistenti conservare il database e seguire ADR-0014) e inserire l'`database_id` in `wrangler.jsonc`.
-2. Applicare le migrazioni in remoto: `wrangler d1 migrations apply DB --remote --env ""`.
-3. Aggiungere una route con **dominio personalizzato** (`routes: [{ "pattern": "app.<dominio>", "custom_domain": true }]`). In Cloudflare Zero Trust creare un'**applicazione self-hosted** su quel dominio (pagine e `/api/*`) con una policy che ammetta **solo** l'email del proprietario.
-4. Impostare in `wrangler.jsonc` (default): `ACCESS_TEAM_DOMAIN` (`<team>.cloudflareaccess.com`), `ACCESS_AUD` (audience tag dell'applicazione), `OWNER_EMAIL`. Non sono segreti, ma sono specifici dell'account.
-5. Costruire e distribuire: `pnpm build` poi `wrangler deploy --env ""`.
-6. Verificare: senza login → redirect ad Access; con token non valido → 401; con un altro account → bloccato da Access e, in ogni caso, 403 dal Worker.
+Per il primo staging usare esclusivamente il [runbook M4.0.1](../m4/m4-0-1-pre-staging-hardening.md) e i wrapper `staging:*`: template separato, identità/binding risolti da Wrangler, inventario e controllo live in sola lettura, credenziali dedicate e gate esplicito prima di ogni mutazione. Il default production resta con identificatori segnaposto e variabili vuote; non riempirlo per lo staging e non usare i vecchi comandi remoti senza guardia.
+
+Cloudflare Access oggi supporta anche lo scope sull'intero Worker e gli URL workers.dev/preview. Il backend continua a verificare il JWT: gli asset sono serviti dal router statico e non vanno protetti soltanto nel middleware API. Staging conserva entrambi gli URL alternativi spenti. La successiva associazione del dominio e la copertura Worker All traffic richiedono il gate remoto descritto nell'audit; i wrapper attuali ammettono soltanto bootstrap senza route.
 
 > Il deploy richiede autorizzazione esplicita: non fa parte di M0.
 

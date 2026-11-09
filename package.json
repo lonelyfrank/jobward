@@ -12,7 +12,7 @@
     "dev": "pnpm --parallel --filter @jobward/api --filter @jobward/web dev",
     "dev:api": "pnpm --filter @jobward/api dev",
     "dev:web": "pnpm --filter @jobward/web dev",
-    "build": "pnpm --filter @jobward/web build && pnpm --filter @jobward/api build",
+    "build": "pnpm --filter @jobward/web build && pnpm --filter @jobward/api build && node scripts/staging.mjs bundle",
     "typecheck": "pnpm -r typecheck",
     "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
@@ -26,9 +26,15 @@
     "test:preview": "pnpm --filter @jobward/web test:preview",
     "db:check": "node scripts/check-migrations.mjs",
     "db:upgrade-test": "node scripts/test-migration-upgrade.mjs && node scripts/test-migration-m3c2.mjs && node scripts/test-migration-m3tasks.mjs",
-    "check:config": "node scripts/check-config.mjs",
+    "check:config": "node scripts/check-config.mjs && node scripts/staging.test.mjs",
     "check:brand": "node scripts/check-brand.mjs",
-    "test:identity": "node scripts/rename-dev-identity.test.mjs"
+    "test:identity": "node scripts/rename-dev-identity.test.mjs",
+    "build:staging": "pnpm --filter @jobward/web build && node scripts/staging.mjs bundle",
+    "staging:check": "node scripts/staging.mjs check",
+    "staging:preflight": "node scripts/staging.mjs preflight",
+    "staging:deploy": "node scripts/staging.mjs deploy",
+    "staging:migrate": "node scripts/staging.mjs migrate",
+    "test:search:d1": "pnpm --filter @jobward/api exec vitest run test/search-d1-boundaries.test.ts test/global-search.test.ts test/opportunities.test.ts"
   },
   "devDependencies": {
     "@eslint/js": "9.39.5",
