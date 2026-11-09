@@ -9,7 +9,6 @@ import {
 import { BOARD_TEMPLATE_IDS, BOARD_TEMPLATES, LIMITS, type BoardTemplateId } from '@jobward/shared';
 import { Controller, useForm, useWatch } from 'react-hook-form';
 import { z } from 'zod';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogBody, DialogFooter } from '@/components/ui/dialog';
 import { Field } from '@/components/ui/field';
@@ -128,7 +127,9 @@ export function BoardDialog({
           </Field>
 
           <div className="space-y-1.5">
-            <p className="text-sm font-medium">Colore</p>
+            <p className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+              Colore
+            </p>
             <Controller
               control={control}
               name="color"
@@ -140,37 +141,46 @@ export function BoardDialog({
 
           {!editing ? (
             <fieldset className="space-y-2">
-              <legend className="text-sm font-medium">Template</legend>
-              <div className="grid gap-2">
-                {BOARD_TEMPLATES.map((template) => (
-                  <label key={template.id} className="relative block">
-                    <input
-                      type="radio"
-                      value={template.id}
-                      className="peer sr-only"
-                      {...register('templateId')}
-                    />
-                    <span
-                      className={cn(
-                        'block rounded-lg border border-border-strong p-3 peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring',
-                        selectedTemplate === template.id &&
-                          'border-primary bg-primary-soft ring-1 ring-primary',
-                      )}
+              <legend className="mb-2 text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
+                Modello
+              </legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {BOARD_TEMPLATES.map((template, index) => {
+                  const selected = selectedTemplate === template.id;
+                  // Con un numero dispari di modelli l'ultimo occupa tutta la riga: niente buco.
+                  const spansRow =
+                    index === BOARD_TEMPLATES.length - 1 && BOARD_TEMPLATES.length % 2 === 1;
+                  return (
+                    <label
+                      key={template.id}
+                      className={cn('relative block', spansRow && 'sm:col-span-2')}
                     >
-                      <span className="block text-sm font-medium">{template.name}</span>
-                      <span className="mt-0.5 block text-xs text-muted-foreground">
-                        {template.description}
-                      </span>
-                      {template.columns.length > 0 ? (
-                        <span className="mt-2 flex flex-wrap gap-1">
-                          {template.columns.map((column) => (
-                            <Badge key={column.name}>{column.name}</Badge>
-                          ))}
+                      <input
+                        type="radio"
+                        value={template.id}
+                        className="peer sr-only"
+                        {...register('templateId')}
+                      />
+                      <span
+                        className={cn(
+                          'flex h-full cursor-pointer flex-col gap-1.5 rounded-lg border border-border-strong bg-surface p-3 transition-[border-color,box-shadow,transform] duration-150 ease-out peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ring',
+                          selected
+                            ? 'border-primary ring-2 ring-primary'
+                            : 'hover:-translate-y-px hover:border-foreground/40 motion-reduce:transform-none',
+                        )}
+                      >
+                        <span className="block text-sm font-semibold">{template.name}</span>
+                        <span className="block text-xs text-muted-foreground">
+                          {template.columns.length > 0
+                            ? `${template.columns.length} colonne pronte`
+                            : 'Parti da zero'}
                         </span>
-                      ) : null}
-                    </span>
-                  </label>
-                ))}
+                        {/* La descrizione completa resta nel nome accessibile del modello. */}
+                        <span className="sr-only">. {template.description}</span>
+                      </span>
+                    </label>
+                  );
+                })}
               </div>
             </fieldset>
           ) : null}

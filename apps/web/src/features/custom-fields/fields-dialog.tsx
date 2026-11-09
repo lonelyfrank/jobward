@@ -8,6 +8,7 @@ import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Dialog, DialogBody } from '@/components/ui/dialog';
 import { useNotify } from '@/components/ui/notices';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ViewSwap } from '@/components/ui/view-swap';
 import { userMessage } from '@/features/kanban/mutations';
 import { useBoardFields, useDeleteField, useMoveField, useUpdateField } from './api';
 import { FieldForm } from './field-form';
@@ -36,6 +37,8 @@ export function CustomFieldsDialog({
   const move = useMoveField(boardId);
   const remove = useDeleteField(boardId);
   const [view, setView] = useState<View>({ kind: 'list' });
+  // Verso del passaggio: entrare nel modulo scorre in avanti, tornare all'elenco indietro.
+  const direction = view.kind === 'form' ? 'forward' : 'back';
   const [deleting, setDeleting] = useState<CustomField | null>(null);
 
   const list = fields.data ?? [];
@@ -83,125 +86,132 @@ export function CustomFieldsDialog({
       className="max-w-xl"
     >
       <DialogBody>
-        {view.kind === 'form' ? (
-          <FieldForm
-            key={view.fieldId ?? 'new'}
-            boardId={boardId}
-            field={editing}
-            usedCount={editing?.valueCount ?? 0}
-            onDone={() => setView({ kind: 'list' })}
-            onCancel={() => setView({ kind: 'list' })}
-          />
-        ) : fields.isPending ? (
-          <div role="status" aria-label="Caricamento dei campi" className="space-y-2">
-            <Skeleton className="h-14" />
-            <Skeleton className="h-14" />
-          </div>
-        ) : fields.isError ? (
-          <p role="alert" className="text-sm text-danger">
-            Non riusciamo a caricare i campi.{' '}
-            <button type="button" className="underline" onClick={() => void fields.refetch()}>
-              Riprova
-            </button>
-          </p>
-        ) : (
-          <div className="space-y-4">
-            {list.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                Nessun campo. Aggiungine uno per registrare ciò che conta nel tuo settore: un albo,
-                i turni, uno stack tecnologico, il vitto e alloggio…
-              </p>
-            ) : (
-              <ul
-                aria-label="Campi della bacheca"
-                className="divide-y divide-border rounded-md border border-border"
-              >
-                {list.map((field, index) => (
-                  <li key={field.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 p-3">
-                    <div className="min-w-0 flex-1">
-                      <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
-                        <span className="break-words">{field.name}</span>
-                        {!field.isActive ? <Badge tone="warning">Disattivato</Badge> : null}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {FIELD_TYPE_LABELS[field.type]} ·{' '}
-                        {field.valueCount === 0
-                          ? 'nessun valore'
-                          : field.valueCount === 1
-                            ? '1 scheda'
-                            : `${field.valueCount} schede`}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-0.5">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Sposta su “${field.name}”`}
-                        disabled={index === 0 || move.isPending}
-                        onClick={() => shift(index, -1)}
-                      >
-                        <ArrowUp aria-hidden="true" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Sposta giù “${field.name}”`}
-                        disabled={index === list.length - 1 || move.isPending}
-                        onClick={() => shift(index, 1)}
-                      >
-                        <ArrowDown aria-hidden="true" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Modifica “${field.name}”`}
-                        onClick={() => setView({ kind: 'form', fieldId: field.id })}
-                      >
-                        <Pencil aria-hidden="true" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={
-                          field.isActive ? `Disattiva “${field.name}”` : `Riattiva “${field.name}”`
-                        }
-                        disabled={update.isPending}
-                        onClick={() => toggleActive(field)}
-                      >
-                        {field.isActive ? (
-                          <EyeOff aria-hidden="true" />
-                        ) : (
-                          <Eye aria-hidden="true" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label={`Elimina “${field.name}”`}
-                        onClick={() => setDeleting(field)}
-                      >
-                        <Trash2 aria-hidden="true" />
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-xs text-muted-foreground">
-                {list.length} di {LIMITS.customFieldsPerBoardMax} campi. Disattivare un campo lo
-                nasconde senza perdere i valori.
-              </p>
-              <Button
-                disabled={list.length >= LIMITS.customFieldsPerBoardMax}
-                onClick={() => setView({ kind: 'form', fieldId: null })}
-              >
-                <Plus aria-hidden="true" />
-                Aggiungi campo
-              </Button>
+        <ViewSwap
+          viewKey={view.kind === 'form' ? `form-${view.fieldId ?? 'new'}` : 'list'}
+          direction={direction}
+        >
+          {view.kind === 'form' ? (
+            <FieldForm
+              key={view.fieldId ?? 'new'}
+              boardId={boardId}
+              field={editing}
+              usedCount={editing?.valueCount ?? 0}
+              onDone={() => setView({ kind: 'list' })}
+              onCancel={() => setView({ kind: 'list' })}
+            />
+          ) : fields.isPending ? (
+            <div role="status" aria-label="Caricamento dei campi" className="space-y-2">
+              <Skeleton className="h-14" />
+              <Skeleton className="h-14" />
             </div>
-          </div>
-        )}
+          ) : fields.isError ? (
+            <p role="alert" className="text-sm text-danger">
+              Non riusciamo a caricare i campi.{' '}
+              <button type="button" className="underline" onClick={() => void fields.refetch()}>
+                Riprova
+              </button>
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {list.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  Nessun campo. Aggiungine uno per registrare ciò che conta nel tuo settore: un
+                  albo, i turni, uno stack tecnologico, il vitto e alloggio…
+                </p>
+              ) : (
+                <ul aria-label="Campi della bacheca" className="space-y-2">
+                  {list.map((field, index) => (
+                    <li
+                      key={field.id}
+                      className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-md border border-border px-3.5 py-2 transition-colors duration-100 hover:bg-hover-soft"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                          <span className="break-words">{field.name}</span>
+                          {!field.isActive ? <Badge tone="warning">Disattivato</Badge> : null}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {FIELD_TYPE_LABELS[field.type]} ·{' '}
+                          {field.valueCount === 0
+                            ? 'nessun valore'
+                            : field.valueCount === 1
+                              ? '1 scheda'
+                              : `${field.valueCount} schede`}
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-0.5 [&_button]:rounded-full">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Sposta su “${field.name}”`}
+                          disabled={index === 0 || move.isPending}
+                          onClick={() => shift(index, -1)}
+                        >
+                          <ArrowUp aria-hidden="true" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Sposta giù “${field.name}”`}
+                          disabled={index === list.length - 1 || move.isPending}
+                          onClick={() => shift(index, 1)}
+                        >
+                          <ArrowDown aria-hidden="true" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Modifica “${field.name}”`}
+                          onClick={() => setView({ kind: 'form', fieldId: field.id })}
+                        >
+                          <Pencil aria-hidden="true" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={
+                            field.isActive
+                              ? `Disattiva “${field.name}”`
+                              : `Riattiva “${field.name}”`
+                          }
+                          disabled={update.isPending}
+                          onClick={() => toggleActive(field)}
+                        >
+                          {field.isActive ? (
+                            <EyeOff aria-hidden="true" />
+                          ) : (
+                            <Eye aria-hidden="true" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label={`Elimina “${field.name}”`}
+                          onClick={() => setDeleting(field)}
+                        >
+                          <Trash2 aria-hidden="true" />
+                        </Button>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-muted-foreground">
+                  {list.length} di {LIMITS.customFieldsPerBoardMax} campi. Disattivare un campo lo
+                  nasconde senza perdere i valori.
+                </p>
+                <Button
+                  disabled={list.length >= LIMITS.customFieldsPerBoardMax}
+                  onClick={() => setView({ kind: 'form', fieldId: null })}
+                >
+                  <Plus aria-hidden="true" />
+                  Aggiungi campo
+                </Button>
+              </div>
+            </div>
+          )}
+        </ViewSwap>
       </DialogBody>
 
       <ConfirmDialog

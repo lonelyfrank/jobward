@@ -326,13 +326,16 @@ export function CardDetailForm({
       onValueChange={(value) => onTabChange(value as CardTab)}
       className="flex min-h-0 flex-1 flex-col"
     >
-      <header className="flex shrink-0 items-start gap-3 border-b border-border px-4 py-3 md:px-5">
+      <header className="flex shrink-0 items-start gap-3 px-4 pt-4 pb-3 md:px-6 md:pt-5">
         <div className="min-w-0 flex-1">
           {/* Il nome accessibile della finestra è il titolo sr-only del Dialog: qui solo presentazione. */}
-          <p aria-hidden="true" className="text-lg leading-snug font-semibold break-words">
+          <p
+            aria-hidden="true"
+            className="text-[22px] leading-tight font-extrabold tracking-tight break-words"
+          >
             {card.title}
           </p>
-          <p className="text-sm text-muted-foreground">
+          <p className="mt-1 text-sm text-muted-foreground">
             {[card.company, card.jobTitle].filter(Boolean).join(' · ') || 'Azienda non indicata'}
           </p>
           <ul
@@ -390,7 +393,7 @@ export function CardDetailForm({
         </div>
       </header>
 
-      <TabsList aria-label="Sezioni della candidatura">
+      <TabsList variant="pill" aria-label="Sezioni della candidatura">
         {CARD_TABS.map((entry) => (
           <TabsTrigger key={entry.id} value={entry.id}>
             {entry.label}
@@ -405,7 +408,7 @@ export function CardDetailForm({
         ))}
       </TabsList>
 
-      <DialogBody className="space-y-4">
+      <DialogBody className="space-y-4 pt-5">
         {archived ? (
           <div
             role="status"

@@ -4,14 +4,15 @@ import type { ComponentProps } from 'react';
 import { cn } from '@/lib/cn';
 
 export const buttonVariants = cva(
-  'inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-semibold whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-55 [&_svg]:size-4 [&_svg]:shrink-0',
+  'inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-semibold whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] duration-150 ease-out active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100 [&_svg]:size-4 [&_svg]:shrink-0',
   {
     variants: {
       variant: {
         primary:
           'bg-primary text-primary-foreground shadow-primary hover:bg-primary-hover disabled:shadow-none',
         secondary: 'border border-border-strong bg-surface text-foreground hover:bg-hover-soft',
-        ghost: 'text-foreground hover:bg-primary-soft hover:text-primary-soft-foreground',
+        ghost:
+          'text-foreground hover:bg-hover-soft active:bg-primary-soft active:text-primary-soft-foreground',
         danger: 'bg-danger-soft text-danger hover:opacity-80',
       },
       size: {

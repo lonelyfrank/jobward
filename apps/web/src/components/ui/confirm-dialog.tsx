@@ -33,9 +33,11 @@ export function ConfirmDialog({
   return (
     <AlertDialog.Root open={open} onOpenChange={(next) => !pending && onOpenChange(next)}>
       <AlertDialog.Portal>
-        <AlertDialog.Overlay className="fixed inset-0 z-[60] bg-foreground/40" />
-        <AlertDialog.Content className="fixed top-1/2 left-1/2 z-[70] max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 animate-[jobward-fade-in_0.12s_ease-out] overflow-y-auto rounded-lg border border-border bg-surface p-5 shadow-md">
-          <AlertDialog.Title className="text-base font-semibold">{title}</AlertDialog.Title>
+        <AlertDialog.Overlay className="fixed inset-0 z-[60] bg-scrim data-[state=closed]:animate-[jobward-overlay-out_160ms_ease-in_both] data-[state=open]:animate-[jobward-overlay-in_200ms_ease-out_both]" />
+        <AlertDialog.Content className="fixed top-1/2 left-1/2 z-[70] max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-surface px-6 pt-5.5 pb-5 shadow-md data-[state=closed]:animate-[jobward-dialog-out_150ms_ease-in_both] data-[state=open]:animate-[jobward-dialog-in_240ms_cubic-bezier(0.22,1,0.36,1)_both]">
+          <AlertDialog.Title className="text-lg font-extrabold tracking-tight">
+            {title}
+          </AlertDialog.Title>
           <AlertDialog.Description asChild>
             <div className="mt-2 space-y-2 text-sm text-muted-foreground">{description}</div>
           </AlertDialog.Description>
@@ -44,7 +46,7 @@ export function ConfirmDialog({
               {error}
             </p>
           ) : null}
-          <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <div className="mt-6 flex flex-wrap justify-end gap-2.5">
             <AlertDialog.Cancel asChild>
               <Button variant="secondary" disabled={pending}>
                 {cancelLabel}

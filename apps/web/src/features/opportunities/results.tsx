@@ -181,7 +181,7 @@ export function ResultsTable({
             <tr
               key={item.id}
               data-card-id={item.id}
-              className="border-b border-border last:border-b-0 hover:bg-surface-muted/60"
+              className="border-b border-border transition-colors duration-100 last:border-b-0 hover:bg-hover-soft"
             >
               {columns.map((column) =>
                 column.key === 'title' ? (

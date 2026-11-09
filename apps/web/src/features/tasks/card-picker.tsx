@@ -89,7 +89,7 @@ export function CardPicker({
                   <button
                     type="button"
                     disabled={disabled}
-                    className="flex min-h-11 w-full items-center px-3 py-2 text-left text-sm hover:bg-hover-soft focus-visible:bg-hover-soft"
+                    className="flex min-h-11 w-full items-center px-3 py-2 text-left text-sm transition-colors duration-100 hover:bg-hover-soft focus-visible:bg-hover-soft"
                     onClick={() => {
                       onChange({ id: item.id, title: item.title, company: item.company });
                       setQ('');

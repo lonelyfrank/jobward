@@ -42,7 +42,7 @@ export function ValueEditor({
         <ul className="space-y-0.5">
           {field.config.options.map((option) => (
             <li key={option.id}>
-              <label className="flex min-h-9 cursor-pointer items-center gap-2.5 rounded-md px-1 hover:bg-surface-muted max-md:min-h-11">
+              <label className="row-hover -mx-2.5 flex min-h-9 cursor-pointer items-center gap-2.5 px-2.5 max-md:min-h-11">
                 <input
                   type="checkbox"
                   className="size-4"

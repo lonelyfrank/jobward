@@ -32,7 +32,7 @@ function RecentBoards({ onNavigate }: { onNavigate?: () => void }) {
               <NavLink
                 to={`/boards/${board.id}`}
                 onClick={onNavigate}
-                className="block truncate rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-hover-soft hover:text-foreground max-md:py-3"
+                className="row-hover block truncate px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground max-md:py-3"
               >
                 {board.name}
               </NavLink>

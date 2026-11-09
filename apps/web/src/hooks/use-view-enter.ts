@@ -10,10 +10,15 @@ export function useViewEnter<T extends HTMLElement>(viewKey: string) {
     previousKey.current = viewKey;
     if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
 
-    const animation = ref.current?.animate?.([{ opacity: 0.82 }, { opacity: 1 }], {
-      duration: 140,
-      easing: 'cubic-bezier(0.2, 0, 0, 1)',
-    });
+    // Dissolvenza + risalita di 6 px: abbastanza per leggere il cambio di vista come un
+    // movimento, non come un salto. Solo opacity/transform, quindi niente rilayout.
+    const animation = ref.current?.animate?.(
+      [
+        { opacity: 0, transform: 'translateY(6px)' },
+        { opacity: 1, transform: 'none' },
+      ],
+      { duration: 220, easing: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+    );
     // Un nuovo cambio interrompe subito quello precedente.
     return () => animation?.cancel();
   }, [viewKey]);
