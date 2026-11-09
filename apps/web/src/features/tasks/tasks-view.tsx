@@ -299,7 +299,7 @@ function SummaryButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'min-h-11 rounded-lg border bg-surface p-3 text-left outline-none hover:bg-hover-soft focus-visible:ring-2 focus-visible:ring-primary sm:p-4',
+        'min-h-11 rounded-lg border bg-surface p-3 text-left outline-none transition-colors duration-100 hover:bg-hover-soft focus-visible:ring-2 focus-visible:ring-primary sm:p-4',
         active ? 'border-primary' : 'border-border',
       )}
     >

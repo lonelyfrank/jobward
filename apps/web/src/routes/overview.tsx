@@ -224,7 +224,7 @@ export function OverviewPage() {
                   {/* Il link occupa tutta la riga: area di tocco ampia anche a telefono. */}
                   <Link
                     to={`/boards/${card.boardId}/cards/${card.id}`}
-                    className="block rounded-md py-2 text-sm hover:bg-surface-muted max-md:py-3"
+                    className="row-hover -mx-3 block px-3 py-2.5 text-sm max-md:py-3"
                   >
                     <span className="block font-medium">{card.title}</span>
                     <span className="block truncate text-xs text-muted-foreground">
@@ -256,7 +256,7 @@ export function OverviewPage() {
                 <li key={board.id}>
                   <Link
                     to={`/boards/${board.id}`}
-                    className="block rounded-md py-2 text-sm font-medium hover:bg-surface-muted max-md:py-3"
+                    className="row-hover -mx-3 block px-3 py-2.5 text-sm font-medium max-md:py-3"
                   >
                     {board.name}
                   </Link>

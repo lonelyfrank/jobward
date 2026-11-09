@@ -112,7 +112,7 @@ export function AppShell() {
                 <div
                   ref={viewRef}
                   className={cn(
-                    'animate-[jobward-view-enter_140ms_cubic-bezier(0.2,0,0,1)] motion-reduce:animate-none',
+                    'animate-[jobward-view-enter_220ms_cubic-bezier(0.22,1,0.36,1)] motion-reduce:animate-none',
                     fullBleed ? 'h-full' : 'w-full min-w-0',
                   )}
                 >

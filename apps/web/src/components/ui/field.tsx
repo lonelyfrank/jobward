@@ -18,7 +18,7 @@ export function Field({
     <div className="space-y-1.5">
       <label
         htmlFor={id}
-        className="block text-xs font-semibold tracking-[0.1em] text-muted-foreground uppercase"
+        className="block text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase"
       >
         {label}
       </label>

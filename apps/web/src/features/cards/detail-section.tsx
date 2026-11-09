@@ -33,7 +33,7 @@ export function DetailSection({
           aria-expanded={open}
           aria-controls={bodyId}
           onClick={() => setToggled(!open)}
-          className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold hover:bg-surface-muted md:min-h-10"
+          className="flex min-h-11 w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm font-semibold transition-colors duration-100 hover:bg-surface-muted md:min-h-10"
         >
           <ChevronRight
             aria-hidden="true"

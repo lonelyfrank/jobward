@@ -40,7 +40,7 @@ function CheckGroup({
       <ul className="space-y-0.5">
         {options.map((option) => (
           <li key={option.value}>
-            <label className="flex min-h-8 cursor-pointer items-center gap-2.5 rounded-md px-1 text-sm hover:bg-surface-muted max-md:min-h-11">
+            <label className="row-hover -mx-2.5 flex min-h-9 cursor-pointer items-center gap-2.5 px-2.5 text-sm max-md:min-h-11">
               <input
                 type="checkbox"
                 className="size-4 shrink-0"

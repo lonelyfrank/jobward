@@ -61,7 +61,7 @@ export function SettingsPage() {
                 <label
                   key={option.value}
                   htmlFor={`theme-${option.value}`}
-                  className="flex cursor-pointer items-start gap-3 rounded-md p-2 hover:bg-surface-muted max-md:py-3"
+                  className="row-hover flex cursor-pointer items-start gap-3 px-3 py-2.5 max-md:py-3"
                 >
                   <input
                     id={`theme-${option.value}`}

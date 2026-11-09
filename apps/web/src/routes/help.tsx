@@ -39,10 +39,7 @@ export function HelpPage() {
           <ul className="mt-3 space-y-1">
             {GUIDE.map(({ to, title, description }) => (
               <li key={to}>
-                <Link
-                  to={to}
-                  className="flex items-center gap-4 rounded-lg p-3 hover:bg-hover-soft"
-                >
+                <Link to={to} className="row-hover flex items-center gap-4 px-4 py-3">
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-semibold">{title}</span>
                     <span className="mt-1 block text-sm text-muted-foreground">{description}</span>

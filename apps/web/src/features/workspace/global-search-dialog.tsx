@@ -194,7 +194,7 @@ export function GlobalSearchDialog({
                     to={item.to}
                     tabIndex={-1}
                     className={cn(
-                      'flex min-h-16 items-center gap-3 rounded-lg px-3 py-3 hover:bg-hover-soft',
+                      'flex min-h-16 items-center gap-3 rounded-lg px-4 py-3 transition-colors duration-100 hover:bg-hover-soft',
                       active?.key === item.key && 'bg-primary-soft text-primary-soft-foreground',
                     )}
                     onPointerMove={() =>

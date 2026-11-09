@@ -120,7 +120,7 @@ export function LabelPicker({
           <ul aria-label="Etichette disponibili" className="space-y-1">
             {all.map((l) => (
               <li key={l.id}>
-                <label className="flex min-h-9 cursor-pointer items-center gap-2.5 rounded-md px-1 hover:bg-surface-muted max-md:min-h-11">
+                <label className="row-hover -mx-2.5 flex min-h-9 cursor-pointer items-center gap-2.5 px-2.5 max-md:min-h-11">
                   <input
                     type="checkbox"
                     className="size-4"
