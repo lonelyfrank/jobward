@@ -67,19 +67,25 @@ function OverviewSection({
   );
 }
 
+/** Fra 640 e 1023 px la griglia ha 6 colonne: 3 schede sopra e 2 sotto, senza vuoti. */
+const TOP_ROW = 'sm:col-span-2 lg:col-span-1';
+const BOTTOM_ROW = 'sm:col-span-3 lg:col-span-1';
+
 function StatCard({
   icon: Icon,
   label,
   value,
   hint,
+  className = '',
 }: {
   icon: LucideIcon;
   label: string;
   value: number;
   hint: string;
+  className?: string;
 }) {
   return (
-    <div className="min-w-0 rounded-lg px-3 py-2.5">
+    <div className={`min-w-0 rounded-lg px-3 py-2.5 ${className}`}>
       <div className="flex items-center gap-2.5">
         <Icon aria-hidden="true" className="size-7 shrink-0 text-primary-soft-foreground" />
         <p className="text-[1.75rem] leading-none font-bold tracking-tight tabular-nums">{value}</p>
@@ -119,10 +125,10 @@ export function OverviewPage() {
         <div
           role="status"
           aria-label="Caricamento del riepilogo"
-          className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
+          className="grid grid-cols-2 gap-3 sm:grid-cols-6 lg:grid-cols-5"
         >
           {Array.from({ length: 5 }, (_, i) => (
-            <Skeleton key={i} className="h-28" />
+            <Skeleton key={i} className={`h-28 ${i < 3 ? TOP_ROW : BOTTOM_ROW}`} />
           ))}
         </div>
       </OverviewFrame>
@@ -176,29 +182,33 @@ export function OverviewPage() {
       <section
         aria-label="Riepilogo"
         data-testid="stat-grid"
-        className="grid w-full max-w-7xl shrink-0 grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-3 lg:grid-cols-5"
+        className="grid w-full max-w-7xl shrink-0 grid-cols-2 gap-x-3 gap-y-2 sm:grid-cols-6 lg:grid-cols-5"
       >
         <StatCard
           icon={BriefcaseBusiness}
           label="Opportunità"
+          className={TOP_ROW}
           value={counts.opportunities}
           hint="Schede attive"
         />
         <StatCard
           icon={Send}
           label="Candidature inviate"
+          className={TOP_ROW}
           value={counts.applicationsSubmitted}
           hint="Con data di candidatura o fase successiva"
         />
         <StatCard
           icon={MessagesSquare}
           label="Colloqui"
+          className={TOP_ROW}
           value={counts.interviews}
           hint="Fase “Colloquio”, senza esito definitivo"
         />
         <StatCard
           icon={ListChecks}
           label="Attività aperte"
+          className={BOTTOM_ROW}
           value={counts.openTasks}
           hint={
             counts.overdueTasks > 0
@@ -208,7 +218,13 @@ export function OverviewPage() {
                 : 'Aggiungi la prima'
           }
         />
-        <StatCard icon={SquareKanban} label="Bacheche" value={counts.boards} hint="Nel workspace" />
+        <StatCard
+          icon={SquareKanban}
+          label="Bacheche"
+          value={counts.boards}
+          hint="Nel workspace"
+          className={BOTTOM_ROW}
+        />
       </section>
 
       {counts.boards === 0 || counts.opportunities === 0 ? (

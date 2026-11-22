@@ -355,8 +355,8 @@ test('Overview: conteggi reali, bacheche e opportunità recenti con collegamenti
   const summary = page.getByRole('region', { name: 'Riepilogo' });
   await expect(summary).toContainText('Opportunità');
   // 4 schede attive (Barista, Addetto vendite, Magazziniere, Cassiere) e 2 bacheche: numeri reali.
-  await expect(summary).toContainText(/Opportunità\s*4\s*Schede attive/);
-  await expect(summary).toContainText(/Bacheche\s*2\s*Nel workspace/);
+  await expect(summary).toContainText(/4\s*Opportunità\s*Schede attive/);
+  await expect(summary).toContainText(/2\s*Bacheche\s*Nel workspace/);
   await expect(page.getByRole('heading', { name: 'Opportunità recenti' })).toBeVisible();
   await expect(page.getByRole('main').getByRole('link', { name: 'Cassiere' })).toBeVisible();
   await expect(page.getByText('In arrivo · M1')).toHaveCount(0);
