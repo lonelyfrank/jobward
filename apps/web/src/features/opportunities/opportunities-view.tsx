@@ -1,8 +1,7 @@
 import { LIMITS } from '@jobward/shared';
-import { Columns3, Filter, Search, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import { useEffect, useId, useMemo, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +20,8 @@ import {
 import { readStorage, writeStorage } from '@/lib/storage';
 import { useOpportunities } from './api';
 import { FiltersPanel } from './filters-panel';
+import { ViewSidebar } from './view-sidebar';
+import { SidebarSection, sidebarCheckClass } from './sidebar-section';
 import { ResultsList, ResultsTable, type ResultContext } from './results';
 import {
   activeFilterCount,
@@ -137,12 +138,6 @@ export function OpportunitiesView({ fixedBoardId }: { fixedBoardId?: string }) {
   const query = toApiQuery(requestState);
   const result = useOpportunities(query);
 
-  const filtersOpenInitial =
-    activeFilterCount(state, Boolean(fixedBoardId)) - (state.q.trim() ? 1 : 0) > 0;
-  const [filtersOpen, setFiltersOpen] = useState(filtersOpenInitial);
-  const [columnsOpen, setColumnsOpen] = useState(false);
-  const filtersId = useId();
-  const columnsId = useId();
   const searchId = useId();
 
   const count = activeFilterCount(state, Boolean(fixedBoardId));
@@ -249,243 +244,269 @@ export function OpportunitiesView({ fixedBoardId }: { fixedBoardId?: string }) {
   };
 
   return (
-    <div className="space-y-4">
-      <div role="search" className="space-y-2">
-        <label htmlFor={searchId} className="block text-sm font-medium">
-          {fixedBoardId ? 'Cerca in questa bacheca' : 'Cerca nelle opportunità'}
-        </label>
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-0 flex-1 basis-64">
-            <Search
-              aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+    <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[17rem_minmax(0,1fr)]">
+      <ViewSidebar
+        count={count}
+        filters={
+          <>
+            <div className="flex items-center justify-between gap-2 px-3 py-2">
+              <span className="text-xs text-muted-foreground">
+                {count ? `${count} attivi` : 'Nessun filtro attivo'}
+              </span>
+              <Button variant="secondary" size="sm" disabled={count === 0} onClick={clear}>
+                Cancella filtri
+              </Button>
+            </div>
+            {chips.length > 0 ? (
+              <SidebarSection title="Filtri attivi" count={chips.length} defaultOpen>
+                <ul aria-label="Filtri attivi" className="space-y-2">
+                  {chips.map((chip) => (
+                    <li key={chip.key} className="min-w-0">
+                      <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-surface py-0.5 pr-1 pl-2.5 text-xs">
+                        <span className="min-w-0 break-words">{chip.text}</span>
+                        <button
+                          type="button"
+                          onClick={chip.remove}
+                          aria-label={`Rimuovi il filtro: ${chip.text}`}
+                          className="grid size-6 shrink-0 place-items-center rounded-full hover:bg-surface-muted max-md:size-11"
+                        >
+                          <X aria-hidden="true" className="size-3.5" />
+                        </button>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </SidebarSection>
+            ) : null}
+            <FiltersPanel
+              state={state}
+              onChange={(patch) => update(patch)}
+              labels={labels.data ?? []}
+              boards={fixedBoardId ? undefined : (boards.data ?? [])}
+              columns={state.board ? board.data?.columns : undefined}
+              salaryHint={
+                salaryIncomplete
+                  ? 'Indica valuta (3 lettere) e periodicità per applicare il filtro.'
+                  : salaryRange
+                    ? 'L’importo minimo supera il massimo: filtro non applicato.'
+                    : null
+              }
+              dateHint={
+                datesInverted
+                  ? 'La data finale precede quella iniziale: filtro non applicato.'
+                  : null
+              }
             />
-            <Input
-              id={searchId}
-              type="search"
-              value={input}
-              maxLength={LIMITS.searchTextMax}
-              autoComplete="off"
-              placeholder="Titolo, azienda, posizione, descrizione, sede, fonte"
-              className="pl-8"
-              aria-describedby={`${searchId}-scope`}
-              onChange={(e) => setInput(e.target.value)}
-            />
+          </>
+        }
+        columns={
+          <>
+            <fieldset className="min-w-0">
+              <legend className="sr-only">Colonne visibili</legend>
+              <p className="px-3 py-2 text-xs text-muted-foreground">
+                Preferenza salvata su questo dispositivo.
+              </p>
+              {[
+                {
+                  title: 'Informazioni generali',
+                  keys: ['title', 'company', 'board', 'column', 'priority', 'labels'],
+                },
+                {
+                  title: 'Dettagli del lavoro',
+                  keys: ['location', 'workMode', 'contractType', 'salary'],
+                },
+                {
+                  title: 'Candidatura e aggiornamenti',
+                  keys: ['stage', 'outcome', 'appliedOn', 'updatedAt'],
+                },
+              ]
+                .map((group) => ({
+                  ...group,
+                  columns: TABLE_COLUMNS.filter(
+                    (c) => group.keys.includes(c.key) && !(fixedBoardId && c.key === 'board'),
+                  ),
+                }))
+                .map((group) => (
+                  <SidebarSection
+                    key={group.title}
+                    title={group.title}
+                    defaultOpen
+                    count={group.columns.filter((c) => !hidden.has(c.key)).length}
+                  >
+                    <ul className="space-y-1">
+                      {group.columns.map((column) => (
+                        <li key={column.key}>
+                          <label className={sidebarCheckClass}>
+                            <input
+                              type="checkbox"
+                              className="size-4 shrink-0 accent-primary"
+                              checked={!hidden.has(column.key)}
+                              disabled={column.locked}
+                              onChange={(e) => {
+                                const next = new Set(hidden);
+                                if (e.target.checked) next.delete(column.key);
+                                else next.add(column.key);
+                                saveHidden(next);
+                              }}
+                            />
+                            {column.label}
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  </SidebarSection>
+                ))}
+            </fieldset>
+            <div className="mt-3 px-3">
+              <Button
+                variant="secondary"
+                size="sm"
+                className="h-auto min-h-9 w-full whitespace-normal"
+                onClick={() => saveHidden(parseHiddenColumns(null))}
+              >
+                Ripristina colonne predefinite
+              </Button>
+            </div>
+            <p className="px-3 pt-3 text-xs text-muted-foreground md:hidden">
+              Le colonne personalizzano la tabella su tablet e desktop. Sul telefono mostriamo un
+              elenco compatto.
+            </p>
+          </>
+        }
+      />
+      <div className="min-w-0 space-y-4">
+        <div role="search" className="space-y-2">
+          <label htmlFor={searchId} className="block text-sm font-medium">
+            {fixedBoardId ? 'Cerca in questa bacheca' : 'Cerca nelle opportunità'}
+          </label>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative min-w-0 flex-1 basis-64">
+              <Search
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+              />
+              <Input
+                id={searchId}
+                type="search"
+                value={input}
+                maxLength={LIMITS.searchTextMax}
+                autoComplete="off"
+                placeholder="Titolo, azienda, posizione, descrizione, sede, fonte"
+                className="pl-8"
+                aria-describedby={`${searchId}-scope`}
+                onChange={(e) => setInput(e.target.value)}
+              />
+            </div>
           </div>
-          <Button
-            variant="secondary"
-            aria-expanded={filtersOpen}
-            aria-controls={filtersId}
-            onClick={() => setFiltersOpen((v) => !v)}
-          >
-            <Filter aria-hidden="true" />
-            Filtri
-            {count > 0 ? <Badge tone="primary">{count}</Badge> : null}
-          </Button>
-          <Button
-            variant="secondary"
-            aria-expanded={columnsOpen}
-            aria-controls={columnsId}
-            onClick={() => setColumnsOpen((v) => !v)}
-            className="max-md:hidden"
-          >
-            <Columns3 aria-hidden="true" />
-            Colonne
-          </Button>
-        </div>
-        <p id={`${searchId}-scope`} className="text-xs text-muted-foreground">
-          Ambito:{' '}
-          {fixedBoardId
-            ? `bacheca “${boardName || '…'}”`
-            : state.board
+          <p id={`${searchId}-scope`} className="text-xs text-muted-foreground">
+            Ambito:{' '}
+            {fixedBoardId
               ? `bacheca “${boardName || '…'}”`
-              : 'tutte le bacheche'}
-          . Ogni parola deve comparire in almeno un campo.
+              : state.board
+                ? `bacheca “${boardName || '…'}”`
+                : 'tutte le bacheche'}
+            . Ogni parola deve comparire in almeno un campo.
+          </p>
+        </div>
+
+        <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+          {loadingFirst
+            ? 'Ricerca in corso…'
+            : result.isError && !data
+              ? ''
+              : refreshing
+                ? 'Aggiornamento…'
+                : data
+                  ? `${data.total} ${data.total === 1 ? 'risultato' : 'risultati'}`
+                  : ''}
         </p>
-      </div>
 
-      <Surface id={filtersId} hidden={!filtersOpen} className="p-4">
-        <FiltersPanel
-          state={state}
-          onChange={(patch) => update(patch)}
-          labels={labels.data ?? []}
-          columns={state.board ? board.data?.columns : undefined}
-          salaryHint={
-            salaryIncomplete
-              ? 'Indica valuta (3 lettere) e periodicità per applicare il filtro.'
-              : salaryRange
-                ? 'L’importo minimo supera il massimo: filtro non applicato.'
-                : null
-          }
-          dateHint={
-            datesInverted ? 'La data finale precede quella iniziale: filtro non applicato.' : null
-          }
-        />
-        <div className="mt-4 flex justify-end">
-          <Button variant="secondary" size="sm" disabled={count === 0} onClick={clear}>
-            Cancella filtri
-          </Button>
-        </div>
-      </Surface>
-
-      <Surface id={columnsId} hidden={!columnsOpen} className="p-4">
-        <fieldset>
-          <legend className="mb-2 text-sm font-medium">Colonne visibili</legend>
-          <p className="mb-2 text-xs text-muted-foreground">
-            Preferenza salvata su questo dispositivo.
-          </p>
-          <ul className="grid gap-x-6 gap-y-0.5 sm:grid-cols-2 lg:grid-cols-3">
-            {TABLE_COLUMNS.filter((c) => !(fixedBoardId && c.key === 'board')).map((column) => (
-              <li key={column.key}>
-                <label className="flex min-h-8 cursor-pointer items-center gap-2.5 text-sm">
-                  <input
-                    type="checkbox"
-                    className="size-4"
-                    checked={!hidden.has(column.key)}
-                    disabled={column.locked}
-                    onChange={(e) => {
-                      const next = new Set(hidden);
-                      if (e.target.checked) next.delete(column.key);
-                      else next.add(column.key);
-                      saveHidden(next);
-                    }}
-                  />
-                  {column.label}
-                </label>
-              </li>
+        {loadingFirst ? (
+          <div role="status" aria-label="Caricamento delle opportunità" className="space-y-2">
+            {Array.from({ length: 6 }, (_, i) => (
+              <Skeleton key={i} className="h-12" />
             ))}
-          </ul>
-        </fieldset>
-        <div className="mt-3 flex justify-end">
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => saveHidden(parseHiddenColumns(null))}
-          >
-            Ripristina colonne predefinite
-          </Button>
-        </div>
-      </Surface>
-
-      {chips.length > 0 ? (
-        <ul aria-label="Filtri attivi" className="flex flex-wrap items-center gap-2">
-          {chips.map((chip) => (
-            <li key={chip.key}>
-              <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-surface py-0.5 pr-1 pl-2.5 text-xs">
-                <span className="truncate">{chip.text}</span>
-                <button
-                  type="button"
-                  onClick={chip.remove}
-                  aria-label={`Rimuovi il filtro: ${chip.text}`}
-                  className="grid size-6 place-items-center rounded-full hover:bg-surface-muted max-md:size-11"
+          </div>
+        ) : result.isError && !data ? (
+          <Surface className="p-6" role="alert">
+            <p className="font-semibold">Non riusciamo a caricare le opportunità.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              I tuoi dati sono al sicuro: riprova tra un momento.
+            </p>
+            <Button className="mt-4" variant="secondary" onClick={() => void result.refetch()}>
+              Riprova
+            </Button>
+          </Surface>
+        ) : data && data.total === 0 ? (
+          <Surface className="px-6 py-10 text-center">
+            <h2 className="text-base font-semibold">
+              {count > 0 ? 'Nessun risultato' : 'Nessuna opportunità'}
+            </h2>
+            <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
+              {count > 0
+                ? 'Nessuna opportunità corrisponde alla ricerca e ai filtri attivi. Prova ad allargarli o a toglierne qualcuno.'
+                : fixedBoardId
+                  ? 'Questa bacheca non ha ancora schede. Aggiungile dalla vista Kanban.'
+                  : 'Non hai ancora schede: creane una da una bacheca e la ritroverai qui.'}
+            </p>
+            {count > 0 ? (
+              <Button className="mt-4" variant="secondary" onClick={clear}>
+                Cancella filtri
+              </Button>
+            ) : null}
+          </Surface>
+        ) : beyond ? (
+          <Surface className="px-6 py-10 text-center">
+            <h2 className="text-base font-semibold">Questa pagina non esiste più</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              I risultati sono cambiati: ripartiamo dalla prima pagina.
+            </p>
+            <Button
+              className="mt-4"
+              variant="secondary"
+              onClick={() => update({ page: 1 }, { keepPage: true })}
+            >
+              Vai alla prima pagina
+            </Button>
+          </Surface>
+        ) : data ? (
+          <>
+            <ResultsTable
+              items={data.items}
+              columns={visibleColumns}
+              state={state}
+              onSort={onSort}
+              ctx={ctx}
+              busy={refreshing}
+            />
+            <ResultsList items={data.items} ctx={ctx} busy={refreshing} showBoard={!fixedBoardId} />
+            {data.pageCount > 1 ? (
+              <nav
+                aria-label="Paginazione"
+                className="flex flex-wrap items-center justify-between gap-3"
+              >
+                <Button
+                  variant="secondary"
+                  disabled={data.page <= 1}
+                  onClick={() => update({ page: data.page - 1 }, { keepPage: true })}
                 >
-                  <X aria-hidden="true" className="size-3.5" />
-                </button>
-              </span>
-            </li>
-          ))}
-          <li>
-            <Button variant="ghost" size="sm" onClick={clear}>
-              Cancella filtri
-            </Button>
-          </li>
-        </ul>
-      ) : null}
-
-      <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
-        {loadingFirst
-          ? 'Ricerca in corso…'
-          : result.isError && !data
-            ? ''
-            : refreshing
-              ? 'Aggiornamento…'
-              : data
-                ? `${data.total} ${data.total === 1 ? 'risultato' : 'risultati'}`
-                : ''}
-      </p>
-
-      {loadingFirst ? (
-        <div role="status" aria-label="Caricamento delle opportunità" className="space-y-2">
-          {Array.from({ length: 6 }, (_, i) => (
-            <Skeleton key={i} className="h-12" />
-          ))}
-        </div>
-      ) : result.isError && !data ? (
-        <Surface className="p-6" role="alert">
-          <p className="font-semibold">Non riusciamo a caricare le opportunità.</p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            I tuoi dati sono al sicuro: riprova tra un momento.
-          </p>
-          <Button className="mt-4" variant="secondary" onClick={() => void result.refetch()}>
-            Riprova
-          </Button>
-        </Surface>
-      ) : data && data.total === 0 ? (
-        <Surface className="px-6 py-10 text-center">
-          <h2 className="text-base font-semibold">
-            {count > 0 ? 'Nessun risultato' : 'Nessuna opportunità'}
-          </h2>
-          <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-            {count > 0
-              ? 'Nessuna opportunità corrisponde alla ricerca e ai filtri attivi. Prova ad allargarli o a toglierne qualcuno.'
-              : fixedBoardId
-                ? 'Questa bacheca non ha ancora schede. Aggiungile dalla vista Kanban.'
-                : 'Non hai ancora schede: creane una da una bacheca e la ritroverai qui.'}
-          </p>
-          {count > 0 ? (
-            <Button className="mt-4" variant="secondary" onClick={clear}>
-              Cancella filtri
-            </Button>
-          ) : null}
-        </Surface>
-      ) : beyond ? (
-        <Surface className="px-6 py-10 text-center">
-          <h2 className="text-base font-semibold">Questa pagina non esiste più</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            I risultati sono cambiati: ripartiamo dalla prima pagina.
-          </p>
-          <Button
-            className="mt-4"
-            variant="secondary"
-            onClick={() => update({ page: 1 }, { keepPage: true })}
-          >
-            Vai alla prima pagina
-          </Button>
-        </Surface>
-      ) : data ? (
-        <>
-          <ResultsTable
-            items={data.items}
-            columns={visibleColumns}
-            state={state}
-            onSort={onSort}
-            ctx={ctx}
-            busy={refreshing}
-          />
-          <ResultsList items={data.items} ctx={ctx} busy={refreshing} showBoard={!fixedBoardId} />
-          {data.pageCount > 1 ? (
-            <nav aria-label="Paginazione" className="flex items-center justify-between gap-3">
-              <Button
-                variant="secondary"
-                disabled={data.page <= 1}
-                onClick={() => update({ page: data.page - 1 }, { keepPage: true })}
-              >
-                Precedente
-              </Button>
-              <span className="text-sm text-muted-foreground">
-                Pagina {data.page} di {data.pageCount}
-              </span>
-              <Button
-                variant="secondary"
-                disabled={data.page >= data.pageCount}
-                onClick={() => update({ page: data.page + 1 }, { keepPage: true })}
-              >
-                Successiva
-              </Button>
-            </nav>
-          ) : null}
-        </>
-      ) : null}
+                  Precedente
+                </Button>
+                <span className="text-sm text-muted-foreground">
+                  Pagina {data.page} di {data.pageCount}
+                </span>
+                <Button
+                  variant="secondary"
+                  disabled={data.page >= data.pageCount}
+                  onClick={() => update({ page: data.page + 1 }, { keepPage: true })}
+                >
+                  Successiva
+                </Button>
+              </nav>
+            ) : null}
+          </>
+        ) : null}
+      </div>
     </div>
   );
 }

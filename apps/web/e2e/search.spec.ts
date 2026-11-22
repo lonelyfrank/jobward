@@ -19,6 +19,17 @@ const searchBox = (page: Page, name = 'Cerca in questa bacheca') =>
 const results = (page: Page) =>
   page.getByRole('status').filter({ hasText: /risultat|Ricerca in corso|Aggiornamento/ });
 
+async function openFilters(page: Page) {
+  const button = page.getByRole('button', { name: /^Filtri/ });
+  if ((await button.getAttribute('aria-expanded')) !== 'true') await button.click();
+  const sidebar = page.getByRole('complementary', { name: 'Personalizza opportunità' });
+  for (const summary of await sidebar.locator('details > summary:visible').all()) {
+    if (!(await summary.evaluate((el) => el.parentElement?.hasAttribute('open')))) {
+      await summary.click();
+    }
+  }
+}
+
 let boardId = '';
 
 test.beforeAll(async ({ browser }) => {
@@ -168,7 +179,7 @@ test('4. filtri: OR nello stesso gruppo, AND tra gruppi, contrassegni rimovibili
   page,
 }) => {
   await page.goto(`/boards/${boardId}/table`);
-  await page.getByRole('button', { name: /Filtri/ }).click();
+  await openFilters(page);
   const panel = page
     .locator('[id]')
     .filter({ has: page.getByRole('group', { name: 'Priorità' }) })
@@ -217,7 +228,7 @@ test('5. filtro per etichetta, per fase "non indicata", per data e per retribuzi
   page,
 }) => {
   await page.goto(`/boards/${boardId}/table?label=`);
-  await page.getByRole('button', { name: /Filtri/ }).click();
+  await openFilters(page);
   await page
     .getByRole('group', { name: /Etichette/ })
     .getByLabel('Estero')
@@ -353,7 +364,7 @@ test('9. Opportunità: tutte le bacheche, filtro per bacheca, ricerca globale da
   expect(await tableTitles(page)).toContain('Barista serale'); // dell'altra bacheca
   expect(await tableTitles(page)).toContain('Infermiere di reparto');
 
-  await page.getByRole('button', { name: /Filtri/ }).click();
+  await openFilters(page);
   // Ricerca globale dalla barra superiore (Invio): porta qui con il testo e l'ambito esteso.
   await page.getByRole('button', { name: 'Cerca in Jobward' }).click();
   await page.getByRole('combobox', { name: 'Cerca in Jobward' }).fill('trastevere');
@@ -472,13 +483,13 @@ test('13. da telefono (390 px): elenco compatto al posto della tabella, senza sc
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBe(0);
-  await page.getByRole('button', { name: /Filtri/ }).click();
+  await openFilters(page);
   const filterOverflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(filterOverflow).toBe(0);
   await expectNoA11yViolations(page, 'opportunità a 390 px con filtri');
-  await page.getByRole('button', { name: /Filtri/ }).click();
+  await page.getByRole('button', { name: /^Filtri/ }).click();
   await list.getByRole('link', { name: 'Infermiere di reparto' }).click();
   await expect(page.getByRole('dialog', { name: 'Infermiere di reparto' })).toBeVisible();
 });
@@ -512,7 +523,7 @@ test('14. tablet (768 px): lo scorrimento orizzontale è confinato alla tabella'
 test('15. tema scuro: filtri e tabella senza violazioni di accessibilità', async ({ page }) => {
   await page.emulateMedia({ colorScheme: 'dark' });
   await page.goto('/opportunities?q=a');
-  await page.getByRole('button', { name: /Filtri/ }).click();
+  await openFilters(page);
   await expect(results(page)).toContainText('risultat');
   await expectNoA11yViolations(page, 'opportunità (scuro)');
 });
@@ -522,7 +533,7 @@ test('16. da telefono: filtri, ricerca e paginazione hanno aree di tocco di alme
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/opportunities?q=pagine');
-  await page.getByRole('button', { name: /Filtri/ }).click();
+  await openFilters(page);
   await expect(results(page)).toContainText('risultat');
   expect(await smallTouchTargets(page, 'main')).toEqual([]);
 });
