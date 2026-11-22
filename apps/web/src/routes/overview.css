@@ -1,0 +1,73 @@
+/* Only the list bodies scroll on desktop; section headings remain outside them. */
+.overview-page {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.overview-page > header {
+  flex-shrink: 0;
+}
+.overview-panels {
+  display: grid;
+  min-height: 0;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  flex-shrink: 0;
+}
+.overview-recents {
+  display: grid;
+  min-height: 0;
+  gap: 1.5rem;
+}
+.overview-section {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+.overview-section-content {
+  min-height: 0;
+  max-height: 18rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding-right: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.overview-recents > :first-child {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 1.5rem;
+}
+.overview-panels > .overview-section {
+  padding-top: 1.5rem;
+}
+@media (min-width: 64rem) {
+  .overview-recents {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+  }
+  .overview-recents > :first-child {
+    border-bottom: 0;
+    border-right: 1px solid var(--border);
+    padding-bottom: 0;
+    padding-right: 1.5rem;
+  }
+  .overview-recents > :last-child {
+    padding-left: 1.5rem;
+  }
+}
+/* Short windows and phones keep a natural page flow so every section stays reachable. */
+@media (min-width: 64rem) and (min-height: 40rem) {
+  .overview-page[data-onboarding='false'] {
+    overflow: hidden;
+  }
+  .overview-page[data-onboarding='false'] .overview-panels {
+    flex: 1;
+    grid-template-rows: minmax(0, 1.7fr) minmax(0, 1fr);
+  }
+  .overview-page[data-onboarding='false'] .overview-section-content {
+    max-height: none;
+  }
+}

@@ -1,0 +1,347 @@
+@import 'tailwindcss';
+@import './glass.css';
+@import './board.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens semantici.
+ * I componenti usano SOLO questi nomi (bg-surface, text-muted-foreground, ...),
+ * mai colori letterali: tema chiaro e scuro si cambiano qui, in un punto solo.
+ * Identità: superfici bianche su fondo lavanda, un solo indaco per l'azione, badge morbidi
+ * per lo stato; il rosso resta riservato a urgenza e azioni distruttive.
+ * Valori in OKLCH (letti da scripts/check-contrast.mjs); in commento l'equivalente esadecimale.
+ */
+:root {
+  --background: oklch(0.9738 0.0067 277.2); /* #F5F6FB */
+  --foreground: oklch(0.2004 0.0474 279.4); /* #12132B */
+  --surface: oklch(1 0 0); /* #FFFFFF */
+  --surface-muted: oklch(0.9567 0.0107 280.5); /* #EFF0F8 */
+  --border: oklch(0.9324 0.0136 277.1); /* #E6E8F2 */
+  /* ≈#8589AB: il #8E92B2 del design non raggiunge 3:1 sul fondo lavanda */
+  --border-strong: oklch(0.6422 0.0475 279.4);
+  --muted-foreground: oklch(0.5044 0.0479 278.6); /* #5E6280 */
+  --primary: oklch(0.4788 0.2686 272.4); /* #3A2EF0 */
+  --primary-hover: oklch(0.4309 0.2515 271.4); /* #2E22D6 */
+  --primary-foreground: oklch(1 0 0); /* #FFFFFF */
+  --primary-soft: oklch(0.9522 0.0241 288.5); /* #EEEDFF */
+  --primary-soft-foreground: oklch(0.4788 0.2686 272.4); /* #3A2EF0 */
+  --danger: oklch(0.5082 0.1868 17.8); /* #B81D3B */
+  --danger-soft: oklch(0.9489 0.0235 4.5); /* #FDE8EC */
+  --warning-soft: oklch(0.9637 0.0315 78.2); /* #FFF1DC */
+  --warning-soft-foreground: oklch(0.5237 0.1206 62); /* #9A5700 */
+  --success-soft: oklch(0.9564 0.024 163.1); /* #E3F6EC */
+  --success-soft-foreground: oklch(0.5037 0.1129 157.5); /* #12774A */
+  --info-soft: oklch(0.9521 0.0229 258.4); /* #E6F0FF */
+  --info-soft-foreground: oklch(0.4592 0.1708 262.3); /* #1D4FB5 */
+  --teal-soft: oklch(0.9518 0.0254 187.7); /* #DDF5F2 */
+  --teal-soft-foreground: oklch(0.4761 0.0809 185.7); /* #0B6B63 */
+  --ring: oklch(0.4788 0.2686 272.4); /* #3A2EF0 */
+  --sidebar: oklch(1 0 0); /* #FFFFFF */
+  --hover-soft: oklch(0.9667 0.012 286.2); /* #F3F3FC */
+  --accent-slate: oklch(0.55 0.02 260);
+  --accent-blue: oklch(0.55 0.14 255);
+  --accent-green: oklch(0.55 0.12 150);
+  --accent-amber: oklch(0.6 0.13 75);
+  --accent-violet: oklch(0.55 0.15 295);
+  --accent-rose: oklch(0.58 0.17 15);
+  --accent-teal: oklch(0.55 0.09 190);
+  --accent-orange: oklch(0.6 0.15 50);
+  --shadow-sm: 0 1px 2px oklch(0.2 0.02 260 / 0.06);
+  --shadow-md: 0 8px 24px oklch(0.2 0.02 260 / 0.1);
+  --shadow-sm: 0 1px 2px oklch(0.2 0.05 280 / 0.05);
+  --shadow-md: 0 24px 60px oklch(0.2 0.05 280 / 0.22);
+  --shadow-primary: 0 8px 18px oklch(0.48 0.27 272 / 0.26);
+  /* Velo dietro finestre e pannelli (nel foglio di design: rgba(5,6,16,.62) sul tema scuro). */
+  --scrim: oklch(0.14 0.04 280 / 0.5);
+}
+
+.dark {
+  --background: oklch(0.1729 0.0351 279.5); /* #0D0E1F */
+  --foreground: oklch(0.9627 0.0107 280.5); /* #F1F2FA */
+  --surface: oklch(0.2168 0.0447 280.1); /* #16172E */
+  --surface-muted: oklch(0.2576 0.0541 278.9); /* #1E203D */
+  --border: oklch(0.312 0.0588 279.8); /* #2B2D4E */
+  --border-strong: oklch(0.6035 0.0563 279.8); /* #7A7EA3 */
+  --muted-foreground: oklch(0.7459 0.0476 279.7); /* #A6AACB */
+  --primary: oklch(0.6711 0.1788 281.5); /* #8683FF */
+  --primary-hover: oklch(0.7386 0.1398 283.8); /* #A09DFF */
+  --primary-foreground: oklch(0.1729 0.0351 279.5); /* #0D0E1F */
+  --primary-soft: oklch(0.3087 0.0859 279.2); /* #28295A */
+  --primary-soft-foreground: oklch(0.8179 0.0951 285.4); /* #BDBBFF */
+  --danger: oklch(0.7517 0.1542 9.5); /* #FF8199 */
+  --danger-soft: oklch(0.2649 0.0645 352.8); /* #3C1628 */
+  --warning-soft: oklch(0.2999 0.0466 80.1); /* #3A2B10 */
+  --warning-soft-foreground: oklch(0.8672 0.1164 76.4); /* #FFC978 */
+  --success-soft: oklch(0.2988 0.0473 166.1); /* #123528 */
+  --success-soft-foreground: oklch(0.8248 0.1336 159.1); /* #6FE0A6 */
+  --info-soft: oklch(0.2875 0.074 262.7); /* #16294F */
+  --info-soft-foreground: oklch(0.809 0.0961 259.7); /* #9CC2FF */
+  --teal-soft: oklch(0.3004 0.0434 180.8); /* #10352F */
+  --teal-soft-foreground: oklch(0.8263 0.1027 185.2); /* #6FDCCF */
+  --ring: oklch(0.7228 0.1489 283.3); /* #9A97FF */
+  --sidebar: oklch(0.1961 0.0476 279.2); /* #11122A */
+  --hover-soft: oklch(0.2494 0.0545 278.7); /* #1C1E3B */
+  --accent-slate: oklch(0.72 0.02 260);
+  --accent-blue: oklch(0.72 0.12 255);
+  --accent-green: oklch(0.74 0.14 150);
+  --accent-amber: oklch(0.8 0.14 85);
+  --accent-violet: oklch(0.74 0.13 295);
+  --accent-rose: oklch(0.74 0.14 15);
+  --accent-teal: oklch(0.76 0.1 190);
+  --accent-orange: oklch(0.76 0.14 55);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3);
+  --shadow-md: 0 8px 24px oklch(0 0 0 / 0.4);
+  --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.3);
+  --shadow-md: 0 24px 60px oklch(0 0 0 / 0.5);
+  --shadow-primary: 0 8px 18px oklch(0 0 0 / 0.35);
+  --scrim: oklch(0.08 0.03 280 / 0.62);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-primary-soft-foreground: var(--primary-soft-foreground);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warning-soft: var(--warning-soft);
+  --color-warning-soft-foreground: var(--warning-soft-foreground);
+  --color-success-soft: var(--success-soft);
+  --color-success-soft-foreground: var(--success-soft-foreground);
+  --color-info-soft: var(--info-soft);
+  --color-info-soft-foreground: var(--info-soft-foreground);
+  --color-teal-soft: var(--teal-soft);
+  --color-teal-soft-foreground: var(--teal-soft-foreground);
+  --color-hover-soft: var(--hover-soft);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-scrim: var(--scrim);
+  --color-accent-slate: var(--accent-slate);
+  --color-accent-blue: var(--accent-blue);
+  --color-accent-green: var(--accent-green);
+  --color-accent-amber: var(--accent-amber);
+  --color-accent-violet: var(--accent-violet);
+  --color-accent-rose: var(--accent-rose);
+  --color-accent-teal: var(--accent-teal);
+  --color-accent-orange: var(--accent-orange);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-primary: var(--shadow-primary);
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* Forme del design: controlli 12 px, card 16 px, colonne e modali 20 px. */
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: 'cv11', 'ss01';
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  *,
+  *::before,
+  *::after {
+    border-color: var(--border);
+  }
+  /* Focus sempre visibile per la navigazione da tastiera. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+  /* Rispetta la preferenza di riduzione del movimento. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@keyframes jobward-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+/* Cambio di vista e di scheda: dissolvenza + risalita di 6 px (prima 0.82 → 1: non si vedeva). */
+@keyframes jobward-view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes jobward-slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes jobward-search-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes jobward-search-backdrop-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes jobward-slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes jobward-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Finestre: ingresso morbido (scala + risalita), uscita più rapida. Radix attende animationend. */
+@keyframes jobward-overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes jobward-overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+/*
+ * Solo traslazione e opacità, niente scala: durante una scala i controlli nascosti da 1 px
+ * (radio/checkbox `sr-only`) scendono sotto la soglia di area che Playwright richiede
+ * (0,99 px²) e `check({ force: true })` fallisce a intermittenza nei primi 240 ms.
+ */
+@keyframes jobward-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+@keyframes jobward-dialog-out {
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+/* Finestra a schermo intero su telefono: sale dal basso. */
+@keyframes jobward-sheet-up-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+}
+@keyframes jobward-sheet-up-out {
+  to {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes jobward-slide-out-right {
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes jobward-slide-out-left {
+  to {
+    transform: translateX(-100%);
+  }
+}
+/* Menu e popover: nascono dal punto di ancoraggio. L'origine arriva da Radix. */
+@keyframes jobward-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+@keyframes jobward-pop-out {
+  to {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+/* Passaggio fra due contenuti nella stessa finestra (elenco ⇄ modulo, scheda ⇄ scheda). */
+@keyframes jobward-swap-in {
+  from {
+    opacity: 0;
+    transform: translateX(var(--swap-from, 12px));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Riga interattiva (voce di elenco, link, etichetta con casella): stesso sfondo morbido e
+ * stessa transizione all'hover/focus ovunque. Il padding resta a chi la usa, con la regola
+ * "orizzontale ≥ verticale" (px-3 py-2) perché la sagoma non risulti schiacciata ai lati;
+ * se il testo deve restare allineato al resto, si compensa con un margine negativo uguale.
+ */
+@utility row-hover {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--radius-md);
+  /* Inset the highlight without shrinking the clickable area or moving the text. */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0.25rem;
+    z-index: -1;
+    border-radius: max(0px, calc(var(--radius-md) - 0.25rem));
+    pointer-events: none;
+    transition: background-color 120ms ease-out;
+  }
+  &:hover::before,
+  &:focus-visible::before {
+    background-color: var(--hover-soft);
+  }
+}

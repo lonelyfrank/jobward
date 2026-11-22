@@ -1,0 +1,43 @@
+{
+  "name": "jobward",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Jobward — Smart Career Workspace: opportunità, candidature, colloqui e attività in un unico ambiente.",
+  "type": "module",
+  "packageManager": "pnpm@12.15.0",
+  "engines": {
+    "node": ">=22.22.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @jobward/api --filter @jobward/web dev",
+    "dev:api": "pnpm --filter @jobward/api dev",
+    "dev:web": "pnpm --filter @jobward/web dev",
+    "build": "pnpm --filter @jobward/web build && pnpm --filter @jobward/api build",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "eslint . --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm -r test",
+    "test:e2e": "pnpm --filter @jobward/web test:e2e",
+    "db:generate": "pnpm --filter @jobward/database generate",
+    "db:migrate:local": "pnpm --filter @jobward/api db:migrate:local",
+    "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm check:contrast && pnpm check:docs && pnpm db:check && pnpm test && pnpm build",
+    "check:contrast": "node scripts/check-contrast.mjs > /dev/null && echo \"Contrasto WCAG dei token: OK\" || (node scripts/check-contrast.mjs | grep FAIL; exit 1)",
+    "test:preview": "pnpm --filter @jobward/web test:preview",
+    "db:check": "node scripts/check-migrations.mjs",
+    "db:reset:local": "node scripts/db-reset-local.mjs",
+    "db:seed:demo": "node scripts/seed-demo.mjs",
+    "check:docs": "node scripts/check-docs.mjs",
+    "docs:screenshots": "pnpm --filter @jobward/web docs:screenshots"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "eslint": "9.39.5",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "globals": "17.14.0",
+    "prettier": "3.9.10",
+    "typescript": "catalog:",
+    "typescript-eslint": "8.72.1"
+  }
+}

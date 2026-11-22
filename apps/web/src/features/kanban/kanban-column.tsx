@@ -1,0 +1,195 @@
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  type SortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import type { PlacedCard, Column } from '@jobward/schemas';
+import { EllipsisVertical, GripVertical } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { COLOR_BG, isColorToken, STAGE_LABELS } from '@/lib/labels';
+import { cn } from '@/lib/cn';
+import { KanbanCard, type CardAction } from './kanban-card';
+import { QuickCreate } from './quick-create';
+
+export type ColumnAction = 'edit' | 'left' | 'right' | 'delete';
+
+/** Nessuno spostamento visivo delle altre schede: con i filtri il riordino nella colonna è spento. */
+const NO_REORDER: SortingStrategy = () => null;
+
+export function KanbanColumn({
+  boardId,
+  column,
+  totalCount,
+  filtered = false,
+  reorderDisabled = false,
+  cards,
+  allColumns,
+  isFirst,
+  isLast,
+  onCardAction,
+  onColumnAction,
+  zoom = 1,
+}: {
+  boardId: string;
+  column: Column;
+  /** Schede della colonna senza filtri (le visibili sono `column.cardCount`). */
+  totalCount: number;
+  /** Filtri attivi: il contatore mostra «visibili/totali». */
+  filtered?: boolean;
+  reorderDisabled?: boolean;
+  cards: PlacedCard[];
+  allColumns: Column[];
+  isFirst: boolean;
+  isLast: boolean;
+  onCardAction: (card: PlacedCard, action: CardAction) => void;
+  onColumnAction: (column: Column, action: ColumnAction) => void;
+  zoom?: number;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: column.id, data: { type: 'column' } });
+  const headingId = `column-${column.id}`;
+
+  return (
+    <section
+      ref={setNodeRef}
+      aria-labelledby={headingId}
+      data-column-id={column.id}
+      // dnd-kit misura gli spostamenti sullo schermo: CSS zoom scala già il contenitore.
+      // Compensare la traslazione mantiene il bersaglio allineato al puntatore.
+      style={{
+        transform: CSS.Transform.toString(
+          transform ? { ...transform, x: transform.x / zoom, y: transform.y / zoom } : null,
+        ),
+        transition,
+      }}
+      className={cn(
+        'flex max-h-full w-[85vw] shrink-0 snap-center flex-col rounded-xl pb-1 sm:w-[18rem] sm:snap-align-none',
+        // Unico uso del materiale Glass Subtle: lo sfondo del contenitore esterno della colonna
+        // (sostituisce bg-surface-muted). Le schede interne restano opache (bg-surface).
+        'glass-subtle kanban-column-glass',
+        isDragging && 'opacity-40',
+      )}
+    >
+      <header className="flex items-center gap-1 px-3 pt-3 pb-1.5">
+        <button
+          type="button"
+          ref={setActivatorNodeRef}
+          {...attributes}
+          {...listeners}
+          aria-label={`Sposta la colonna “${column.name}”`}
+          className="grid size-8 shrink-0 cursor-grab touch-none place-items-center rounded-md text-muted-foreground hover:bg-surface max-md:size-11"
+        >
+          <GripVertical aria-hidden="true" className="size-4" />
+        </button>
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center gap-2">
+            {isColorToken(column.color) ? (
+              <span
+                aria-hidden="true"
+                className={cn('size-2.5 shrink-0 rounded-full', COLOR_BG[column.color])}
+              />
+            ) : null}
+            <h3 id={headingId} className="truncate text-[15px] font-bold" title={column.name}>
+              {column.name}
+            </h3>
+          </div>
+          {column.category ? (
+            <p className="truncate text-xs text-muted-foreground">
+              {STAGE_LABELS[column.category]}
+            </p>
+          ) : null}
+        </div>
+        <Badge
+          data-testid="column-count"
+          aria-label={
+            filtered
+              ? `${column.cardCount} di ${totalCount} ${totalCount === 1 ? 'scheda' : 'schede'}`
+              : `${column.cardCount} ${column.cardCount === 1 ? 'scheda' : 'schede'}`
+          }
+          className="h-6 min-w-6 justify-center bg-surface px-1.5 font-bold"
+        >
+          {filtered ? `${column.cardCount}/${totalCount}` : column.cardCount}
+        </Badge>
+        <DropdownMenu modal={false}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`Azioni per la colonna “${column.name}”`}
+              className="size-8 max-md:size-11"
+            >
+              <EllipsisVertical aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            <DropdownMenuItem onSelect={() => onColumnAction(column, 'edit')}>
+              Modifica…
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={isFirst} onSelect={() => onColumnAction(column, 'left')}>
+              Sposta a sinistra
+            </DropdownMenuItem>
+            <DropdownMenuItem disabled={isLast} onSelect={() => onColumnAction(column, 'right')}>
+              Sposta a destra
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem danger onSelect={() => onColumnAction(column, 'delete')}>
+              Elimina…
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </header>
+
+      <SortableContext
+        items={cards.map((c) => c.id)}
+        strategy={reorderDisabled ? NO_REORDER : verticalListSortingStrategy}
+      >
+        <ul
+          aria-label={`Schede in ${column.name}`}
+          className="min-h-0 flex-1 space-y-3 overflow-y-auto px-3 py-1"
+        >
+          {cards.map((card, index) => (
+            <KanbanCard
+              key={card.id}
+              zoom={zoom}
+              card={card}
+              boardId={boardId}
+              columns={allColumns}
+              isFirst={index === 0}
+              isLast={index === cards.length - 1}
+              reorderDisabled={reorderDisabled}
+              onAction={onCardAction}
+            />
+          ))}
+        </ul>
+      </SortableContext>
+      {cards.length === 0 ? (
+        <p className="px-4 pb-1 text-xs text-muted-foreground">
+          {filtered && totalCount > 0
+            ? 'Nessuna scheda corrisponde ai filtri.'
+            : 'Nessuna scheda in questa colonna.'}
+        </p>
+      ) : null}
+
+      <div className="px-3 pt-1 pb-2">
+        <QuickCreate boardId={boardId} columnId={column.id} columnName={column.name} />
+      </div>
+    </section>
+  );
+}

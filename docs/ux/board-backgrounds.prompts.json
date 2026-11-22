@@ -1,0 +1,23 @@
+{
+  "generator": "Built-in imagegen",
+  "purpose": "Original landscape backgrounds for Jobward boards",
+  "images": [
+    {
+      "id": "alps",
+      "prompt": "Create a single original premium landscape photograph to use as the background of a professional job-search Kanban web application. Wide 16:9 composition, highest available resolution, ideally 3840x2160. Photorealistic fine photographic detail, restrained natural colors, peaceful atmosphere, gently balanced exposure and low visual clutter. Broad quiet areas across the middle and lower frame so interface cards will remain the focal point. This is just the landscape asset: absolutely no text, letters, logos, watermark, user interface, frames, people, buildings or vehicles. Scene: distant Italian Alpine ridgelines at blue hour just before sunrise, soft lavender sky, a little muted peach light on far snowy peaks, layered blue-indigo mountains fading into atmospheric haze and a calm broad valley. Sophisticated travel photography, natural geology and subtle texture, no glaring sun disk."
+    },
+    {
+      "id": "lake",
+      "prompt": "Create a single original premium landscape photograph to use as the background of a professional job-search Kanban web application. Wide 16:9 composition, highest available resolution, ideally 3840x2160. Photorealistic fine photographic detail, restrained natural colors, peaceful atmosphere, gently balanced exposure and low visual clutter. Broad quiet areas across the middle and lower frame so interface cards will remain the focal point. This is just the landscape asset: absolutely no text, letters, logos, watermark, user interface, frames, people, buildings or vehicles. Scene: a serene turquoise alpine lake at dawn, still water with very subtle reflections, distant dark evergreen forest along the shore and delicate mist, low hazy mountain silhouettes. Cinematic editorial nature photography, muted teal and blue greens, generous tranquil open water, no boats or people."
+    },
+    {
+      "id": "dunes",
+      "prompt": "Create a single original premium landscape photograph to use as the background of a professional job-search Kanban web application. Wide 16:9 composition, highest available resolution, ideally 3840x2160. Photorealistic fine photographic detail, restrained natural colors, peaceful atmosphere, gently balanced exposure and low visual clutter. Broad quiet areas across the middle and lower frame so interface cards will remain the focal point. This is just the landscape asset: absolutely no text, letters, logos, watermark, user interface, frames, people, buildings or vehicles. Scene: sweeping pristine sand dunes photographed from an elevated viewpoint at soft early morning light. Large graceful curves and gently layered ridges extending into the distance, warm sand and muted terracotta with subtle mauve shadows. Quiet elegant natural geometry, realistic fine sand texture, no footprints, no sun disk."
+    },
+    {
+      "id": "ocean",
+      "prompt": "Create a single original premium landscape photograph to use as the background of a professional job-search Kanban web application. Wide 16:9 composition, highest available resolution, ideally 3840x2160. Photorealistic fine photographic detail, restrained natural colors, peaceful atmosphere, gently balanced exposure and low visual clutter. Broad quiet areas across the middle and lower frame so interface cards will remain the focal point. This is just the landscape asset: absolutely no text, letters, logos, watermark, user interface, frames, people, buildings or vehicles. Scene: a peaceful Atlantic coastline at twilight, vast slate-blue ocean with long exposure smooth water, a few softly rounded dark coastal rocks along the lower right edge, distant coastline fading into sea mist, muted indigo and soft pale blue sky. Restrained premium editorial landscape photography, soft waves and no bright dramatic foam."
+    }
+  ],
+  "status": "Archived generation prompts; the active catalog uses the user-provided images listed in board-backgrounds.assets.json."
+}

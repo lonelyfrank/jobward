@@ -1,0 +1,27 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1795239468474,
+      "tag": "0000_jobward_v1",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1795261677007,
+      "tag": "0001_companies",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1795262138274,
+      "tag": "0002_saved_views",
+      "breakpoints": true
+    }
+  ]
+}

@@ -1,0 +1,315 @@
+import {
+  ACTIVITY_EVENT_TYPES,
+  type TaskKind,
+  OUTCOMES,
+  PRIORITIES,
+  STAGES,
+  INTERVIEW_RESULTS,
+  PLACEMENT_DIRECTIONS,
+  PLACEMENT_REASONS,
+  isDormantActivityEventType,
+  type ActivityEventType,
+} from './constants';
+import { PIPELINE_STATUSES, type PipelineStatus, type PipelineTransitionKind } from './pipeline';
+
+/** Solo dominio: il CHECK SQL e il vocabolario persistente restano quelli M2.5 fino a C2. */
+export type TimelineEventType = ActivityEventType | 'application_reopened';
+export type TimelineEntity = {
+  readonly type: 'card' | 'interview' | 'note' | 'document' | 'task';
+  readonly id: string;
+};
+export type SafeTimelineMetadata = Readonly<Record<string, string | number | null>>;
+export interface PipelineEventIntent {
+  readonly type:
+    'stage_changed' | 'application_submitted' | 'application_closed' | 'application_reopened';
+  readonly metadata: SafeTimelineMetadata;
+  readonly dedupeKey: string;
+}
+
+/** L'indice persistente C2 aggiungerà lo scope workspace; qui si produce solo l'intento. */
+export function timelineDedupeKey(
+  type: TimelineEventType,
+  entity: TimelineEntity,
+  operationId: string,
+): string {
+  return JSON.stringify([type, entity.type, entity.id, operationId]);
+}
+
+const requiredId = (label: string, value: string): string => {
+  if (typeof value !== 'string' || value.length === 0 || value.length > 128)
+    throw new Error(`dedupe_key: ${label} non valido`);
+  return value;
+};
+/**
+ * Chiavi di deduplica dei nuovi eventi (0010, D4). Sono array JSON come quelle esistenti, quindi non ambigue.
+ * - `application_created`: `[tipo, 'application', id candidatura, id operazione]` (4 elementi, come i legacy).
+ * - `card_placed` / `card_unplaced`: `[tipo, 'card', id scheda, id operazione, 'to'|'from', id bacheca]`
+ *   (6 elementi): la bacheca di destinazione/origine entra nella chiave, il tipo la distingue dall'altra metà
+ *   di un trasferimento. Due eventi della STESSA operazione (unplaced + placed) hanno chiavi diverse e coesistono;
+ *   un retry produce la STESSA chiave e viene rifiutato dall'indice univoco `(workspace_id, dedupe_key)`.
+ * Le chiavi legacy hanno 4 elementi: una chiave a 6 elementi non può mai collidere con una legacy.
+ */
+export function applicationCreatedDedupeKey(applicationId: string, operationId: string): string {
+  return JSON.stringify([
+    'application_created',
+    'application',
+    requiredId('applicationId', applicationId),
+    requiredId('operationId', operationId),
+  ]);
+}
+export function placementDedupeKey(
+  type: 'card_placed' | 'card_unplaced',
+  cardId: string,
+  operationId: string,
+  boardId: string,
+): string {
+  return JSON.stringify([
+    type,
+    'card',
+    requiredId('cardId', cardId),
+    requiredId('operationId', operationId),
+    type === 'card_placed' ? 'to' : 'from',
+    requiredId('boardId', boardId),
+  ]);
+}
+export function pipelineEventIntent(
+  type: PipelineEventIntent['type'],
+  context: {
+    readonly cardId: string;
+    readonly operationId: string;
+    readonly kind: PipelineTransitionKind;
+    readonly from: PipelineStatus;
+    readonly to: PipelineStatus;
+    readonly metadata?: SafeTimelineMetadata;
+  },
+): PipelineEventIntent {
+  return {
+    type,
+    dedupeKey: timelineDedupeKey(type, { type: 'card', id: context.cardId }, context.operationId),
+    metadata: {
+      ...safeTimelineMetadata(type, context.metadata ?? {}),
+      kind: context.kind,
+      fromStatus: context.from,
+      toStatus: context.to,
+    },
+  };
+}
+
+/** Whitelist per tipo, non una copia dei metadati: scarta testi liberi e campi inattesi. */
+export function safeTimelineMetadata(
+  type: TimelineEventType,
+  input: Readonly<Record<string, unknown>>,
+): SafeTimelineMetadata {
+  const result: Record<string, string | number | null> = {};
+  const enumField = (key: string, values: readonly string[]) => {
+    const value = input[key];
+    if (value === null || (typeof value === 'string' && values.includes(value)))
+      result[key] = value;
+  };
+  const numberField = (key: string) => {
+    const value = input[key];
+    if (value === null || (typeof value === 'number' && Number.isFinite(value)))
+      result[key] = value;
+  };
+  const idField = (key: string) => {
+    const value = input[key];
+    if (typeof value === 'string' && /^[a-zA-Z0-9_-]{1,128}$/.test(value)) result[key] = value;
+  };
+  enumField('kind', ['advance', 'close', 'reopen', 'correction']);
+  enumField('fromOutcome', OUTCOMES);
+  enumField('toOutcome', OUTCOMES);
+  enumField('fromStatus', PIPELINE_STATUSES);
+  enumField('toStatus', PIPELINE_STATUSES);
+  if (type === 'stage_changed') {
+    enumField('from', STAGES);
+    enumField('to', STAGES);
+  }
+  if (type === 'priority_changed') {
+    enumField('from', PRIORITIES);
+    enumField('to', PRIORITIES);
+  }
+  if (type === 'application_closed' || type === 'application_reopened')
+    enumField('outcome', OUTCOMES);
+  if (type === 'application_submitted') {
+    const v = input['appliedOn'];
+    if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) result['appliedOn'] = v;
+  }
+  if (type.startsWith('interview_')) {
+    idField('interviewId');
+    numberField('sequence');
+    enumField('result', INTERVIEW_RESULTS);
+    if (type === 'interview_rescheduled') {
+      numberField('from');
+      numberField('to');
+    }
+    if (type === 'interview_created' || type === 'interview_next_round_created')
+      numberField('scheduledAt');
+  }
+  if (['card_created', 'card_moved', 'card_archived', 'card_restored'].includes(type)) {
+    for (const key of ['columnId', 'fromColumnId', 'toColumnId']) idField(key);
+  }
+  if (type === 'task_added' || type === 'task_completed') idField('taskId');
+  if (type === 'application_created') {
+    idField('applicationId');
+    enumField('stage', STAGES);
+    const sequence = input['sequence'];
+    if (typeof sequence === 'number' && Number.isInteger(sequence) && sequence >= 1)
+      result['sequence'] = sequence;
+  }
+  // Metadati versionati dei tipi di (s)posizionamento predisposti: solo versione, identificatori, direzione e motivo.
+  if (isDormantActivityEventType(type)) {
+    const version = input['v'];
+    if (typeof version === 'number' && Number.isInteger(version) && version >= 1)
+      result['v'] = version;
+    idField('boardId');
+    idField('columnId');
+    enumField('direction', PLACEMENT_DIRECTIONS);
+    enumField('reason', PLACEMENT_REASONS);
+  }
+  return result;
+}
+export interface TimelineSystemEvent {
+  readonly id: string;
+  readonly type: TimelineEventType;
+  readonly occurredAt: number;
+  readonly cardId: string | null;
+  readonly metadata: Readonly<Record<string, unknown>>;
+  readonly entity?: TimelineEntity | null;
+}
+export interface TimelineNote {
+  readonly id: string;
+  readonly cardId: string;
+  readonly createdAt: number;
+  readonly body: string;
+}
+/** Attività con card: la Timeline ne deriva fino a tre voci dai timestamp della riga (D-06). */
+export interface TimelineTask {
+  readonly id: string;
+  readonly cardId: string;
+  readonly kind: TaskKind;
+  readonly createdAt: number;
+  readonly completedAt: number | null;
+  readonly cancelledAt: number | null;
+}
+export const TASK_TIMELINE_KINDS = ['task_created', 'task_completed', 'task_cancelled'] as const;
+export type TaskTimelineKind = (typeof TASK_TIMELINE_KINDS)[number];
+/** Id di voce = `<taskId>:created|completed|cancelled` (gli id task sono ≤ 48 caratteri). */
+export const TASK_TIMELINE_SUFFIX: Readonly<Record<TaskTimelineKind, string>> = {
+  task_created: 'created',
+  task_completed: 'completed',
+  task_cancelled: 'cancelled',
+};
+export type TimelineEntry =
+  | {
+      readonly id: string;
+      readonly source: 'task';
+      readonly kind: TaskTimelineKind;
+      readonly occurredAt: number;
+      readonly entity: { readonly type: 'task'; readonly id: string };
+      /** Solo ID e tipo: nessun testo libero (il titolo si legge dall'entità collegata). */
+      readonly data: { readonly taskId: string; readonly taskKind: TaskKind };
+    }
+  | {
+      readonly id: string;
+      readonly source: 'system';
+      readonly kind: TimelineEventType;
+      readonly occurredAt: number;
+      readonly entity: TimelineEntity | null;
+      readonly data: SafeTimelineMetadata;
+    }
+  | {
+      readonly id: string;
+      readonly source: 'note';
+      readonly kind: 'note';
+      readonly occurredAt: number;
+      readonly entity: TimelineEntity;
+      readonly data: { readonly body: string };
+    };
+/** Confronto binario senza locale; source completa l'ordine in caso di ID uguali fra fonti. */
+export function compareTimelineEntries(a: TimelineEntry, b: TimelineEntry): number {
+  return (
+    b.occurredAt - a.occurredAt ||
+    (a.id === b.id
+      ? a.source < b.source
+        ? 1
+        : a.source > b.source
+          ? -1
+          : 0
+      : a.id < b.id
+        ? 1
+        : -1)
+  );
+}
+/** Voci derivate dalle righe `tasks` (D-06): creata, completata, annullata. Senza testo libero. */
+export function taskTimelineEntries(tasks: readonly TimelineTask[]): TimelineEntry[] {
+  const result: TimelineEntry[] = [];
+  for (const task of tasks) {
+    const stamps: [TaskTimelineKind, number | null][] = [
+      ['task_created', task.createdAt],
+      ['task_completed', task.completedAt],
+      ['task_cancelled', task.cancelledAt],
+    ];
+    for (const [kind, occurredAt] of stamps) {
+      if (occurredAt === null) continue;
+      result.push({
+        id: `${task.id}:${TASK_TIMELINE_SUFFIX[kind]}`,
+        source: 'task',
+        kind,
+        occurredAt,
+        entity: { type: 'task', id: task.id },
+        data: { taskId: task.id, taskKind: task.kind },
+      });
+    }
+  }
+  return result;
+}
+export function mergeTimeline(
+  events: readonly TimelineSystemEvent[],
+  notes: readonly TimelineNote[],
+  tasks: readonly TimelineTask[] = [],
+): TimelineEntry[] {
+  // 0010: i tipi «dormienti» sono accettati dal database ma non ancora mostrati (nessuna voce senza etichetta).
+  const entries: TimelineEntry[] = events
+    .filter((event) => !isDormantActivityEventType(event.type))
+    .map((event) => {
+      const data = safeTimelineMetadata(event.type, event.metadata);
+      const interviewId = typeof data['interviewId'] === 'string' ? data['interviewId'] : null;
+      return {
+        id: event.id,
+        source: 'system',
+        kind: event.type,
+        occurredAt: event.occurredAt,
+        data,
+        entity:
+          event.entity !== undefined
+            ? event.entity
+              ? { type: event.entity.type, id: event.entity.id }
+              : null
+            : interviewId
+              ? { type: 'interview', id: interviewId }
+              : event.cardId
+                ? { type: 'card', id: event.cardId }
+                : null,
+      };
+    });
+  for (const note of notes)
+    entries.push({
+      id: note.id,
+      source: 'note',
+      kind: 'note',
+      occurredAt: note.createdAt,
+      entity: { type: 'note', id: note.id },
+      data: { body: note.body },
+    });
+  entries.push(...taskTimelineEntries(tasks));
+  const unique = new Map<string, TimelineEntry>();
+  for (const entry of entries) {
+    const identity = JSON.stringify([entry.source, entry.id]);
+    const previous = unique.get(identity);
+    if (previous && JSON.stringify(previous) !== JSON.stringify(entry))
+      throw new Error('timeline_identity_conflict');
+    unique.set(identity, entry);
+  }
+  return [...unique.values()].sort(compareTimelineEntries);
+}
+export const EXISTING_TIMELINE_EVENT_TYPES: readonly ActivityEventType[] = ACTIVITY_EVENT_TYPES;

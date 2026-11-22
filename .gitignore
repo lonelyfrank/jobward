@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example
+*.log
+coverage/
+playwright-report/
+test-results/
+.e2e-state/
+.DS_Store
+*.tsbuildinfo
+.e2e-state-preview/
+playwright-report-preview/
+test-results-preview/

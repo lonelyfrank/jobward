@@ -1,0 +1,108 @@
+/* Keep summary and response metrics in view; chart bodies scroll independently. */
+.insights-page {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+}
+.insights-page > * {
+  flex-shrink: 0;
+}
+.insights-carousel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  margin-top: 0.5rem;
+}
+.insights-carousel-viewport {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 100%;
+  gap: 1rem;
+  height: 16rem;
+  min-height: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.insights-carousel-viewport::-webkit-scrollbar {
+  display: none;
+}
+.insights-slide {
+  min-width: 0;
+  min-height: 0;
+  scroll-snap-align: start;
+}
+.insights-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.insights-panel-body {
+  /* Contenitore anche in altezza: la torta delle fonti si adatta allo spazio della card. */
+  container-type: size;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  padding: 0 1.25rem 0.75rem;
+}
+.insights-panel-body:focus-visible {
+  outline-offset: -3px;
+}
+@media (min-width: 64rem) {
+  .insights-carousel-viewport {
+    grid-auto-columns: calc((100% - 1rem) / 2);
+  }
+}
+@media (min-width: 64rem) and (min-height: 48rem) {
+  .insights-page {
+    overflow: hidden;
+  }
+  /* Card compatte: non si allungano per riempire la vista, restano sotto un tetto. */
+  .insights-page > .insights-carousel {
+    flex: 0 1 auto;
+  }
+  .insights-carousel-viewport {
+    height: clamp(14rem, 36vh, 19rem);
+    flex: 0 1 auto;
+  }
+}
+
+.insights-sources {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+}
+.insights-sources-layout {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  padding-block: 0.25rem;
+}
+.insights-sources-pie {
+  width: clamp(4.5rem, min(100cqh - 0.75rem, 40cqw), 10rem);
+  aspect-ratio: 1;
+  justify-self: center;
+}
+@container (min-width: 16rem) {
+  .insights-sources-layout {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 1.25rem;
+  }
+}
+@container (min-width: 26rem) {
+  .insights-sources-layout {
+    gap: 1.75rem;
+  }
+}

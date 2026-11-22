@@ -1,0 +1,77 @@
+{
+  "origin": "User-provided PNG images",
+  "images": [
+    {
+      "id": "golden-coast",
+      "source": "Costa dorata al tramonto-4.png",
+      "asset": "costa-dorata-tramonto.webp",
+      "thumbnail": "costa-dorata-tramonto-thumb.webp",
+      "dimensions": "1672x941",
+      "bytes": 281658,
+      "thumbnailBytes": 20968
+    },
+    {
+      "id": "alps",
+      "source": "Alba tra montagne e fiori selvatici-3.png",
+      "asset": "alba-montagna-fiori-selvatici.webp",
+      "thumbnail": "alba-montagna-fiori-selvatici-thumb.webp",
+      "dimensions": "1672x941",
+      "bytes": 117120,
+      "thumbnailBytes": 9698
+    },
+    {
+      "id": "misty-fjord",
+      "source": "Fjord Montano tra Nebbie e Riflessi-2.png",
+      "asset": "fiordo-montano.webp",
+      "thumbnail": "fiordo-montano-thumb.webp",
+      "dimensions": "1672x941",
+      "bytes": 207084,
+      "thumbnailBytes": 17600
+    },
+    {
+      "id": "misty-forest",
+      "source": "Valle di foreste nella nebbia mattutina-1.png",
+      "asset": "foresta-nebbia.webp",
+      "thumbnail": "foresta-nebbia-thumb.webp",
+      "dimensions": "1672x941",
+      "bytes": 209416,
+      "thumbnailBytes": 18096
+    },
+    {
+      "id": "sunny-meadow",
+      "source": "Immagine ChatGPT 7 nov 2026, 18_17_32-4.png",
+      "asset": "prato-verde.webp",
+      "thumbnail": "prato-verde-thumb.webp",
+      "dimensions": "1672x941",
+      "bytes": 266266,
+      "thumbnailBytes": 20444
+    },
+    {
+      "id": "dunes",
+      "source": "Immagine ChatGPT 7 nov 2026, 18_17_31-3.png",
+      "asset": "dune-dorate.webp",
+      "thumbnail": "dune-dorate-thumb.webp",
+      "dimensions": "1672x941",
+      "bytes": 73520,
+      "thumbnailBytes": 5774
+    },
+    {
+      "id": "ocean",
+      "source": "Immagine ChatGPT 7 nov 2026, 18_17_30-2.png",
+      "asset": "costa-mediterranea.webp",
+      "thumbnail": "costa-mediterranea-thumb.webp",
+      "dimensions": "1672x941",
+      "bytes": 296366,
+      "thumbnailBytes": 22850
+    },
+    {
+      "id": "lake",
+      "source": "Immagine ChatGPT 7 nov 2026, 18_17_28-1.png",
+      "asset": "lago-alpino.webp",
+      "thumbnail": "lago-alpino-thumb.webp",
+      "dimensions": "1672x941",
+      "bytes": 129738,
+      "thumbnailBytes": 12120
+    }
+  ]
+}
