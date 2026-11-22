@@ -43,7 +43,7 @@ Ultimo esito completo: [AUDIT-REPORT](AUDIT-REPORT.md#verifiche-v1). Comandi: [C
 
 ## Fuori dal ciclo corrente
 
-Staging e deploy Cloudflare, Access reale, D1 remoto, CI come gate di rilascio, multiutenza, rate limiting, cancellazione dell'account. La governance di `main` (PR e controlli richiesti) resta valida quando si vorrà integrare.
+Staging e deploy Cloudflare, Access reale, D1 remoto, CI come gate di rilascio, multiutenza, rate limiting, cancellazione dell'account. Dal lancio `main` non ha PR né controlli obbligatori: si pusha dal worktree di lavoro dopo `pnpm check` ([CONTRIBUTING](../development/CONTRIBUTING.md#git)).
 
 ## Decisioni aperte del proprietario
 

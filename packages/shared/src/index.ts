@@ -16,3 +16,4 @@ export * from './smart-query';
 export * from './smart-query-legacy';
 export * from './insights';
 export * from './companies';
+export * from './geo';

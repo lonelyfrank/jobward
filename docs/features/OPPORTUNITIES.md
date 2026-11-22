@@ -31,16 +31,18 @@ Implementazione: `apps/web/src/features/opportunities/{view-sidebar,sidebar-sect
 
 ## Gap e voci di roadmap
 
-| Gap                                                                  | Voce       |
-| -------------------------------------------------------------------- | ---------- |
-| Opportunità senza bacheca, Inbox, più candidature                    | A-01, B-01 |
-| Ruolo normalizzato e ambito, benefit, requisiti, seniority, scadenza | B-02       |
-| Filtri sul motore condiviso; campi personalizzati filtrabili         | B-03, D-03 |
-| Wizard progressivo                                                   | B-04       |
-| Aziende come entità, duplicati                                       | B-05       |
-| Import da URL/testo (richiede decisione)                             | B-06       |
-| Valutazione personale, matrice comparativa                           | B-07       |
-| Geografia e distanza                                                 | D-07, E-03 |
+| Gap                                                                   | Voce       |
+| --------------------------------------------------------------------- | ---------- |
+| Opportunità senza bacheca, Inbox, più candidature                     | A-01, B-01 |
+| Ruolo normalizzato e ambito, benefit, requisiti, seniority, scadenza  | B-02       |
+| Filtri sul motore condiviso; campi personalizzati filtrabili          | B-03, D-03 |
+| Wizard progressivo                                                    | B-04       |
+| Aziende come entità, duplicati                                        | B-05       |
+| Import da URL/testo (richiede decisione)                              | B-06       |
+| Valutazione personale, matrice comparativa                            | B-07       |
+| Geografia e distanza (calcolo pronto in `packages/shared/src/geo.ts`) | D-07, E-03 |
+
+**Distanza (D-07, in corso).** `@jobward/shared` espone `distanceKm` (linea d'aria, raggio medio 6371,0088 km), `formatDistance` («880 m», «4,2 km», «478 km»), `parseCoordinates` (coppie incollate o collegamenti di app di mappe, senza rete) e `rankByDistance` (le opportunità senza coordinate restano conteggiate come «non localizzabili»). Nessun provider esterno, geocoding o routing ([ADR-0016 D7](../architecture/decisions/0016-smart-workspace-domain.md)). Prossimi passi (decisi dal proprietario, [D-07](../roadmap/MASTER-FUNCTIONAL-ROADMAP.md#d-07-mappa-geografica)): posizioni dell'utente nel Profilo (casa e altre posizioni catalogate), coordinate delle opportunità, vista Mappa con copertura almeno europea. Servono una migrazione e dati di confine incorporati: piano da approvare prima di scriverli.
 
 ## Dettaglio storico
 

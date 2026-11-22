@@ -10,9 +10,8 @@
 
 ## Git
 
-- Si lavora su `main` (applicazione locale, [ADR-0017](../architecture/decisions/0017-local-v1-baseline.md); repository di lancio, [ADR-0018](../architecture/decisions/0018-launch-repository-and-docs-archive.md)). La CI gira su PR e push verso `main`; le verifiche locali sotto restano obbligatorie prima di ogni push. Il ramo locale `jobward-v1` contiene la storia precedente al lancio e non va mai pushato.
-- `main` è protetta (ruleset `jobward-main-protection`): PR obbligatoria, due job CI richiesti, base aggiornata, conversazioni risolte, history lineare, nessun force push, nessun bypass.
-- Si lavora su branch dedicati; per lavori paralleli si usano worktree separati.
+- Si lavora su `main` (applicazione locale, [ADR-0017](../architecture/decisions/0017-local-v1-baseline.md); repository di lancio, [ADR-0018](../architecture/decisions/0018-launch-repository-and-docs-archive.md)). I push partono dal worktree di lavoro verso `origin/main`; la CI gira a ogni push e le verifiche locali sotto restano obbligatorie prima di pushare. Il ramo locale `jobward-v1` contiene la storia precedente al lancio e non va mai pushato.
+- Dal lancio la repository si gestisce come nuova (decisione del proprietario, 2026-11-22): nessuna PR o controllo obbligatorio su `main`; i lavori piccoli si committano direttamente su `main`, i rami servono solo per lavori paralleli (in worktree separati).
 - Commit, push, PR, merge, deploy e migrazioni remote solo con autorizzazione esplicita **per quella specifica azione**: un'autorizzazione non si estende ad altre.
 - Mai `reset --hard`, `clean`, `stash` o checkout distruttivi su lavoro altrui; le modifiche non committate si preservano.
 

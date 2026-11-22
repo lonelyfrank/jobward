@@ -467,8 +467,9 @@ Dipendenze e percorso critico: [DEPENDENCIES](DEPENDENCIES.md). Classificazione 
 
 ### D-07 Mappa geografica
 
-- **Priorità** P2 · **Stato** Pianificata · **Aggancio** SW.17, D7 (dati incorporati, nessun provider esterno, nessuna coordinata inventata).
-- **Obiettivo:** distribuzione e distanza delle opportunità dalla posizione scelta.
+- **Priorità** P2 · **Stato** In corso (calcolo della distanza in `@jobward/shared`; migrazione e vista da approvare) · **Aggancio** SW.17, D7 (dati incorporati, nessun provider esterno, nessuna coordinata inventata).
+- **Obiettivo:** distribuzione e distanza delle opportunità dalle posizioni scelte dall'utente.
+- **Decisioni del proprietario (2026-11-22):** la posizione di casa si salva nei dati dell'utente, nella sezione **Profilo**, insieme ad altre posizioni catalogate (per esempio per valutare un trasferimento); ogni identità ha le sue, quindi la demo non vede quelle reali. Nella scheda Opportunità la vista **Mappa** confronta le distanze delle opportunità da queste posizioni, con copertura **almeno europea**. La vista Mappa si sviluppa dopo le ottimizzazioni in corso.
 - **Dati:** geografia (migrazione), coordinate confermate dall'utente.
 - **Dipendenze:** SW.7, SW.12. **Impatto:** licenze e dimensione del bundle.
 - **Accettazione / Test:** opportunità senza posizione sempre conteggiate; nessuna chiamata esterna.
