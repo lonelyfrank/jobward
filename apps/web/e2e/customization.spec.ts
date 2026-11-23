@@ -8,6 +8,7 @@ import {
   openSection,
   quickAdd,
   smallTouchTargets,
+  saveCard,
 } from './helpers';
 
 /** M2.2 — campi personalizzati ed etichette, su stack reale. Serial: ogni test prosegue dal precedente. */
@@ -164,12 +165,12 @@ test('3. si assegnano valori di ogni tipo dal pannello e persistono dopo il refr
   await panel.getByLabel('Reparto').fill('Geriatria');
   await panel.getByRole('group', { name: 'Disponibilità' }).getByLabel('Notti').check();
   await expectNoA11yViolations(page, 'pannello con campi personalizzati');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveCard(panel);
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
-  await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
 
   await page.reload();
   const again = panelOf(page, 'Operatore sociosanitario');
+  await openSection(again, 'Campi personalizzati');
   await expect(again.getByLabel('Turni', { exact: true })).toHaveValue(/.+/);
   await expect(again.getByLabel('Turni', { exact: true }).locator('option:checked')).toHaveText(
     'Notte',
@@ -256,13 +257,17 @@ test('6. validazione dei valori: un numero non valido è segnalato accanto al ca
   const panel = panelOf(page, 'Operatore sociosanitario');
   await openSection(panel, 'Campi personalizzati');
   await panel.getByLabel('Anni di esperienza').fill('molti');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await panel
+    .getByRole('region', { name: 'Modifiche da salvare' })
+    .getByRole('button', { name: 'Salva', exact: true })
+    .click();
   await expect(panel.getByText('Inserisci un numero')).toBeVisible();
   await expect(panel.getByLabel('Anni di esperienza')).toHaveAttribute('aria-invalid', 'true');
   await panel.getByLabel('Anni di esperienza').fill('7,5');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveCard(panel);
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
   await page.reload();
+  await openSection(panelOf(page, 'Operatore sociosanitario'));
   await expect(
     panelOf(page, 'Operatore sociosanitario').getByLabel('Anni di esperienza'),
   ).toHaveValue('7.5');
@@ -317,6 +322,8 @@ test('8. etichette: si creano dalla scheda, compaiono sul Kanban e si rimuovono'
     panel.getByRole('list', { name: 'Etichette assegnate' }).getByText('Part-time'),
   ).toBeVisible();
   await expectNoA11yViolations(page, 'pannello con etichette');
+  // Le etichette fanno parte della bozza: si assegnano con il «Salva» unico.
+  await saveCard(panel);
 
   await page.keyboard.press('Escape');
   const card = column(page, 'Da fare')
@@ -336,6 +343,7 @@ test('8. etichette: si creano dalla scheda, compaiono sul Kanban e si rimuovono'
       .getByRole('list', { name: 'Etichette assegnate' })
       .getByText('Part-time'),
   ).toHaveCount(0);
+  await saveCard(panelOf(page, 'Operatore sociosanitario'));
 });
 
 test('9. impostazioni: rinomina, colore ed eliminazione controllata delle etichette', async ({

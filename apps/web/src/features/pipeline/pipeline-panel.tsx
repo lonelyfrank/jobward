@@ -1,5 +1,6 @@
 import { pipelineTransitionInput, type Card, type PipelineTransitionInput } from '@jobward/schemas';
 import {
+  CLOSED_PIPELINE_STATUSES,
   derivePipelineStatus,
   evaluatePipelineTransition,
   inspectPipelineState,
@@ -8,12 +9,21 @@ import {
   type PipelineTransitionKind,
 } from '@jobward/shared';
 import { useQueryClient } from '@tanstack/react-query';
+import { ArrowRight, Check, ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { Field } from '@/components/ui/field';
-import { Input, Select } from '@/components/ui/input';
+import { Input } from '@/components/ui/input';
 import { useNotify } from '@/components/ui/notices';
 import { useCreationOperation } from '@/features/cards/creation-operation';
 import { useDirtyReporter } from '@/features/cards/dirty-guard';
@@ -21,15 +31,48 @@ import { refreshWorkflow } from '@/features/cards/workflow-cache';
 import { workflowError } from '@/features/cards/workflow-feedback';
 import { useTasks } from '@/features/tasks/api';
 import { useWorkspace } from '@/features/workspace/context';
+import { cn } from '@/lib/cn';
+import { OUTCOME_LABELS, STAGE_LABELS } from '@/lib/labels';
 import { usePipeline } from './api';
 import { KIND_LABELS, STATUS_LABELS, WARNING_TEXT, pipelineOptions } from './presentation';
 
-const KINDS = ['advance', 'close', 'reopen', 'correction'] as const;
+/** Le cinque tappe mostrate nello stepper: gli stati intermedi si raggruppano nella tappa giusta. */
+const STEPS: { label: string; statuses: readonly PipelineStatus[] }[] = [
+  { label: 'Salvata', statuses: ['saved'] },
+  { label: 'Candidata', statuses: ['applied', 'screening'] },
+  { label: 'Colloquio', statuses: ['interviewing'] },
+  { label: 'Offerta', statuses: ['offer'] },
+  { label: 'Chiusa', statuses: CLOSED_PIPELINE_STATUSES },
+];
 
-export function PipelinePanel({ card, signal = 0 }: { card: Card; signal?: number }) {
+const STATUS_TONE: Record<PipelineStatus, 'neutral' | 'info' | 'success' | 'danger' | 'warning'> = {
+  saved: 'neutral',
+  applied: 'info',
+  screening: 'info',
+  interviewing: 'info',
+  offer: 'success',
+  hired: 'success',
+  rejected: 'danger',
+  withdrawn: 'neutral',
+  no_response: 'neutral',
+  archived: 'warning',
+};
+
+/**
+ * Stato della candidatura (pannello a destra della modale): stato attuale, tappe del processo e le
+ * azioni della pipeline. Ogni passaggio apre la conferma: fase ed esito non cambiano mai senza.
+ * `signal` (dai Colloqui) propone direttamente il passaggio a «In colloquio».
+ */
+export function PipelinePanel({
+  card,
+  signal = 0,
+  disabled = false,
+}: {
+  card: Card;
+  signal?: number;
+  disabled?: boolean;
+}) {
   const [seenSignal, setSeenSignal] = useState(signal);
-  const [kind, setKind] = useState<PipelineTransitionKind>('advance');
-  const [target, setTarget] = useState('');
   const [operation, setOperation] = useState<{
     kind: PipelineTransitionKind;
     to: PipelineStatus;
@@ -37,75 +80,126 @@ export function PipelinePanel({ card, signal = 0 }: { card: Card; signal?: numbe
   const [result, setResult] = useState<string[]>([]);
   if (signal !== seenSignal) {
     setSeenSignal(signal);
-    setKind(pipelineOptions(card, 'advance').includes('interviewing') ? 'advance' : 'correction');
-    setTarget('interviewing');
+    const kind = pipelineOptions(card, 'advance').includes('interviewing')
+      ? 'advance'
+      : 'correction';
+    if (pipelineOptions(card, kind).includes('interviewing'))
+      setOperation({ kind, to: 'interviewing' });
   }
   const status = derivePipelineStatus(card);
-  const kinds = KINDS.filter((k) => pipelineOptions(card, k).length > 0);
-  const selectedKind = kinds.includes(kind) ? kind : (kinds[0] ?? 'advance');
-  const options = pipelineOptions(card, selectedKind);
-  const to = options.includes(target as PipelineStatus) ? target : '';
+  // Le tappe seguono fase ed esito anche per una scheda archiviata.
+  const flow = derivePipelineStatus({ ...card, archivedAt: null });
+  const current = STEPS.findIndex((step) => step.statuses.includes(flow));
   const warnings = pipelineConsistency(status, { summary: card.interviewSummary });
   const issues = inspectPipelineState(card).issues;
+  const options = (kind: PipelineTransitionKind) => (disabled ? [] : pipelineOptions(card, kind));
+  const open = (kind: PipelineTransitionKind) => (to: PipelineStatus) => setOperation({ kind, to });
+  const advance = options('advance');
+  const reopen = options('reopen');
+  const close = options('close');
+  const correction = options('correction');
+
   return (
     <section
-      aria-label="Gestione candidatura"
-      className="space-y-3 rounded-lg border border-border p-4"
+      aria-labelledby={`pipeline-${card.id}`}
+      className="rounded-2xl bg-surface p-4 shadow-xs"
     >
-      <h3 className="text-sm font-semibold">Gestisci la candidatura</h3>
+      <h2
+        id={`pipeline-${card.id}`}
+        className="text-[11px] font-semibold tracking-[0.06em] text-muted-foreground uppercase"
+      >
+        Stato candidatura
+      </h2>
+      <p className="mt-2.5">
+        <Badge
+          tone={STATUS_TONE[status]}
+          data-testid="pipeline-status"
+          className="h-8 gap-2 px-3.5 text-sm"
+        >
+          <span aria-hidden="true" className="size-2 rounded-full bg-current" />
+          {STATUS_LABELS[status]}
+        </Badge>
+      </p>
+      <dl className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+        <div className="flex gap-1">
+          <dt>Fase:</dt>
+          <dd data-testid="card-stage" className="font-medium text-foreground">
+            {card.stage ? STAGE_LABELS[card.stage] : 'Non indicata'}
+          </dd>
+        </div>
+        <div className="flex gap-1">
+          <dt>Esito:</dt>
+          <dd data-testid="card-outcome" className="font-medium text-foreground">
+            {card.outcome ? OUTCOME_LABELS[card.outcome] : 'Non indicato'}
+          </dd>
+        </div>
+      </dl>
+
+      <ol aria-label="Tappe della candidatura" className="mt-3 mb-1">
+        {STEPS.map((step, i) => {
+          const done = current > i;
+          const now = current === i;
+          return (
+            <li
+              key={step.label}
+              aria-current={now ? 'step' : undefined}
+              className={cn(
+                'flex h-7.5 items-center gap-2.5 text-[13px] text-muted-foreground',
+                done && 'text-foreground',
+                now && 'font-bold text-primary-soft-foreground',
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={cn(
+                  'grid size-4 shrink-0 place-items-center rounded-full border-2 border-border-strong',
+                  done && 'border-primary bg-primary text-primary-foreground',
+                  now && 'border-primary bg-primary-soft ring-3 ring-primary-soft',
+                )}
+              >
+                {done ? <Check className="size-2.5" strokeWidth={3} /> : null}
+                {now ? <span className="size-1.5 rounded-full bg-primary" /> : null}
+              </span>
+              {step.label}
+              {now && i === STEPS.length - 1 ? (
+                <span className="font-medium text-muted-foreground">· {STATUS_LABELS[flow]}</span>
+              ) : null}
+              {done || now ? null : <span className="sr-only"> (da fare)</span>}
+            </li>
+          );
+        })}
+      </ol>
+
       {issues.length > 0 ? (
-        <p role="status" className="text-sm text-warning-soft-foreground">
+        <p role="status" className="mt-2 text-xs text-warning-soft-foreground">
           La fase «Chiusa» non ha un esito. Usa «Correggi stato» per allineare i dati.
         </p>
       ) : null}
       {warnings.length ? (
-        <ul className="space-y-1 text-sm text-warning-soft-foreground">
+        <ul className="mt-2 space-y-1 text-xs text-warning-soft-foreground">
           {warnings.map((w) => (
             <li key={w.code}>{WARNING_TEXT[w.code] ?? 'Controlla i dati della candidatura.'}</li>
           ))}
         </ul>
       ) : null}
-      {kinds.length ? (
-        <div className="grid items-end gap-3 sm:grid-cols-2">
-          <Field id="pipeline-kind" label="Azione">
-            <Select
-              id="pipeline-kind"
-              value={selectedKind}
-              onChange={(e) => {
-                setKind(e.target.value as PipelineTransitionKind);
-                setTarget('');
-              }}
-            >
-              {kinds.map((k) => (
-                <option key={k} value={k}>
-                  {KIND_LABELS[k]}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Field id="pipeline-target" label="Stato di destinazione">
-            <Select id="pipeline-target" value={to} onChange={(e) => setTarget(e.target.value)}>
-              <option value="">Scegli lo stato…</option>
-              {options.map((s) => (
-                <option key={s} value={s}>
-                  {STATUS_LABELS[s]}
-                </option>
-              ))}
-            </Select>
-          </Field>
-          <Button
-            className="sm:col-span-2 sm:justify-self-start"
-            disabled={!to}
-            onClick={() => setOperation({ kind: selectedKind, to: to as PipelineStatus })}
-          >
-            {selectedKind === 'advance' && to === 'applied'
-              ? 'Segna come candidata'
-              : KIND_LABELS[selectedKind]}
-          </Button>
-        </div>
+
+      {advance.length > 0 || reopen.length > 0 ? (
+        <TransitionMenu
+          kind={advance.length > 0 ? 'advance' : 'reopen'}
+          options={advance.length > 0 ? advance : reopen}
+          onPick={open(advance.length > 0 ? 'advance' : 'reopen')}
+          primary
+        />
       ) : null}
+      {close.length > 0 ? (
+        <TransitionMenu kind="close" options={close} onPick={open('close')} />
+      ) : null}
+      {correction.length > 0 ? (
+        <TransitionMenu kind="correction" options={correction} onPick={open('correction')} />
+      ) : null}
+
       {result.length > 0 ? (
-        <div role="status" className="space-y-1 text-sm">
+        <div role="status" className="mt-3 space-y-1 text-xs">
           {result.map((message, i) => (
             <p key={i}>{message}</p>
           ))}
@@ -119,12 +213,52 @@ export function PipelinePanel({ card, signal = 0 }: { card: Card; signal?: numbe
           onClose={() => setOperation(null)}
           onDone={(messages) => {
             setResult(messages);
-            setTarget('');
             setOperation(null);
           }}
         />
       ) : null}
     </section>
+  );
+}
+
+/** Un'azione della pipeline: il pulsante apre l'elenco degli stati raggiungibili. */
+function TransitionMenu({
+  kind,
+  options,
+  onPick,
+  primary = false,
+}: {
+  kind: PipelineTransitionKind;
+  options: PipelineStatus[];
+  onPick: (to: PipelineStatus) => void;
+  primary?: boolean;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant={primary ? 'primary' : 'ghost'}
+          size="sm"
+          className={cn(
+            'w-full gap-1.5 rounded-lg px-3 text-[13px] [&_svg]:size-3.5',
+            primary
+              ? 'mt-3 h-9'
+              : 'mt-0.5 h-8 font-medium text-primary-soft-foreground hover:bg-primary-soft',
+          )}
+        >
+          {KIND_LABELS[kind]}
+          {primary ? <ArrowRight aria-hidden="true" /> : <ChevronDown aria-hidden="true" />}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="center">
+        <DropdownMenuLabel>{kind === 'correction' ? 'Correggi in' : 'Passa a'}</DropdownMenuLabel>
+        {options.map((to) => (
+          <DropdownMenuItem key={to} data-status={to} onSelect={() => onPick(to)}>
+            {kind === 'advance' && to === 'applied' ? 'Segna come candidata' : STATUS_LABELS[to]}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

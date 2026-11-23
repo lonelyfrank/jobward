@@ -7,29 +7,29 @@ import { Input } from '@/components/ui/input';
 import { useNotify } from '@/components/ui/notices';
 import { ColorPicker } from '@/features/boards/color-picker';
 import { userMessage } from '@/features/kanban/mutations';
-import { useCardLabels, useCreateLabel, useLabels } from './api';
+import { useCreateLabel, useLabels } from './api';
 import { LabelChip } from './label-chip';
 
 /**
- * Etichette di una scheda. Assegnare e togliere sono azioni IMMEDIATE (non passano dal
- * pulsante Salva del modulo): ogni clic è un'operazione completa e reversibile. Le etichette si
- * possono creare al volo; rinomina, colore ed eliminazione stanno in Impostazioni.
+ * Etichette di una scheda, controllate dal modulo della modale: assegnare e togliere cambiano solo
+ * la bozza, che si salva con il «Salva» unico insieme al resto. Creare un'etichetta nuova è invece
+ * immediato (nasce nell'elenco del workspace) e la si aggiunge subito alla bozza. Rinomina, colore
+ * ed eliminazione stanno in Impostazioni.
  */
 export function LabelPicker({
   cardId,
-  boardId,
   labelIds,
   disabled,
+  onChange,
 }: {
   cardId: string;
-  boardId: string;
   labelIds: string[];
   disabled: boolean;
+  onChange: (labelIds: string[]) => void;
 }) {
   const notify = useNotify();
   const labels = useLabels();
   const create = useCreateLabel();
-  const { assign, unassign } = useCardLabels(cardId, boardId);
   const [open, setOpen] = useState(false);
   const [name, setName] = useState('');
   const [color, setColor] = useState<ColorToken>('slate');
@@ -39,13 +39,9 @@ export function LabelPicker({
 
   const all = labels.data ?? [];
   const assigned = all.filter((l) => labelIds.includes(l.id));
-  const busy = assign.isPending || unassign.isPending;
 
   const toggle = (labelId: string, on: boolean) =>
-    (on ? assign : unassign).mutate(labelId, {
-      onError: (e) =>
-        notify('error', userMessage(e, 'Non siamo riusciti ad aggiornare le etichette.')),
-    });
+    onChange(on ? [...labelIds, labelId] : labelIds.filter((id) => id !== labelId));
 
   const submit = () => {
     const trimmed = name.trim();
@@ -59,9 +55,8 @@ export function LabelPicker({
       {
         onSuccess: ({ label }) => {
           setName('');
-          assign.mutate(label.id, {
-            onError: (e) => notify('error', userMessage(e, 'Etichetta creata ma non assegnata.')),
-          });
+          notify('success', `Etichetta “${label.name}” creata: salva per assegnarla.`);
+          onChange([...labelIds, label.id]);
         },
         onError: (e) => setError(userMessage(e, 'Non siamo riusciti a creare l’etichetta.')),
       },
@@ -70,39 +65,54 @@ export function LabelPicker({
 
   return (
     <fieldset className="space-y-2" disabled={disabled}>
-      <legend className="text-sm font-medium">Etichette</legend>
-      <ul aria-label="Etichette assegnate" className="flex flex-wrap gap-1.5">
-        {assigned.length === 0 ? (
-          <li className="text-sm text-muted-foreground">Nessuna etichetta.</li>
-        ) : (
-          assigned.map((l) => (
-            <li key={l.id}>
-              <LabelChip name={l.name} color={l.color}>
-                <button
-                  type="button"
-                  aria-label={`Rimuovi l’etichetta ${l.name}`}
-                  disabled={busy || disabled}
-                  onClick={() => toggle(l.id, false)}
-                  className="-mr-1 grid size-5 place-items-center rounded-full hover:bg-surface-muted max-md:size-11"
-                >
-                  <X aria-hidden="true" className="size-3" />
-                </button>
-              </LabelChip>
-            </li>
-          ))
-        )}
-      </ul>
-
-      <Button
-        variant="secondary"
-        size="sm"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <Plus aria-hidden="true" />
-        {open ? 'Chiudi etichette' : 'Aggiungi etichetta'}
-      </Button>
+      <legend className="sr-only">Etichette</legend>
+      <div className="flex flex-wrap items-center gap-1.5">
+        <ul aria-label="Etichette assegnate" className="flex flex-wrap items-center gap-1.5">
+          {assigned.length === 0 ? (
+            <li className="text-xs text-muted-foreground">Nessuna etichetta.</li>
+          ) : (
+            assigned.map((l) => (
+              <li key={l.id}>
+                <LabelChip name={l.name} color={l.color}>
+                  <button
+                    type="button"
+                    aria-label={`Rimuovi l’etichetta ${l.name}`}
+                    disabled={disabled}
+                    onClick={() => toggle(l.id, false)}
+                    className="-mr-1 grid size-5 place-items-center rounded-full hover:bg-surface-muted max-md:size-11"
+                  >
+                    <X aria-hidden="true" className="size-3" />
+                  </button>
+                </LabelChip>
+              </li>
+            ))
+          )}
+        </ul>
+        {!disabled ? (
+          <button
+            type="button"
+            aria-expanded={open}
+            aria-controls={panelId}
+            onClick={() => setOpen((v) => !v)}
+            className="inline-flex h-7 items-center gap-1.5 rounded-full border border-dashed border-border-strong px-2.5 text-xs font-semibold text-muted-foreground transition-colors hover:border-primary hover:text-primary-soft-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none max-md:h-11"
+          >
+            {open ? (
+              <X aria-hidden="true" className="size-3" />
+            ) : (
+              <Plus aria-hidden="true" className="size-3" />
+            )}
+            {open ? (
+              <>
+                Chiudi <span className="sr-only">etichette</span>
+              </>
+            ) : (
+              <>
+                <span className="sr-only">Aggiungi</span> Etichetta
+              </>
+            )}
+          </button>
+        ) : null}
+      </div>
 
       <div id={panelId} hidden={!open} className="space-y-3 rounded-md border border-border p-3">
         {labels.isError ? (
@@ -125,7 +135,7 @@ export function LabelPicker({
                     type="checkbox"
                     className="size-4"
                     checked={labelIds.includes(l.id)}
-                    disabled={busy}
+                    disabled={disabled}
                     onChange={(e) => toggle(l.id, e.target.checked)}
                   />
                   <LabelChip name={l.name} color={l.color} />

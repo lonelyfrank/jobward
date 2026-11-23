@@ -87,8 +87,11 @@ for (const width of [320, 768, 1440]) {
       const values = await page
         .locator('[aria-label="Indicatori dei tempi di risposta"] > div')
         .all();
+      // Nella card del carosello le quattro metriche sono una griglia 2×2.
       const positions = await Promise.all(values.map((el) => el.boundingBox()));
-      expect(new Set(positions.map((box) => box!.y)).size).toBe(1);
+      expect(values).toHaveLength(4);
+      expect(new Set(positions.map((box) => Math.round(box!.y))).size).toBe(2);
+      expect(new Set(positions.map((box) => Math.round(box!.x))).size).toBe(2);
     }
     await page.screenshot({ path: testInfo.outputPath('insights.png'), fullPage: true });
     await expectNoA11yViolations(page, `Insights ${width}`);
@@ -147,16 +150,19 @@ for (const width of [1024, 1366, 1920]) {
     await expect(slides.nth(0)).toBeInViewport({ ratio: 0.99 });
     await expect(slides.nth(1)).toBeInViewport({ ratio: 0.99 });
     await expect(slides.nth(2)).not.toBeInViewport();
-    await expect(page.getByRole('button', { name: 'Metriche precedenti' })).toBeDisabled();
+    // Carosello circolare: «precedenti» a inizio corsa porta alla fine, «successive» alla fine riparte.
+    await page.getByRole('button', { name: 'Metriche precedenti' }).click();
+    await expect(slides.nth(5)).toBeInViewport({ ratio: 0.99 });
+    await page.getByRole('button', { name: 'Metriche successive' }).click();
+    await expect(slides.nth(0)).toBeInViewport({ ratio: 0.99 });
     await page.getByRole('button', { name: 'Metriche successive' }).click();
     await expect(slides.nth(2)).toBeInViewport({ ratio: 0.99 });
     await page.getByRole('button', { name: 'Mostra metriche da 4' }).click();
     await expect(slides.nth(4)).toBeInViewport({ ratio: 0.99 });
-    await expect(page.getByRole('button', { name: 'Metriche successive' })).toBeDisabled();
-    await expect(page.locator('.insights-response')).toHaveCSS(
-      'background-color',
-      'rgba(0, 0, 0, 0)',
-    );
+    // «Tempi di risposta» è l'ultima card del carosello.
+    await page.getByRole('button', { name: 'Mostra metriche da 5' }).click();
+    await expect(slides.nth(5)).toBeInViewport({ ratio: 0.99 });
+    await expect(slides.nth(5).getByRole('heading', { name: 'Tempi di risposta' })).toBeVisible();
     expect(
       await page.locator('.insights-page').evaluate((el) => el.scrollHeight - el.clientHeight),
     ).toBeLessThanOrEqual(1);

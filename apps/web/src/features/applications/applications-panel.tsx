@@ -1,7 +1,7 @@
 import type { Application, Card } from '@jobward/schemas';
 import { derivePipelineStatus, isClosedPipelineStatus, localDate } from '@jobward/shared';
-import { FileClock, Plus, Send } from 'lucide-react';
-import { useState, type KeyboardEvent } from 'react';
+import { CalendarDays, FileClock, FileText, Link2, Plus, Send } from 'lucide-react';
+import { useState, type KeyboardEvent, type ReactNode } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Field } from '@/components/ui/field';
@@ -55,20 +55,31 @@ export function ApplicationsPanel({ card }: { card: Card }) {
   };
 
   return (
-    <section aria-labelledby={`applications-${card.id}`} className="space-y-3">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 id={`applications-${card.id}`} className="text-sm font-semibold">
+    <section
+      aria-labelledby={`applications-${card.id}`}
+      className="space-y-3 rounded-2xl border border-border bg-surface p-4"
+    >
+      <div className="flex flex-wrap items-center gap-2.5">
+        <FileText aria-hidden="true" className="size-5 text-primary-soft-foreground" />
+        <h2 id={`applications-${card.id}`} className="text-[17px] font-bold">
           Candidature{list.length > 0 ? ` (${list.length})` : ''}
-        </h3>
+        </h2>
+        <span className="flex-1" />
         {canCreate ? (
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" onClick={() => void apply('applied')} disabled={create.isPending}>
+          <div className="flex flex-wrap gap-1.5">
+            <Button
+              size="sm"
+              className="rounded-xl"
+              onClick={() => void apply('applied')}
+              disabled={create.isPending}
+            >
               <Send aria-hidden className="size-4" />
               {current ? 'Nuova candidatura' : 'Candidati'}
             </Button>
             <Button
               size="sm"
               variant="secondary"
+              className="rounded-xl"
               onClick={() => void apply('preparing')}
               disabled={create.isPending}
             >
@@ -148,22 +159,24 @@ function ApplicationItem({
   };
 
   return (
-    <li className="rounded-md border border-border p-3">
+    <li className="rounded-xl bg-surface-muted/60 p-3">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-medium">Candidatura n. {application.sequence}</span>
-        <Badge tone={application.current ? 'primary' : 'neutral'}>
+        <span className="text-sm font-semibold">Candidatura n. {application.sequence}</span>
+        <Badge tone={application.current ? 'success' : 'neutral'}>
           {application.current ? 'Corrente' : 'Precedente'}
         </Badge>
         <Badge tone={isClosedPipelineStatus(status) ? 'neutral' : 'info'}>
           {STATUS_LABELS[status]}
         </Badge>
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {application.appliedOn
-          ? `Inviata il ${formatCalendarDate(application.appliedOn)}`
-          : 'Data d’invio non indicata'}
-        {application.channel ? ` · ${application.channel}` : ''}
-      </p>
+      <dl className="mt-3 grid gap-3 sm:grid-cols-2">
+        <Fact icon={<CalendarDays />} label="Inviata il">
+          {application.appliedOn ? formatCalendarDate(application.appliedOn) : 'Non indicata'}
+        </Fact>
+        <Fact icon={<Link2 />} label="Canale">
+          {application.channel || 'Non indicato'}
+        </Fact>
+      </dl>
       {application.snapshot ? (
         <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
           <FileClock aria-hidden className="size-3.5" />
@@ -211,8 +224,8 @@ function ApplicationItem({
       ) : !disabled ? (
         <Button
           size="sm"
-          variant="ghost"
-          className="mt-2"
+          variant="secondary"
+          className="mt-3 rounded-xl"
           onClick={() => setEditing(true)}
           aria-label={`Modifica data e canale della candidatura n. ${application.sequence}`}
         >
@@ -220,5 +233,22 @@ function ApplicationItem({
         </Button>
       ) : null}
     </li>
+  );
+}
+
+function Fact({ icon, label, children }: { icon: ReactNode; label: string; children: ReactNode }) {
+  return (
+    <div className="relative min-h-9 min-w-0 pl-12">
+      <dt className="text-[11px] font-semibold tracking-[0.06em] text-muted-foreground uppercase">
+        <span
+          aria-hidden="true"
+          className="absolute top-0 left-0 grid size-9 place-items-center rounded-[10px] bg-surface text-muted-foreground [&_svg]:size-5"
+        >
+          {icon}
+        </span>
+        {label}
+      </dt>
+      <dd className="text-sm font-semibold [overflow-wrap:anywhere]">{children}</dd>
+    </div>
   );
 }

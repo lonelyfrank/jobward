@@ -1,8 +1,9 @@
 import type { Card, Task } from '@jobward/schemas';
 import { derivePipelineStatus, suggestTasks, type TaskSuggestion } from '@jobward/shared';
-import { ListTodo, Plus } from 'lucide-react';
+import { Clock, ListTodo, Plus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useNotify } from '@/components/ui/notices';
 import { LoadError, workflowError } from '@/features/cards/workflow-feedback';
@@ -106,18 +107,21 @@ export function CardTasksSection({ card, archived }: { card: Card; archived: boo
   return (
     <section
       aria-label="Attività della candidatura"
-      className="rounded-lg border border-border p-3"
+      className="rounded-2xl border border-border bg-surface p-4"
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="flex items-center gap-1.5 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-          <ListTodo aria-hidden="true" className="size-3.5" />
-          Attività
-        </h3>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <ListTodo aria-hidden="true" className="size-5 text-primary-soft-foreground" />
+        <h2 className="text-[17px] font-bold">Da fare</h2>
+        {open.length > 0 ? (
+          <Badge>{open.length === 1 ? '1 aperta' : `${open.length} aperte`}</Badge>
+        ) : null}
+        <span className="flex-1" />
         {!archived ? (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             <Button
-              variant="secondary"
+              variant="ghost"
               size="sm"
+              className="rounded-xl text-primary-soft-foreground hover:bg-primary-soft"
               onClick={() =>
                 setDialog({
                   kind: 'create',
@@ -135,12 +139,14 @@ export function CardTasksSection({ card, archived }: { card: Card; archived: boo
             <Button
               variant="secondary"
               size="sm"
+              className="rounded-xl px-3"
+              aria-label="Aggiungi attività"
               onClick={() =>
                 setDialog({ kind: 'create', draft: { card: picked, fixedCard: true } })
               }
             >
               <Plus aria-hidden="true" />
-              Aggiungi attività
+              Attività
             </Button>
           </div>
         ) : null}
@@ -156,9 +162,10 @@ export function CardTasksSection({ card, archived }: { card: Card; archived: boo
       {suggestion ? (
         <aside
           aria-label="Suggerimento"
-          className="mt-3 flex flex-wrap items-center gap-2 rounded-md bg-primary-soft px-3 py-2 text-sm text-primary-soft-foreground"
+          className="mt-3 flex flex-wrap items-center gap-3 rounded-xl bg-primary-soft px-3.5 py-3 text-[13px] font-medium text-primary-soft-foreground"
         >
-          <p className="min-w-0 flex-1 basis-56">{SUGGESTION_TEXT[suggestion.rule]}</p>
+          <Clock aria-hidden="true" className="size-5 shrink-0" />
+          <p className="min-w-0 flex-1 basis-48">{SUGGESTION_TEXT[suggestion.rule]}</p>
           <Button
             size="sm"
             onClick={() =>
@@ -177,8 +184,9 @@ export function CardTasksSection({ card, archived }: { card: Card; archived: boo
             Pianifica
           </Button>
           <Button
-            variant="secondary"
+            variant="ghost"
             size="sm"
+            className="hover:bg-surface/60"
             onClick={() => {
               dismissSuggestion(workspace.id, suggestion.key);
               setDismissedTick((n) => n + 1);

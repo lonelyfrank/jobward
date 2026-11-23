@@ -4,7 +4,7 @@ Solo lo stato **attuale**; nessun diario. Si sostituisce a ogni handoff con il [
 
 ## Attività corrente
 
-- **Task:** lancio completato il 2026-11-22 ([ADR-0018](../architecture/decisions/0018-launch-repository-and-docs-archive.md)). Vista Mappa D-07 implementata il 2026-11-23 ([ADR-0019](../architecture/decisions/0019-opportunity-map.md), migrazione `0003` applicata al D1 locale); in corso le ottimizzazioni dell'interfaccia.
+- **Task:** lancio completato il 2026-11-22 ([ADR-0018](../architecture/decisions/0018-launch-repository-and-docs-archive.md)). Vista Mappa D-07 implementata il 2026-11-23 ([ADR-0019](../architecture/decisions/0019-opportunity-map.md), migrazione `0003` applicata al D1 locale); in corso le ottimizzazioni dell'interfaccia: modale dell'opportunità ridisegnata (4 schede, pannello dello stato, salvataggio unico), Attività con selettore di sezione, Insights con tempi di risposta nel carosello circolare.
 - **Repository / worktree / branch:** `/home/frank/jobward-core-docs` · `main` → `origin/main`. `jobward-v1` è l'archivio locale con la storia: **mai pusharlo**.
 - **Git:** commit e push solo con autorizzazione esplicita per ciascuna azione; email dell'autore: noreply di GitHub.
 - **Dati:** il D1 locale contiene **dati reali** del proprietario (identità dev). Dimostrazioni: profilo **Dati demo** (`frank@demo.jobward.local`, sedi a Milano). Copie di sicurezza: `apps/api/.wrangler/backups/`.

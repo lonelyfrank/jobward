@@ -111,8 +111,35 @@ export async function dragWithMouse(
   await page.mouse.up();
 }
 
-/** Seleziona una scheda della modale della candidatura (Panoramica, Colloqui, Dettagli, Cronologia). */
+/** Viste dello Storico: per raggiungerle si apre prima la scheda «Storico». */
+const HISTORY_TAB: Record<string, string> = {
+  Timeline: 'Tutto',
+  Cronologia: 'Tutto',
+  Storico: 'Tutto',
+  Tutto: 'Tutto',
+  Note: 'Note',
+  Documenti: 'Documenti',
+};
+
+async function selectTab(panel: Locator, name: string) {
+  const tab = panel.getByRole('tab', { name, exact: true }).first();
+  await expect(async () => {
+    if ((await tab.getAttribute('aria-selected')) !== 'true') await tab.click();
+    await expect(tab).toHaveAttribute('aria-selected', 'true', { timeout: 1000 });
+  }).toPass({ timeout: 10_000 });
+}
+
+/**
+ * Seleziona una scheda della modale della candidatura (Panoramica, Colloqui, Storico, Dettagli) o
+ * una vista dello Storico (Timeline/Tutto, Note, Documenti), passando prima dallo Storico.
+ */
 export async function openTab(panel: Locator, name: string) {
+  const view = HISTORY_TAB[name];
+  if (view) {
+    await selectTab(panel, 'Storico');
+    await selectTab(panel, view);
+    return;
+  }
   const tab = panel.getByRole('tab', { name, exact: false }).first();
   await expect(async () => {
     if ((await tab.getAttribute('aria-selected')) !== 'true') await tab.click();
@@ -120,25 +147,34 @@ export async function openTab(panel: Locator, name: string) {
   }).toPass({ timeout: 10_000 });
 }
 
-const SECTION_TAB: Record<string, string> = {
-  Opportunità: 'Dettagli',
-  Candidatura: 'Dettagli',
-  'Campi personalizzati': 'Dettagli',
-};
-
 /**
- * Apre una sezione comprimibile della scheda «Dettagli» (le sezioni vuote partono chiuse; passa
- * prima alla scheda giusta). Alcune si aprono da sole quando arrivano i dati: si riprova finché è
- * aperta, così un clic non può chiudere ciò che nel frattempo si è aperto.
+ * Porta la scheda «Dettagli» in modifica (i gruppi di campi non sono più comprimibili: `name` resta
+ * per leggibilità dei test). Se è già in modifica non fa nulla.
  */
-export async function openSection(panel: Locator, name: string) {
-  const tab = SECTION_TAB[name];
-  if (tab) await openTab(panel, tab);
-  const toggle = panel.getByRole('button', { name, exact: false }).first();
-  await expect(async () => {
-    if ((await toggle.getAttribute('aria-expanded')) === 'false') await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true', { timeout: 1000 });
-  }).toPass({ timeout: 10_000 });
+export async function openSection(panel: Locator, _name?: string) {
+  await openTab(panel, 'Dettagli');
+  const edit = panel.getByRole('button', { name: 'Modifica', exact: true });
+  if (await edit.isVisible()) await edit.click();
+  await expect(panel.getByLabel('Titolo', { exact: true })).toBeVisible();
+}
+
+/** Salvataggio unico della modale: la barra in basso salva tutte le bozze, da qualunque scheda. */
+export async function saveCard(panel: Locator) {
+  const bar = panel.getByRole('region', { name: 'Modifiche da salvare' });
+  await bar.getByRole('button', { name: 'Salva', exact: true }).click();
+  await expect(bar).toBeHidden();
+}
+
+/** Fase ed esito mostrati nel pannello dello stato. */
+export async function expectStageOutcome(panel: Locator, stage: string, outcome?: string) {
+  await expect(panel.getByTestId('card-stage')).toHaveText(stage);
+  if (outcome !== undefined) await expect(panel.getByTestId('card-outcome')).toHaveText(outcome);
+}
+
+/** Archivia dalla voce «Archivia» del menu «Altre azioni» della modale. */
+export async function archiveFromPanel(panel: Locator) {
+  await panel.getByRole('button', { name: 'Altre azioni' }).click();
+  await panel.page().getByRole('menuitem', { name: 'Archivia' }).click();
 }
 
 /** Stato di pipeline equivalente a una coppia fase/esito (per preparare i dati via API). */
@@ -293,16 +329,16 @@ export async function transitionPipeline(
   kind: 'advance' | 'close' | 'reopen' | 'correction',
   to: string,
 ) {
+  // Il pannello dello stato è sempre visibile da `lg`; sotto sta in cima alla Panoramica.
   await openTab(panel, 'Panoramica');
-  await panel.getByLabel('Azione', { exact: true }).selectOption(kind);
-  await panel.getByLabel('Stato di destinazione').selectOption(to);
   const labels = {
-    advance: to === 'applied' ? 'Segna come candidata' : 'Avanza nel processo',
+    advance: 'Avanza nel processo',
     close: 'Registra un esito',
     reopen: 'Riapri candidatura',
     correction: 'Correggi stato',
   };
   await panel.getByRole('button', { name: labels[kind], exact: true }).click();
+  await panel.page().locator(`[role="menuitem"][data-status="${to}"]`).click();
   const dialog = panel.page().getByRole('alertdialog');
   await dialog.getByRole('button', { name: 'Conferma passaggio' }).click();
   await expect(dialog).toBeHidden();

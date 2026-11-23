@@ -198,8 +198,8 @@ function MetricCarousel({ children }: { children: ReactNode[] }) {
             size="icon"
             aria-label="Metriche precedenti"
             aria-controls={viewportId}
-            disabled={active === 0}
-            onClick={() => goTo(active - 1)}
+            // A inizio corsa si riparte dalla fine (e viceversa): il carosello è circolare.
+            onClick={() => goTo(active <= 0 ? last : active - 1)}
           >
             <ChevronLeft aria-hidden="true" />
           </Button>
@@ -223,8 +223,7 @@ function MetricCarousel({ children }: { children: ReactNode[] }) {
             size="icon"
             aria-label="Metriche successive"
             aria-controls={viewportId}
-            disabled={active === last}
-            onClick={() => goTo(active + 1)}
+            onClick={() => goTo(active >= last ? 0 : active + 1)}
           >
             <ChevronRight aria-hidden="true" />
           </Button>
@@ -488,44 +487,39 @@ export function Component() {
           note={`Benefit indicati in ${data.benefitsRecorded} su ${totals.opportunities} opportunità attive. Il conteggio indica la presenza di una descrizione dei benefit.`}
         />
         <Sources sources={data.sources} total={totals.opportunities} />
+        <MetricPanel title="Tempi di risposta" info={RESPONSE_TIME_NOTE}>
+          <div
+            role="group"
+            className="grid grid-cols-2 gap-x-3 gap-y-1"
+            aria-label="Indicatori dei tempi di risposta"
+          >
+            <Metric
+              icon={CalendarClock}
+              label="Mediana"
+              value={responseTime.medianDays === null ? '—' : `${responseTime.medianDays} g`}
+              hint="Giorni fino alla prima risposta"
+            />
+            <Metric
+              icon={ListChecks}
+              label="Campione"
+              value={responseTime.sampleSize}
+              hint="Candidature con risposta"
+            />
+            <Metric
+              icon={Hourglass}
+              label="In attesa di risposta"
+              value={responseTime.awaitingResponse}
+              hint="Con data d’invio registrata"
+            />
+            <Metric
+              icon={CalendarX2}
+              label="Senza data d’invio"
+              value={responseTime.withoutAppliedOn}
+              hint="Escluse dal calcolo dei tempi"
+            />
+          </div>
+        </MetricPanel>
       </MetricCarousel>
-      <section aria-labelledby="response-time-title" className="insights-response mt-4 min-w-0">
-        <div className="flex items-center gap-1 px-3">
-          <h2 id="response-time-title" className="text-base font-semibold">
-            Tempi di risposta
-          </h2>
-          <InfoTip label="Come si calcolano i tempi di risposta" content={RESPONSE_TIME_NOTE} />
-        </div>
-        <div
-          className="mt-1 grid grid-cols-2 gap-x-3 gap-y-2 lg:grid-cols-4"
-          aria-label="Indicatori dei tempi di risposta"
-        >
-          <Metric
-            icon={CalendarClock}
-            label="Mediana"
-            value={responseTime.medianDays === null ? '—' : `${responseTime.medianDays} g`}
-            hint="Giorni fino alla prima risposta"
-          />
-          <Metric
-            icon={ListChecks}
-            label="Campione"
-            value={responseTime.sampleSize}
-            hint="Candidature con risposta"
-          />
-          <Metric
-            icon={Hourglass}
-            label="In attesa di risposta"
-            value={responseTime.awaitingResponse}
-            hint="Con data d’invio registrata"
-          />
-          <Metric
-            icon={CalendarX2}
-            label="Senza data d’invio"
-            value={responseTime.withoutAppliedOn}
-            hint="Escluse dal calcolo dei tempi"
-          />
-        </div>
-      </section>
       {/* Piè di pagina: sempre in fondo alla vista, senza allungare la pagina. */}
       <p className="mt-auto border-t border-border px-3 pt-2 text-xs text-muted-foreground">
         Vuoi i dati grezzi? Esportali da{' '}

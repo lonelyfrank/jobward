@@ -6,6 +6,7 @@ import {
   smallTouchTargets,
   tableTitles,
   transitionPipeline,
+  saveCard,
 } from './helpers';
 
 /** M2.3 — ricerca, filtri, Tabella e Opportunità. Stack reale; i dati si preparano via API. */
@@ -316,7 +317,7 @@ test('7. dal dettaglio nella tabella: si apre sulla stessa rotta, le modifiche c
 
   await transitionPipeline(panel, 'advance', 'applied');
   await panel.getByLabel('Priorità').selectOption('urgent');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveCard(panel);
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
 
   await page.keyboard.press('Escape');

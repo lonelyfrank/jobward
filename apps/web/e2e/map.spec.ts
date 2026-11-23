@@ -1,5 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
-import { ensureWorkspace, expectNoA11yViolations, openSection, openTab, seedApi } from './helpers';
+import {
+  ensureWorkspace,
+  expectNoA11yViolations,
+  openSection,
+  openTab,
+  saveCard,
+  seedApi,
+} from './helpers';
 
 /**
  * D-07 — vista Mappa delle opportunità. Stack reale (D1 locale di prova): coordinate inserite
@@ -59,17 +66,16 @@ test('1. coordinate dai Dettagli e casa dal Profilo, lette senza servizi esterni
   const external = trackExternalRequests(page);
   await page.goto(`/opportunities/cards/${cards[0]}`);
   const panel = page.getByRole('dialog', { name: `${TAG} Milano` });
-  await openTab(panel, 'Dettagli');
   await openSection(panel, 'Opportunità');
   await panel
     .getByLabel('Coordinate', { exact: true })
     .fill('https://www.google.com/maps/place/Duomo/@45.4642,9.19,17z');
   await openTab(panel, 'Panoramica');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveCard(panel); // si salva anche da un'altra scheda
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
   await page.reload();
   const again = page.getByRole('dialog', { name: `${TAG} Milano` });
-  await openTab(again, 'Dettagli');
+  await openSection(again);
   await expect(again.getByLabel('Coordinate', { exact: true })).toHaveValue('45.4642, 9.19');
 
   await page.goto('/profile');

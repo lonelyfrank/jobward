@@ -234,9 +234,8 @@ describe('pipeline e timeline — integrazione frontend', () => {
     ])
       client.setQueryData(key, {});
     client.setQueryData(keys.board('w1', 'unrelated'), {});
-    await user.selectOptions(screen.getByLabelText('Azione'), 'close');
-    await user.selectOptions(screen.getByLabelText('Stato di destinazione'), 'rejected');
     await user.click(screen.getByRole('button', { name: 'Registra un esito' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Rifiutata' }));
     const dialog = await screen.findByRole('alertdialog');
     expect(within(dialog).getByLabelText('Conserva i colloqui programmati')).toBeChecked();
     await user.click(within(dialog).getByRole('button', { name: 'Conferma passaggio' }));
@@ -284,9 +283,8 @@ describe('pipeline e timeline — integrazione frontend', () => {
       }),
     });
     setup(<PipelinePanel card={original} />);
-    await user.selectOptions(screen.getByLabelText('Azione'), 'close');
-    await user.selectOptions(screen.getByLabelText('Stato di destinazione'), 'rejected');
     await user.click(screen.getByRole('button', { name: 'Registra un esito' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Rifiutata' }));
     const dialog = await screen.findByRole('alertdialog');
     const notice = await within(dialog).findByTestId('linked-tasks-notice');
     expect(notice).toHaveTextContent('Hai 2 attività aperte collegate');
@@ -401,7 +399,9 @@ describe('bozze e colloqui', () => {
       },
     });
     renderApp('/boards/b1/cards/k1');
-    await user.click(await screen.findByRole('button', { name: 'Archivia' }));
+    await user.click(await screen.findByRole('button', { name: 'Altre azioni' }));
+    await user.click(await screen.findByRole('menuitem', { name: 'Archivia' }));
+    await user.click(screen.getByRole('tab', { name: 'Storico' }));
     await user.click(screen.getByRole('tab', { name: 'Note' }));
     await user.click(await screen.findByRole('button', { name: 'Aggiungi nota' }));
     await user.type(screen.getByLabelText('Testo della nota'), 'Bozza durante attesa');

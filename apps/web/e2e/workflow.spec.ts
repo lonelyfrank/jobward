@@ -4,6 +4,7 @@ import {
   createBoard,
   ensureWorkspace,
   expectNoA11yViolations,
+  expectStageOutcome,
   openTab,
   quickAdd,
   seedApi,
@@ -36,11 +37,11 @@ test('A: opportunità creata dalla UI → invio → avanzamento → Kanban, tabe
   await quickAdd(page, 'Da fare', 'Tecnico C3 completo');
   await cardLink(page, 'Tecnico C3 completo').click();
   const panel = page.getByRole('dialog', { name: 'Tecnico C3 completo' });
-  await panel.getByLabel('Stato di destinazione').selectOption('applied');
-  await panel.getByRole('button', { name: 'Segna come candidata' }).click();
+  await panel.getByRole('button', { name: 'Avanza nel processo', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Segna come candidata' }).click();
   await alert(page).getByLabel('Data di invio (facoltativa)').fill('2026-11-07');
   await alert(page).getByRole('button', { name: 'Conferma passaggio' }).click();
-  await expect(panel.getByLabel('Fase', { exact: true })).toHaveValue('Inviata');
+  await expectStageOutcome(panel, 'Inviata');
   await transitionPipeline(panel, 'advance', 'interviewing');
   await openTab(panel, 'Timeline');
   await expect(panel.getByText('Candidatura registrata (7 nov 2026)')).toBeVisible();
@@ -82,9 +83,8 @@ test('B: colloquio futuro → chiusura con conservazione → riapertura → chiu
     f.panel.getByRole('tabpanel', { name: /Colloqui/ }).getByText(/chiusa ma ha colloqui futuri/),
   ).toBeVisible();
   await transitionPipeline(f.panel, 'reopen', 'interviewing');
-  await f.panel.getByLabel('Azione', { exact: true }).selectOption('close');
-  await f.panel.getByLabel('Stato di destinazione').selectOption('withdrawn');
-  await f.panel.getByRole('button', { name: 'Registra un esito' }).click();
+  await f.panel.getByRole('button', { name: 'Registra un esito', exact: true }).click();
+  await page.locator('[role="menuitem"][data-status="withdrawn"]').click();
   await expect(alert(page).getByLabel('Conserva i colloqui programmati')).toBeChecked();
   await alert(page).getByLabel('Annulla i colloqui futuri programmati').check();
   await expectNoA11yViolations(page, 'C3 conferma chiusura');
@@ -184,8 +184,8 @@ for (const resource of ['notes', 'documents', 'interviews', 'pipeline'] as const
       await form.getByLabel('Titolo', { exact: true }).fill('Un solo round');
       await form.getByRole('button', { name: 'Aggiungi colloquio' }).click();
     } else {
-      await f.panel.getByLabel('Stato di destinazione').selectOption('applied');
-      await f.panel.getByRole('button', { name: 'Segna come candidata' }).click();
+      await f.panel.getByRole('button', { name: 'Avanza nel processo', exact: true }).click();
+      await page.getByRole('menuitem', { name: 'Segna come candidata' }).click();
       await alert(page).getByRole('button', { name: 'Conferma passaggio' }).click();
     }
     await expect(page.getByText(/l’operazione potrebbe essere riuscita/)).toBeVisible();
@@ -212,8 +212,8 @@ test('409: aggiorna lo stato remoto e richiede una nuova operazione consapevole'
   page,
 }) => {
   const f = await fixture(page, 'concorrenza');
-  await f.panel.getByLabel('Stato di destinazione').selectOption('applied');
-  await f.panel.getByRole('button', { name: 'Segna come candidata' }).click();
+  await f.panel.getByRole('button', { name: 'Avanza nel processo', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Segna come candidata' }).click();
   const remote = await page.request.post(f.url(`/cards/${f.id}/pipeline`), {
     data: { id: crypto.randomUUID(), to: 'offer', kind: 'advance', expectedFrom: 'saved' },
   });
@@ -224,21 +224,22 @@ test('409: aggiorna lo stato remoto e richiede una nuova operazione consapevole'
     .getByRole('button', { name: 'Aggiorna i dati e scegli una nuova operazione' })
     .click();
   await expect(alert(page)).toBeHidden();
-  await expect(f.panel.getByLabel('Fase', { exact: true })).toHaveValue('Offerta');
+  await expectStageOutcome(f.panel, 'Offerta');
   await transitionPipeline(f.panel, 'close', 'hired');
-  await expect(f.panel.getByRole('list', { name: 'Stato della candidatura' })).toContainText(
-    'Assunta',
-  );
+  await expect(f.panel.getByTestId('pipeline-status')).toContainText('Assunta');
 });
 
-test('E: sei hash, alias legacy, refresh, back/forward, Kanban e Tabella', async ({ page }) => {
+test('E: hash delle schede e dello Storico, alias legacy, refresh, back/forward, Kanban e Tabella', async ({
+  page,
+}) => {
   const f = await fixture(page, 'navigazione');
+  // [scheda da aprire, hash atteso, scheda selezionata (le viste dello Storico hanno la propria)]
   const tabs = [
-    ['Colloqui', '#colloqui'],
-    ['Timeline', '#timeline'],
-    ['Note', '#note'],
-    ['Documenti', '#documenti'],
-    ['Dettagli', '#dettagli'],
+    ['Colloqui', '#colloqui', 'Colloqui'],
+    ['Timeline', '#storico', 'Tutto'],
+    ['Note', '#note', 'Note'],
+    ['Documenti', '#documenti', 'Documenti'],
+    ['Dettagli', '#dettagli', 'Dettagli'],
   ] as const;
   for (const [name, hash] of tabs) {
     await openTab(f.panel, name);
@@ -254,7 +255,11 @@ test('E: sei hash, alias legacy, refresh, back/forward, Kanban e Tabella', async
     'aria-selected',
     'true',
   );
-  for (const [name, hash] of [...tabs, ['Timeline', '#cronologia']] as const) {
+  const legacy = [
+    ['', '#timeline', 'Tutto'],
+    ['', '#cronologia', 'Tutto'],
+  ] as const;
+  for (const [, hash, name] of [...tabs, ...legacy]) {
     await page.goto(f.path + hash);
     await page.reload();
     await expect(f.panel.getByRole('tab', { name, exact: true })).toHaveAttribute(

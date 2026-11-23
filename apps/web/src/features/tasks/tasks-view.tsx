@@ -15,6 +15,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { useNotify } from '@/components/ui/notices';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useCreationOperation } from '@/features/cards/creation-operation';
 import { LoadError, workflowError } from '@/features/cards/workflow-feedback';
 import { cn } from '@/lib/cn';
@@ -116,6 +117,11 @@ export function TasksView() {
     return TASK_SECTIONS.filter((s) => by.has(s)).map((s) => ({ section: s, tasks: by.get(s)! }));
   }, [tasks, asOf, view]);
 
+  // Vista scelta nel selettore; se si svuota (es. completata l'ultima) si passa alla prima rimasta.
+  const [section, setSection] = useState<TaskSection | null>(null);
+  const activeSection =
+    groups?.find((g) => g.section === section)?.section ?? groups?.[0]?.section ?? null;
+
   const counts = summary.data?.counts;
   const cardLabel = tasks.find((t) => t.card)?.card;
 
@@ -213,8 +219,8 @@ export function TasksView() {
         {list.isSuccess ? `${tasks.length} attività caricate` : ''}
       </p>
 
-      {/* Le sezioni si dividono l'altezza disponibile: intestazione ferma, righe che scorrono dentro
-          ciascuna sezione. L'elenco nel suo insieme non scorre (solo in finestre minuscole). */}
+      {/* Una vista per volta (In ritardo, Oggi, Prossime…): il selettore resta fermo in alto e le
+          righe della vista scelta scorrono nello spazio rimasto. Nessuna sezione si comprime. */}
       <div
         ref={listRef}
         aria-busy={list.isPending}
@@ -240,44 +246,59 @@ export function TasksView() {
               setView('all');
             }}
           />
-        ) : groups && asOf ? (
-          groups.map(({ section, tasks: rows }) => (
-            <section
-              key={section}
-              aria-labelledby={`tasks-${section}`}
-              // Altezza naturale finché c'è spazio; se manca, le sezioni lunghe cedono di più, ma
-              // ognuna mostra sempre l'intestazione e almeno una riga intera.
-              className="flex min-h-0 shrink flex-col"
-              style={{ flex: '0 1 auto', minHeight: 40 + Math.min(rows.length, 1) * 72 }}
+        ) : groups && asOf && activeSection ? (
+          <Tabs
+            value={activeSection}
+            onValueChange={(value) => setSection(value as TaskSection)}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <TabsList
+              variant="pill"
+              aria-label="Attività per scadenza"
+              className="mx-0 w-fit max-w-full md:mx-0"
             >
-              <h2
-                id={`tasks-${section}`}
-                className={cn(
-                  'shrink-0 border-b border-border py-2 text-sm font-bold tracking-wide uppercase',
-                  section === 'overdue' ? 'text-danger' : 'text-muted-foreground',
-                )}
-              >
-                {TASK_SECTION_LABELS[section]} <span className="font-normal">({rows.length})</span>
-              </h2>
-              <ul
-                aria-labelledby={`tasks-${section}`}
-                className="min-h-0 overflow-y-auto overscroll-contain pr-1"
-              >
-                {rows.map((t) => (
-                  <TaskRow
-                    key={t.id}
-                    task={t}
-                    asOf={asOf}
-                    busy={actions.command.isPending && actions.command.variables?.task.id === t.id}
-                    onOpen={(task) => setDialog({ kind: 'edit', task })}
-                    onToggle={toggle}
-                    onCancel={(task) => void run(task, 'cancel')}
-                    onReopen={(task) => void run(task, 'reopen')}
-                  />
-                ))}
-              </ul>
-            </section>
-          ))
+              {groups.map(({ section, tasks: rows }) => (
+                <TabsTrigger
+                  key={section}
+                  value={section}
+                  className={cn(
+                    'group gap-2 px-3.5',
+                    section === 'overdue' && 'text-danger data-[state=active]:text-danger',
+                  )}
+                >
+                  {TASK_SECTION_LABELS[section]}
+                  <span className="rounded-full bg-surface-muted px-1.5 text-xs tabular-nums group-data-[state=active]:bg-primary-soft">
+                    <span className="sr-only"> (</span>
+                    {rows.length}
+                    <span className="sr-only">)</span>
+                  </span>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {groups.map(({ section, tasks: rows }) => (
+              <TabsContent key={section} value={section} className="mt-2 min-h-0 flex-1">
+                <ul
+                  aria-label={TASK_SECTION_LABELS[section]}
+                  className="h-full overflow-y-auto overscroll-contain pr-1"
+                >
+                  {rows.map((t) => (
+                    <TaskRow
+                      key={t.id}
+                      task={t}
+                      asOf={asOf}
+                      busy={
+                        actions.command.isPending && actions.command.variables?.task.id === t.id
+                      }
+                      onOpen={(task) => setDialog({ kind: 'edit', task })}
+                      onToggle={toggle}
+                      onCancel={(task) => void run(task, 'cancel')}
+                      onReopen={(task) => void run(task, 'reopen')}
+                    />
+                  ))}
+                </ul>
+              </TabsContent>
+            ))}
+          </Tabs>
         ) : asOf ? (
           <ul
             aria-label={VIEW_LABELS[view]}
@@ -417,7 +438,7 @@ function QuickAdd() {
           aria-label="Aggiungi un’attività"
           placeholder="Aggiungi un’attività…"
           maxLength={200}
-          className="h-10 rounded-full px-4"
+          className="h-10 rounded-full px-4 max-md:h-11"
           aria-invalid={error ? true : undefined}
           onChange={(e) => {
             setTitle(e.target.value);
@@ -427,7 +448,7 @@ function QuickAdd() {
         <Button
           type="submit"
           size="sm"
-          className="h-10 rounded-full"
+          className="h-10 rounded-full max-md:h-11"
           disabled={pending || (!operation.locked && !title.trim())}
         >
           {operation.locked ? 'Riprova' : 'Aggiungi'}

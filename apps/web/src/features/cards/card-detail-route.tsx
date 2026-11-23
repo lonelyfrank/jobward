@@ -77,7 +77,8 @@ export function CardDetailRoute() {
         open
         variant="workspace"
         title={title}
-        description="Panoramica, colloqui, timeline, note, documenti e dettagli della candidatura"
+        description="Panoramica, colloqui, storico e dettagli della candidatura"
+        className="md:h-[min(45rem,90dvh)]"
         onOpenChange={(open) => !open && close()}
         onCloseAutoFocus={(event) => {
           // Il pulsante che ha aperto la modale (la scheda o la riga) non è più un «trigger»

@@ -104,9 +104,14 @@ describe('pagina Attività', () => {
     expect(await screen.findByRole('button', { name: /^4\s*Da fare$/ })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /^1\s*In ritardo$/ })).toBeInTheDocument();
     expect(within(screen.getByTestId('summary-today')).getByText('1')).toBeInTheDocument();
-    // Sezioni derivate dalla classificazione, con testi comprensibili (nessun timestamp tecnico).
+    // Sezioni derivate dalla classificazione, una vista per volta nel selettore (con il conteggio).
+    const picker = await screen.findByRole('tablist', { name: 'Attività per scadenza' });
     for (const name of [/In ritardo/, /^Oggi/, /Prossime/, /Senza scadenza/, /Completate/])
-      expect(await screen.findByRole('heading', { level: 2, name })).toBeInTheDocument();
+      expect(within(picker).getByRole('tab', { name })).toBeInTheDocument();
+    expect(within(picker).getByRole('tab', { name: /In ritardo/ })).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
     const rows = screen.getAllByRole('listitem').filter((li) => li.hasAttribute('data-task-row'));
     expect(rows).toHaveLength(5);
     expect(within(rows[0]!).getByText('Scaduta ieri')).toBeInTheDocument(); // ieri rispetto ad asOf, non al browser

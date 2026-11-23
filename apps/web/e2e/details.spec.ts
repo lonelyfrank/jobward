@@ -5,10 +5,12 @@ import {
   createBoard,
   ensureWorkspace,
   expectNoA11yViolations,
+  expectStageOutcome,
   openSection,
   openTab,
   transitionPipeline,
   quickAdd,
+  saveCard,
   smallTouchTargets,
 } from './helpers';
 
@@ -21,6 +23,11 @@ test.describe.configure({ mode: 'serial' });
 const BOARD = 'Dettagli M2';
 const main = (page: Page) => page.getByRole('main');
 const panelOf = (page: Page, title: string) => page.getByRole('dialog', { name: title });
+/** Barra del salvataggio unico (compare solo con modifiche in bozza). */
+const saveBar = (panel: ReturnType<typeof panelOf>) =>
+  panel.getByRole('region', { name: 'Modifiche da salvare' });
+const saveButton = (panel: ReturnType<typeof panelOf>) =>
+  saveBar(panel).getByRole('button', { name: 'Salva', exact: true });
 
 async function openBoard(page: Page) {
   await page.goto('/boards');
@@ -50,7 +57,7 @@ test.beforeAll(async ({ browser }) => {
   await page.close();
 });
 
-test('1. una scheda si crea con il solo titolo; i dettagli sono opzionali e le sezioni vuote restano chiuse', async ({
+test('1. una scheda si crea con il solo titolo; i dettagli sono opzionali e si leggono senza modificarli', async ({
   page,
 }) => {
   await createBoard(page, BOARD, 'Minimal');
@@ -58,23 +65,17 @@ test('1. una scheda si crea con il solo titolo; i dettagli sono opzionali e le s
   await cardLink(page, 'Infermiere di reparto').click();
 
   const panel = panelOf(page, 'Infermiere di reparto');
-  await expect(panel.getByLabel('Titolo')).toHaveValue('Infermiere di reparto');
-  // Panoramica (con il riepilogo) subito visibile; in «Dettagli» Opportunità e Date dell’annuncio sono chiuse perché vuote.
-  await expect(panel.getByRole('region', { name: 'Riepilogo' })).toBeVisible();
+  // Panoramica («In breve») subito visibile; «Dettagli» si apre in lettura, i campi vuoti lo dicono.
+  await expect(panel.getByRole('region', { name: 'In breve' })).toBeVisible();
   await openTab(panel, 'Dettagli');
-  await expect(panel.getByRole('button', { name: /Opportunità/ })).toHaveAttribute(
-    'aria-expanded',
-    'false',
-  );
-  await expect(panel.getByRole('button', { name: /Date dell’annuncio/ })).toHaveAttribute(
-    'aria-expanded',
-    'false',
-  );
-  await expect(panel.getByLabel('Sede')).toBeHidden();
+  const opportunity = panel.getByRole('region', { name: 'Opportunità' });
+  await expect(opportunity).toContainText('Infermiere di reparto');
+  await expect(panel.getByRole('region', { name: 'Luogo' })).toContainText('Non indicato');
+  await expect(panel.getByLabel('Sede')).toHaveCount(0);
+  await expect(panel.getByRole('button', { name: 'Modifica', exact: true })).toBeVisible();
   await openTab(panel, 'Panoramica');
-  await expect(panel.getByLabel('Fase')).toHaveValue('Non indicata');
-  await expect(panel.getByLabel('Esito')).toHaveValue('Non indicato');
-  await expectNoA11yViolations(page, 'pannello 2.0 (sezioni chiuse)');
+  await expectStageOutcome(panel, 'Non indicata', 'Non indicato');
+  await expectNoA11yViolations(page, 'modale — Dettagli in lettura');
 });
 
 test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito: si salvano e persistono dopo il refresh', async ({
@@ -84,8 +85,8 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   await cardLink(page, 'Infermiere di reparto').click();
   const panel = panelOf(page, 'Infermiere di reparto');
 
-  await panel.getByLabel('Azienda o ente').fill('Ospedale Civile');
   await openSection(panel, 'Opportunità');
+  await panel.getByLabel('Azienda o ente').fill('Ospedale Civile');
   await panel.getByLabel('Posizione lavorativa').fill('Infermiere di reparto');
   await panel.getByLabel('Sede').fill('Brescia');
   await panel.getByLabel('Modalità di lavoro').selectOption('onsite');
@@ -96,15 +97,15 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   await panel.getByLabel('Periodicità').selectOption('month');
   await panel.getByLabel('Lordo o netto').selectOption('net');
   await panel.getByLabel('Fonte', { exact: true }).fill('Portale regionale');
-  await openSection(panel, 'Date dell’annuncio');
   await panel.getByLabel('Data di pubblicazione').fill('2026-10-20');
   await panel.getByLabel('Scadenza dell’annuncio').fill('2026-11-15');
-  await expectNoA11yViolations(page, 'modale — Dettagli con tutte le sezioni aperte');
+  await expectNoA11yViolations(page, 'modale — Dettagli in modifica');
+  // Il salvataggio è unico: si salva anche da un'altra scheda.
   await openTab(panel, 'Panoramica');
+  await expect(saveBar(panel)).toContainText('13 modifiche non salvate');
 
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveCard(panel);
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
-  await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
   await transitionPipeline(panel, 'advance', 'applied');
   // La prima candidatura nasce dalla pipeline; la data d'invio si corregge nel pannello Candidature.
   await expect(panel.getByText('Candidatura n. 1')).toBeVisible();
@@ -114,15 +115,15 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   const sent = panel.getByRole('group', { name: 'Dati d’invio della candidatura n. 1' });
   await sent.getByLabel('Data d’invio').fill('2026-10-25');
   await sent.getByRole('button', { name: 'Salva' }).click();
-  await expect(panel.getByText(/Inviata il 25 ott 2026/)).toBeVisible();
+  await expect(panel.getByText('25 ott 2026')).toBeVisible();
   await openTab(panel, 'Timeline');
   await expect(panel.getByText('Candidatura creata')).toBeVisible();
   await expect(panel.getByText('Fase impostata su “Inviata”')).toBeVisible();
 
   await page.reload();
   const again = panelOf(page, 'Infermiere di reparto');
+  await openSection(again);
   await expect(again.getByLabel('Azienda o ente')).toHaveValue('Ospedale Civile');
-  await openTab(again, 'Dettagli');
   await expect(again.getByLabel('Sede')).toHaveValue('Brescia');
   await expect(again.getByLabel('Modalità di lavoro')).toHaveValue('onsite');
   await expect(again.getByLabel('Tipo di contratto')).toHaveValue('fixed_term');
@@ -131,9 +132,8 @@ test('2. azienda, sede, modalità, contratto, retribuzione, date, fase ed esito:
   await expect(again.getByLabel('Lordo o netto')).toHaveValue('net');
   await expect(again.getByLabel('Scadenza dell’annuncio')).toHaveValue('2026-11-15');
   await openTab(again, 'Panoramica');
-  await expect(again.getByText(/Inviata il 25 ott 2026/)).toBeVisible();
-  await expect(again.getByLabel('Fase')).toHaveValue('Inviata');
-  await expect(again.getByLabel('Esito')).toHaveValue('In attesa');
+  await expect(again.getByText('25 ott 2026')).toBeVisible();
+  await expectStageOutcome(again, 'Inviata', 'In attesa');
 });
 
 test('3. la scheda del Kanban mostra azienda, sede, modalità e fase', async ({ page }) => {
@@ -150,26 +150,27 @@ test('4. validazione inline: intervallo incoerente e importo senza valuta; la bo
   await cardLink(page, 'Infermiere di reparto').click();
   const panel = panelOf(page, 'Infermiere di reparto');
 
-  await openTab(panel, 'Dettagli');
+  await openSection(panel);
   await panel.getByLabel('Minima').fill('3000');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveButton(panel).click();
   await expect(panel.getByText('La retribuzione minima non può superare la massima')).toBeVisible();
   await expect(panel.getByLabel('Minima')).toHaveValue('3000'); // il valore digitato resta
   await expect(panel.getByLabel('Massima')).toHaveAttribute('aria-invalid', 'true');
 
   await panel.getByLabel('Minima').fill('1800,5');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveButton(panel).click();
   await expect(panel.getByText('Inserisci un importo intero')).toBeVisible();
 
   await panel.getByLabel('Minima').fill('1800');
   await panel.getByLabel('Valuta').fill('');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveButton(panel).click();
   await expect(panel.getByText('Indica la valuta dell’importo')).toBeVisible();
   await expectNoA11yViolations(page, 'pannello 2.0 con errori');
 
   await panel.getByRole('button', { name: 'Annulla modifiche' }).click();
+  await expect(saveBar(panel)).toBeHidden();
+  await openSection(panel);
   await expect(panel.getByLabel('Valuta')).toHaveValue('EUR');
-  await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
 });
 
 test('5. un errore del server non cancella ciò che hai scritto e lo spiega', async ({ page }) => {
@@ -191,14 +192,14 @@ test('5. un errore del server non cancella ciò che hai scritto e lo spiega', as
         })
       : route.continue(),
   );
-  await openTab(panel, 'Dettagli');
+  await openSection(panel);
   await panel.getByLabel('Sede').fill('Milano');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveButton(panel).click();
   await expect(panel.getByRole('alert')).toContainText('modificata nel frattempo');
   await expect(panel.getByLabel('Sede')).toHaveValue('Milano');
-  await expect(panel.getByRole('button', { name: 'Salva' })).toBeEnabled();
+  await expect(saveButton(panel)).toBeEnabled();
   await page.unroute('**/api/v1/cards/*?*');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveButton(panel).click();
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
 });
 
@@ -232,9 +233,8 @@ test('6. spostare la scheda NON cambia fase né esito; con una colonna che ha un
   await expect(column(page, 'Completate').getByText('Inviata', { exact: true })).toBeVisible();
   await cardLink(page, 'Infermiere di reparto').click();
   const panel = panelOf(page, 'Infermiere di reparto');
-  await expect(panel.getByLabel('Fase')).toHaveValue('Inviata');
-  await expect(panel.getByLabel('Esito')).toHaveValue('In attesa');
-  await expect(panel.getByLabel('Fase')).toHaveAttribute('readonly', '');
+  // Fase ed esito sono solo letti nel pannello dello stato: si cambiano dalla pipeline.
+  await expectStageOutcome(panel, 'Inviata', 'In attesa');
 });
 
 test('7. il suggerimento si accetta con un clic e non compare quando la fase coincide già', async ({
@@ -268,7 +268,7 @@ test('8. Overview: "in colloquio" esclude le candidature concluse; "inviate" usa
   await openBoard(page);
   await cardLink(page, 'Infermiere di reparto').click();
   const panel = panelOf(page, 'Infermiere di reparto');
-  await expect(panel.getByLabel('Fase')).toHaveValue('Colloquio');
+  await expectStageOutcome(panel, 'Colloquio');
   await transitionPipeline(panel, 'close', 'rejected');
   await openTab(panel, 'Timeline');
   await expect(panel.getByText('Esito registrato: “Rifiutata”')).toBeVisible();
@@ -289,16 +289,15 @@ test('9. da telefono (390 px) il pannello è a schermo intero e i dettagli si mo
   await expect(panel).toBeVisible();
   const box = (await panel.boundingBox())!;
   expect(box.width).toBeGreaterThanOrEqual(388);
-  await openTab(panel, 'Dettagli');
+  await openSection(panel);
   await panel.getByLabel('Sede').fill('Bergamo');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveCard(panel);
   await expect(page.getByText('Modifiche salvate.')).toBeVisible();
   const overflow = await page.evaluate(
     () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
   );
   expect(overflow).toBe(0);
-  await openSection(panel, 'Opportunità');
-  await openSection(panel, 'Date dell’annuncio');
+  await openSection(panel);
   await expectNoA11yViolations(page, 'modale — Dettagli a 390 px');
   expect(await smallTouchTargets(page, '[role=dialog]')).toEqual([]);
   await openTab(panel, 'Panoramica');

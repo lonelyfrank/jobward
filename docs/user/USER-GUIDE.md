@@ -23,7 +23,8 @@ I dettagli che puoi registrare: azienda, ruolo, luogo, modalità di lavoro, cont
 
 ## 2. Candidarsi e seguire la candidatura
 
-1. Apri l'opportunità (clic sulla scheda o sulla riga della tabella): si apre il dettaglio con le schede **Panoramica, Colloqui, Timeline, Note, Documenti, Dettagli**.
+1. Apri l'opportunità (clic sulla scheda o sulla riga della tabella): si apre il dettaglio con quattro schede, **Panoramica, Colloqui, Storico, Dettagli**. Lo **Storico** riunisce **Tutto** (la cronologia), **Note** e **Documenti**. Accanto (sul telefono in cima alla Panoramica) c'è sempre lo **stato della candidatura**: le tappe, **Avanza nel processo**, **Registra un esito** e **Correggi stato** (ogni passaggio chiede conferma), i **Prossimi passi** e l'**Organizzazione** (colonna, priorità, etichette).
+   - **Un solo «Salva»:** colonna, priorità, etichette, i campi di **Dettagli** (che si aprono in lettura: premi **Modifica**) e i campi personalizzati restano in bozza anche se cambi scheda; la barra in basso dice quante modifiche ci sono e le salva tutte insieme (oppure **Annulla**). Note, documenti, colloqui e candidature hanno invece il proprio pulsante, perché sono elementi a sé.
 2. Premi **Candidati**. Jobward crea la candidatura n. 1 e conserva una **fotografia** dei dati dell'annuncio in quel momento.
 3. Se una candidatura si è chiusa (per esempio con un rifiuto), puoi ricandidarti con **Nuova candidatura**: la precedente resta nello storico.
 
@@ -70,7 +71,7 @@ _Opportunità: filtri, viste salvate e tabella._
 ### Mappa: quanto distano le opportunità
 
 1. In **Profilo → Le tue posizioni** scegli **Aggiungi una posizione**: dai un nome (per esempio «Casa»), scegli il **Tipo** (**Casa** oppure **Altra posizione**, utile per una città in cui valuti di trasferirti) e incolla le **Coordinate**. Vanno bene «45.4642, 9.19», «45,4642; 9,19» o il link di Google Maps o OpenStreetMap che le contiene. Jobward le legge da solo, senza collegarsi a nessun servizio. La casa è una sola: sceglierne un'altra rende la precedente «Altra posizione».
-2. Nel dettaglio di un'opportunità, scheda **Dettagli → Opportunità**, compila **Città** (Jobward suggerisce quelle che hai già scritto) e **Coordinate** (quelle della sede) come sopra. Jobward non ricava mai città o coordinate dal testo della Sede.
+2. Nel dettaglio di un'opportunità, scheda **Dettagli → Modifica → Luogo**, compila **Città** (Jobward suggerisce quelle che hai già scritto) e **Coordinate** (quelle della sede) come sopra. Jobward non ricava mai città o coordinate dal testo della Sede.
 3. In **Opportunità** scegli **Mappa** (accanto a **Tabella**). La mappa mostra le opportunità che rispettano **i filtri e la ricerca attivi**: per vedere solo certe aziende basta filtrare. Ricerca e filtri sono nel pannello **Ricerca e filtri** a sinistra: dopo averli regolati chiudilo con «Chiudi ricerca e filtri» per allargare la mappa, e riaprilo con il pulsante rotondo del filtro, che mostra quanti filtri sono attivi.
 4. Accanto alla mappa, il pannello mostra **Distanze**: per ogni posizione la media, la mediana, la più vicina e la più lontana. **Elenco** riporta le opportunità dalla più vicina; con **Ordina per distanza da** scegli la posizione di riferimento. In fondo all'elenco ci sono le opportunità **senza coordinate**, con **Aggiungi le coordinate**. Mappa e pannello stanno nello schermo; scorre solo il pannello.
 
@@ -78,7 +79,7 @@ Sotto le tue opportunità c'è lo **stradario OpenStreetMap**, che mostra vie e 
 
 ## 6. Attività e scadenze
 
-- In **Attività** scrivi in «Aggiungi un'attività…»; le viste sono Tutte, Da fare, Completate, In ritardo, Senza scadenza, Annullate. In alto i numeri di Da fare, Oggi e In ritardo (un clic filtra). Le sezioni (In ritardo, Oggi, Prossime, Senza scadenza, Completate) hanno l'intestazione ferma e le righe scorrono dentro ciascuna: la pagina non scorre.
+- In **Attività** scrivi in «Aggiungi un'attività…»; le viste sono Tutte, Da fare, Completate, In ritardo, Senza scadenza, Annullate. In alto i numeri di Da fare, Oggi e In ritardo (un clic filtra). Sotto, un selettore mostra una sezione per volta (In ritardo, Oggi, Prossime, Senza scadenza, Completate, ciascuna con il numero di attività): le righe della sezione scelta scorrono nello spazio disponibile e la pagina non scorre.
 - Un'attività può essere legata a un'opportunità o generale; la scadenza è una data.
 - Le attività non si eliminano: si **completano** o si **annullano**, e si possono riaprire.
 - Nel dettaglio di un'opportunità Jobward può **suggerire** un follow-up in base a regole dichiarate; il suggerimento non viene mai applicato da solo.

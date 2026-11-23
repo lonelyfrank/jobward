@@ -218,7 +218,8 @@ test('scadenza passata: «In ritardo», contatore e completata in ritardo', asyn
   await api.create({ title, dueOn: addDays(today, -1) });
   await page.goto('/tasks');
   await expect(page.getByRole('button', { name: /^[1-9]\d*\s*In ritardo$/ })).toBeVisible();
-  const overdue = page.getByRole('region', { name: /In ritardo/ });
+  // Con un'attività scaduta il selettore apre la vista «In ritardo».
+  const overdue = page.getByRole('tabpanel', { name: /In ritardo/ });
   const row = overdue.locator('[data-task-row]').filter({ hasText: title });
   await expect(row.getByText('Scaduta ieri')).toBeVisible();
   await page.getByRole('button', { name: 'In ritardo', exact: true }).click();
@@ -251,9 +252,8 @@ test('la chiusura della candidatura informa ma non completa né annulla; complet
   const task = await api.create({ title: `Ringraziare ${suffix}`, cardId, kind: 'follow_up' });
   await page.goto(`/boards/${board.id}/cards/${cardId}`);
   const panel = page.getByRole('dialog', { name: cardTitle, exact: true });
-  await panel.getByLabel('Azione', { exact: true }).selectOption('close');
-  await panel.getByLabel('Stato di destinazione').selectOption('rejected');
   await panel.getByRole('button', { name: 'Registra un esito', exact: true }).click();
+  await page.locator('[role="menuitem"][data-status="rejected"]').click();
   const confirm = page.getByRole('alertdialog');
   await expect(confirm.getByTestId('linked-tasks-notice')).toContainText(
     '1 attività aperta collegata',

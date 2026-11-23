@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import {
+  archiveFromPanel,
   cardLink,
   column,
   createBoard,
@@ -7,6 +8,7 @@ import {
   expectNoA11yViolations,
   openSection,
   openTab,
+  saveCard,
   titlesIn,
 } from './helpers';
 
@@ -188,23 +190,24 @@ test('7. pannello di dettaglio: si apre sulla bacheca, modifica i dati, mostra l
   await expect(panel.getByText('Scheda creata')).toBeVisible();
   await openTab(panel, 'Panoramica');
 
-  // "Salva" è disattivato finché non c'è una modifica.
-  await expect(panel.getByRole('button', { name: 'Salva' })).toBeDisabled();
-  await panel.getByLabel('Titolo').fill('Barista part-time serale');
-  await panel.getByLabel('Azienda').fill('Caffè Roma');
+  // La barra «Salva» compare solo quando c'è una modifica; priorità e dettagli si salvano insieme.
+  const bar = panel.getByRole('region', { name: 'Modifiche da salvare' });
+  await expect(bar).toHaveCount(0);
   await panel.getByLabel('Priorità').selectOption('high');
   await openSection(panel, 'Opportunità');
+  await panel.getByLabel('Titolo', { exact: true }).fill('Barista part-time serale');
+  await panel.getByLabel('Azienda').fill('Caffè Roma');
   await panel.getByRole('textbox', { name: 'Note', exact: true }).fill('Turni dalle 18 alle 24.');
   await panel.getByLabel('Indirizzo dell’annuncio').fill('non un url');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await bar.getByRole('button', { name: 'Salva', exact: true }).click();
   await expect(panel.getByRole('alert')).toContainText('indirizzo web valido');
 
   await panel.getByLabel('Indirizzo dell’annuncio').fill('https://example.com/annunci/42');
-  await panel.getByRole('button', { name: 'Salva' }).click();
+  await saveCard(panel);
   await openTab(panel, 'Timeline');
   await expect(panel.getByText('Priorità cambiata da nessuna a alta')).toBeVisible();
   await openTab(panel, 'Dettagli');
-  await expect(panel.getByRole('link', { name: /Apri l’annuncio/ })).toHaveAttribute(
+  await expect(panel.getByRole('link', { name: /example\.com\/annunci\/42/ })).toHaveAttribute(
     'href',
     'https://example.com/annunci/42',
   );
@@ -221,8 +224,7 @@ test('7. pannello di dettaglio: si apre sulla bacheca, modifica i dati, mostra l
   await page.reload();
   await expect(column(page, 'Salvate').getByText('Caffè Roma')).toBeVisible();
   await cardLink(page, 'Barista part-time serale').click();
-  // La sezione contiene dati e resta espansa; si seleziona la scheda che la ospita.
-  await openTab(page.getByRole('dialog'), 'Dettagli');
+  await openSection(page.getByRole('dialog'));
   await expect(
     page.getByRole('dialog').getByRole('textbox', { name: 'Note', exact: true }),
   ).toHaveValue('Turni dalle 18 alle 24.');
@@ -250,6 +252,7 @@ test('sposta dal selettore Colonna del pannello; la cronologia registra lo spost
   await cardLink(page, 'Magazziniere').click();
   const panel = page.getByRole('dialog', { name: 'Magazziniere' });
   await panel.getByLabel('Colonna').selectOption({ label: 'Inviate' });
+  await saveCard(panel); // la colonna fa parte della bozza: si sposta con «Salva»
   await openTab(panel, 'Timeline');
   await expect(panel.getByText('Scheda spostata')).toBeVisible();
   await page.keyboard.press('Escape');
@@ -277,7 +280,7 @@ test('12. archivia con "Annulla", poi ripristina dal pannello Archiviate', async
 
   // Archivia dal pannello e ripristina dall'elenco.
   await cardLink(page, 'Addetto vendite').click();
-  await page.getByRole('dialog').getByRole('button', { name: 'Archivia' }).click();
+  await archiveFromPanel(page.getByRole('dialog'));
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(cardLink(page, 'Addetto vendite')).toHaveCount(0);
 

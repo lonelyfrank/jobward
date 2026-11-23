@@ -28,3 +28,17 @@ export function formatCalendarDate(value: string | null): string | null {
     new Date(Date.UTC(y, m - 1, d)),
   );
 }
+
+/**
+ * Istante → «2 ore fa», «ieri»… (entro 30 giorni); oltre, la data. `now` è iniettabile per i test.
+ */
+export function formatRelative(ms: number, timeZone: string, now = Date.now()): string {
+  const seconds = (ms - now) / 1000;
+  const abs = Math.abs(seconds);
+  if (abs < 60) return 'adesso';
+  const rtf = new Intl.RelativeTimeFormat('it-IT', { numeric: 'auto' });
+  if (abs < 3600) return rtf.format(Math.round(seconds / 60), 'minute');
+  if (abs < 86_400) return rtf.format(Math.round(seconds / 3600), 'hour');
+  if (abs < 86_400 * 30) return rtf.format(Math.round(seconds / 86_400), 'day');
+  return `il ${new Intl.DateTimeFormat('it-IT', { dateStyle: 'medium', timeZone }).format(new Date(ms))}`;
+}

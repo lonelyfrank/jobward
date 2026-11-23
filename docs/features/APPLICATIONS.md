@@ -13,7 +13,8 @@ Ciclo di vita della candidatura: stato, transizioni, storico, colloqui, note, do
 - **Colloqui** (APP-02): round numerati per scheda; programmazione con fuso orario, riprogrammazione, completamento con esito e feedback, annullamento immutabile ([ADR-0012](../architecture/decisions/0012-interview-tracking-and-workspace-modal.md)).
 - **Note** (APP-03) e **documenti come riferimenti** (APP-04), entrambi idempotenti con tombstone.
 - **Timeline** (APP-05): eventi ∪ note ∪ attività per scheda, a cursore; nessun testo riservato.
-- **Modale a 6 schede:** Panoramica, Colloqui, Timeline, Note, Documenti, Dettagli; guardia delle modifiche non salvate.
+- **Modale a 4 schede** (`apps/web/src/features/cards/card-detail.tsx`): Panoramica, Colloqui, Storico (viste Tutto/Note/Documenti), Dettagli; pannello dello stato sempre visibile (stepper, azioni della pipeline con conferma, prossimi passi, organizzazione). Indirizzi: `#colloqui`, `#storico`, `#note`, `#documenti`, `#dettagli`; `#timeline` e `#cronologia` restano alias di `#storico`.
+- **Salvataggio unico:** dettagli (in lettura, «Modifica» per scriverli), campi personalizzati, colonna, priorità ed etichette sono una sola bozza; la barra «Modifiche da salvare» le invia insieme da qualunque scheda (PATCH dei soli campi cambiati, poi spostamento, etichette e campi). Guardia delle modifiche non salvate invariata; note, documenti, colloqui e candidature hanno il proprio salvataggio.
 
 ## Regole vincolanti
 
