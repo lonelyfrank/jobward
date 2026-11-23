@@ -1,0 +1,1 @@
+ALTER TABLE `application_details` ADD `city` text;

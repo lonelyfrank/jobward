@@ -61,15 +61,24 @@ _Una bacheca in vista Kanban, con lo sfondo scelto._
 - **Opportunità** mostra tutto in tabella, con le schede **Tutte**, **Inbox** (opportunità senza candidatura) e **Candidature**. Usa «Cerca nelle opportunità», **Filtri** e **Colonne**; filtri e ordinamento restano nell'indirizzo della pagina.
 - **Viste salvate:** con **Salva vista** conservi la combinazione corrente di filtri; ogni vista si può aggiornare («Aggiorna con i filtri attuali»), rinominare o eliminare. Le viste salvate esistono solo in Opportunità.
 - **Cerca in Jobward** (Ctrl/Cmd+K) cerca tra opportunità, bacheche e colloqui.
-- **Aziende** elenca le aziende; il dettaglio mostra «Informazioni» e «Opportunità e candidature».
+- **Aziende** elenca le aziende in schede: cerca per nome e ordina (Nome A → Z, Z → A, Più recenti, Meno recenti). Le schede per pagina sono quante ne stanno nella finestra; se sono di più, la paginazione centrata sotto porta alle altre. Il dettaglio mostra «Informazioni» e «Opportunità e candidature».
 
 ![Opportunità in tabella con filtri a sinistra, viste salvate «Da remoto» e «Candidature attive» e ricerca](images/opportunities.jpg)
 
 _Opportunità: filtri, viste salvate e tabella._
 
+### Mappa: quanto distano le opportunità
+
+1. In **Profilo → Le tue posizioni** scegli **Aggiungi una posizione**: dai un nome (per esempio «Casa»), scegli il **Tipo** (**Casa** oppure **Altra posizione**, utile per una città in cui valuti di trasferirti) e incolla le **Coordinate**. Vanno bene «45.4642, 9.19», «45,4642; 9,19» o il link di Google Maps o OpenStreetMap che le contiene. Jobward le legge da solo, senza collegarsi a nessun servizio. La casa è una sola: sceglierne un'altra rende la precedente «Altra posizione».
+2. Nel dettaglio di un'opportunità, scheda **Dettagli → Opportunità**, compila **Città** (Jobward suggerisce quelle che hai già scritto) e **Coordinate** (quelle della sede) come sopra. Jobward non ricava mai città o coordinate dal testo della Sede.
+3. In **Opportunità** scegli **Mappa** (accanto a **Tabella**). La mappa mostra le opportunità che rispettano **i filtri e la ricerca attivi**: per vedere solo certe aziende basta filtrare. Ricerca e filtri sono nel pannello **Ricerca e filtri** a sinistra: dopo averli regolati chiudilo con «Chiudi ricerca e filtri» per allargare la mappa, e riaprilo con il pulsante rotondo del filtro, che mostra quanti filtri sono attivi.
+4. Accanto alla mappa, il pannello mostra **Distanze**: per ogni posizione la media, la mediana, la più vicina e la più lontana. **Elenco** riporta le opportunità dalla più vicina; con **Ordina per distanza da** scegli la posizione di riferimento. In fondo all'elenco ci sono le opportunità **senza coordinate**, con **Aggiungi le coordinate**. Mappa e pannello stanno nello schermo; scorre solo il pannello.
+
+Sotto le tue opportunità c'è lo **stradario OpenStreetMap**, che mostra vie e città fino a scala di quartiere. Per disegnarlo il browser chiede a openstreetmap.org le immagini della zona che stai guardando. Se preferisci di no, spegni **Stradario OpenStreetMap** (icona dei livelli tra i controlli): restano i confini, senza nessuna richiesta esterna, e la scelta resta su questo dispositivo. Sulla mappa: trascina per spostarti; usa **+** e **−**, oppure Ctrl (⌘ su Mac) con la rotellina, per lo zoom; **Inquadra tutti i punti** torna alla vista completa. Un numero indica più opportunità vicine: cliccalo per ingrandire. Cliccando un'opportunità compaiono le linee verso le tue posizioni, con la distanza. Le distanze sono **in linea d'aria**, non tempi di viaggio.
+
 ## 6. Attività e scadenze
 
-- In **Attività** scrivi in «Aggiungi un'attività…»; le viste sono Tutte, Da fare, Completate, In ritardo, Senza scadenza, Annullate.
+- In **Attività** scrivi in «Aggiungi un'attività…»; le viste sono Tutte, Da fare, Completate, In ritardo, Senza scadenza, Annullate. In alto i numeri di Da fare, Oggi e In ritardo (un clic filtra). Le sezioni (In ritardo, Oggi, Prossime, Senza scadenza, Completate) hanno l'intestazione ferma e le righe scorrono dentro ciascuna: la pagina non scorre.
 - Un'attività può essere legata a un'opportunità o generale; la scadenza è una data.
 - Le attività non si eliminano: si **completano** o si **annullano**, e si possono riaprire.
 - Nel dettaglio di un'opportunità Jobward può **suggerire** un follow-up in base a regole dichiarate; il suggerimento non viene mai applicato da solo.
@@ -80,7 +89,7 @@ _La pagina Attività._
 
 ## 7. Calendario e Insights
 
-- **Calendario:** griglia mensile (agenda sul telefono) con **Mese precedente**, **Mese successivo** e **Oggi**; legenda Colloquio / Attività / Scadenza.
+- **Calendario:** griglia mensile (agenda sul telefono). Il mese, con **Mese precedente** e **Mese successivo**, è al centro sopra il calendario; **Oggi** a sinistra, la legenda Colloquio / Attività / Scadenza a destra.
 - **Insights:** indicatori (opportunità, Inbox, candidature, colloqui, offerte, risposta mediana), funnel delle candidature, stato attuale, tempi di risposta, candidature per settimana, esiti, fonti e modalità di lavoro. I dati mancanti sono dichiarati; nessun numero è stimato senza dirlo.
 
 ![Calendario mensile con colloqui, attività e scadenze](images/calendar.jpg)
@@ -93,9 +102,9 @@ _Insights: numeri calcolati dai dati, con i limiti dichiarati._
 
 ## 8. Impostazioni ed esportazione
 
-In **Impostazioni** trovi: **Etichette** (creazione e gestione), **Aspetto** (Chiaro, Scuro, Come il sistema), le informazioni di workspace e account (sola lettura) e **I tuoi dati** con **Esporta tutti i dati (JSON)**, che scarica `jobward-export-AAAA-MM-GG.json`. Il file non include ancora aziende e viste salvate.
+In **Impostazioni** trovi: **Etichette** (creazione e gestione), **Aspetto** (Chiaro, Scuro, Come il sistema), le informazioni di workspace e account (sola lettura) e **I tuoi dati** con **Esporta tutti i dati (JSON)**, che scarica `jobward-export-AAAA-MM-GG.json`. Il file non include ancora aziende, viste salvate e posizioni personali (le coordinate delle opportunità sì).
 
-**Dati demo** (solo nell'app locale): il selettore «I miei dati / Dati demo» passa a un insieme di esempio, utile per una presentazione. È un profilo separato: ciò che fai nella demo non tocca i tuoi dati, e viceversa. Il nome nel menu account diventa «frank» e il workspace «Ricerca lavoro», così sai sempre dove sei. Le aziende italiane della demo hanno sede in quartieri diversi di Milano (campo **Sede**), così puoi confrontarne la distanza da casa. **Rigenera dati demo** riporta la demo allo stato iniziale con date aggiornate a oggi. L'esportazione esporta i dati del profilo attivo.
+**Dati demo** (solo nell'app locale): il selettore «I miei dati / Dati demo» passa a un insieme di esempio, utile per una presentazione. È un profilo separato: ciò che fai nella demo non tocca i tuoi dati, e viceversa. Il nome nel menu account diventa «frank» e il workspace «Ricerca lavoro», così sai sempre dove sei. Le aziende italiane della demo hanno sede in quartieri diversi di Milano, con le coordinate già inserite, e il Profilo demo ha «Casa» a Milano e «Torino (trasferimento)»: apri **Opportunità → Mappa** per confrontare le distanze. **Rigenera dati demo** riporta la demo allo stato iniziale con date aggiornate a oggi. L'esportazione esporta i dati del profilo attivo.
 
 ![Impostazioni, sezione Dati demo con il selettore «I miei dati / Dati demo» e il pulsante Rigenera dati demo](images/settings-demo.jpg)
 

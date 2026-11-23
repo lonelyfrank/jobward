@@ -28,6 +28,7 @@ describe('schema D1 (migrazioni reali)', () => {
       'labels',
       'saved_views',
       'tasks',
+      'user_places',
       'users',
       'workspace_members',
       'workspaces',

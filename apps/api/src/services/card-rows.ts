@@ -13,6 +13,7 @@ export const DETAIL_COLUMNS = {
   company: 'company',
   jobTitle: 'position',
   location: 'location',
+  city: 'city',
   workMode: 'work_mode',
   contractType: 'contract_type',
   salaryMin: 'salary_min',
@@ -28,6 +29,8 @@ export const DETAIL_COLUMNS = {
   requirements: 'requirements',
   benefits: 'benefits',
   interest: 'interest',
+  latitude: 'latitude',
+  longitude: 'longitude',
 } as const;
 export type DetailKey = keyof typeof DETAIL_COLUMNS;
 export const DETAIL_KEYS_LIST = Object.keys(DETAIL_COLUMNS) as DetailKey[];
@@ -44,6 +47,7 @@ export const cardSelect = {
   company: applicationDetails.company,
   jobTitle: applicationDetails.position,
   location: applicationDetails.location,
+  city: applicationDetails.city,
   workMode: applicationDetails.workMode,
   contractType: applicationDetails.contractType,
   salaryMin: applicationDetails.salaryMin,
@@ -59,6 +63,8 @@ export const cardSelect = {
   requirements: applicationDetails.requirements,
   benefits: applicationDetails.benefits,
   interest: applicationDetails.interest,
+  latitude: applicationDetails.latitude,
+  longitude: applicationDetails.longitude,
   companyId: applicationDetails.companyId,
   // Stato della candidatura CORRENTE (vista `current_applications`): NULL senza candidature.
   applicationId: currentApplications.id,

@@ -16,15 +16,15 @@
 
 ## Ambiti dei test API (`apps/api/test`)
 
-| Area                       | File                                                                                                    |
-| -------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Autenticazione e sicurezza | `auth`, `security-hardening` (enumera le rotte), `logging`, `health`                                    |
-| Isolamento                 | `ownership`, `kanban-isolation`, `m2-isolation`, `tenant-integrity`, `database`, `demo`                 |
-| Bacheche e Kanban          | `boards`, `columns`, `cards`, `kanban-ordering`                                                         |
-| Dati e personalizzazione   | `application-details`, `custom-fields`, `labels`                                                        |
-| Ricerca                    | `opportunities`, `global-search`, `search-d1-boundaries`                                                |
-| Candidatura                | `pipeline`, `interviews`, `interview-idempotency`, `notes`, `notes-pagination`, `documents`, `timeline` |
-| Attività e Overview        | `tasks`, `overview`, `workspaces`                                                                       |
+| Area                       | File                                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| Autenticazione e sicurezza | `auth`, `security-hardening` (enumera le rotte), `logging`, `health`                                                |
+| Isolamento                 | `ownership`, `kanban-isolation`, `m2-isolation`, `tenant-integrity`, `database`, `demo`                             |
+| Bacheche e Kanban          | `boards`, `columns`, `cards`, `kanban-ordering`                                                                     |
+| Dati e personalizzazione   | `application-details`, `custom-fields`, `labels`, `saved-views`, `map-places` (posizioni, coordinate, città, mappa) |
+| Ricerca                    | `opportunities`, `global-search`, `search-d1-boundaries`                                                            |
+| Candidatura                | `pipeline`, `interviews`, `interview-idempotency`, `notes`, `notes-pagination`, `documents`, `timeline`             |
+| Attività e Overview        | `tasks`, `overview`, `workspaces`                                                                                   |
 
 Helper senza test: `helpers.ts`, `kanban-helpers.ts`, `m3-helpers.ts`, `setup.ts`.
 
@@ -32,7 +32,7 @@ Helper senza test: `helpers.ts`, `kanban-helpers.ts`, `m3-helpers.ts`, `setup.ts
 
 ## Spec E2E (`apps/web/e2e`)
 
-`app`, `boards`, `kanban`, `kanban-zoom`, `kanban-glass`, `board-background`, `details`, `interviews`, `tasks`, `workflow`, `customization`, `search`, `search-history`, `workspace-actions`, `sidebar`, `hardening` (larghezze 320–1360 px), `stabilization` (target touch), `brand`, `workspace-visual`. Controlli axe tramite `expectNoA11yViolations` in 15 spec su 19.
+`app`, `boards`, `kanban`, `kanban-zoom`, `kanban-glass`, `board-background`, `details`, `interviews`, `tasks`, `workflow`, `customization`, `search`, `search-history`, `workspace-actions`, `sidebar`, `hardening` (larghezze 320–1360 px), `stabilization` (target touch), `brand`, `workspace-visual`, `map` (coordinate, posizioni, vista Mappa, nessuna richiesta esterna). Controlli axe tramite `expectNoA11yViolations` in 15 spec su 19.
 
 La spec `opportunities-sidebar` verifica la sidebar delle opportunità a 320, 390, 768, 1024, 1366 e 1920 px, navbar compressa, tutte le colonne visibili, accessibilità e coerenza bacheca/colonna/cronologia. Usa risposte API isolate e non modifica il database dell'app aperta.
 

@@ -6,6 +6,7 @@ import {
   readTableState,
   TABLE_COLUMNS,
   toApiQuery,
+  toMapQuery,
   writeTableState,
 } from './table-state';
 
@@ -88,6 +89,40 @@ describe('stato della tabella nell’indirizzo', () => {
     );
     expect(writeTableState(cleared).toString()).toBe('board=b1&sort=title&dir=desc');
     expect(clearFilters(read('board=b1&q=x'), false).board).toBe('');
+  });
+});
+
+describe('vista Mappa (D-07)', () => {
+  it('layout=map nell’indirizzo, conservato da «Cancella filtri»; valori ignoti → tabella', () => {
+    expect(read('').layout).toBe('table');
+    expect(read('layout=altro').layout).toBe('table');
+    const state = read('layout=map&priority=high');
+    expect(state.layout).toBe('map');
+    expect(writeTableState(state).toString()).toBe('layout=map&priority=high');
+    expect(writeTableState(clearFilters(state, false)).toString()).toBe('layout=map');
+  });
+
+  it('città (D-07): nell’indirizzo come elenco e passate all’API come `city`', () => {
+    const state = read('layout=map&city=Milano,none');
+    expect(state.lists.city).toEqual(['Milano', 'none']);
+    expect(writeTableState(state).toString()).toBe('layout=map&city=Milano%2Cnone');
+    expect(toMapQuery(state)['city']).toBe('Milano,none');
+    expect(toApiQuery(state)['city']).toBe('Milano,none');
+    expect(activeFilterCount(state, false)).toBe(1);
+  });
+
+  it('toMapQuery: gli stessi filtri dell’elenco, senza ordinamento né pagina', () => {
+    const state = read('layout=map&q=dev&priority=high&mode=remote&sort=title&page=3&vista=inbox');
+    const query = toMapQuery(state);
+    const list = toApiQuery(state);
+    expect(query).toEqual({
+      q: 'dev',
+      scope: 'inbox',
+      priority: 'high',
+      workMode: 'remote',
+      archived: 'exclude',
+    });
+    for (const [key, value] of Object.entries(query)) expect(list[key]).toBe(value);
   });
 });
 

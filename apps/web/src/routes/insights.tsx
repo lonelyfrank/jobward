@@ -394,12 +394,7 @@ function Sources({ sources, total }: { sources: InsightsResponse['sources']; tot
 /** Insights del percorso: formule esplicite, casi esclusi dichiarati, nessuna stima presentata come certa. */
 export function Component() {
   const insights = useInsights();
-  const header = (
-    <WorkspacePageHeader
-      title="Insights"
-      description="Come sta andando la tua ricerca: numeri calcolati dai tuoi dati, con i limiti dichiarati."
-    />
-  );
+  const header = <WorkspacePageHeader title="Insights" />;
   if (insights.isPending) {
     return (
       <div className="insights-page px-4 pt-5 pb-4 sm:px-6 lg:px-8">
@@ -531,7 +526,8 @@ export function Component() {
           />
         </div>
       </section>
-      <p className="mt-3 px-3 text-xs text-muted-foreground">
+      {/* Piè di pagina: sempre in fondo alla vista, senza allungare la pagina. */}
+      <p className="mt-auto border-t border-border px-3 pt-2 text-xs text-muted-foreground">
         Vuoi i dati grezzi? Esportali da{' '}
         <Link to="/settings" className="underline">
           Impostazioni

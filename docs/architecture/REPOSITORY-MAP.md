@@ -14,8 +14,8 @@ jobward/
 │   │   ├── src/routes/          schermate: overview, boards, board(+kanban/table), pipeline, opportunities, companies, company,
 │   │   │                        tasks, calendar, insights, settings, profile, help, not-found
 │   │   ├── src/features/        per dominio: applications, boards, calendar, cards, companies, custom-fields, documents,
-│   │   │                        export, insights, interviews, kanban, labels, notes, opportunities, overview,
-│   │   │                        pipeline, pipeline-board, saved-views, tasks, timeline, workspace
+│   │   │                        export, insights, interviews, kanban, labels, notes, opportunities (+ map/), overview,
+│   │   │                        pipeline, pipeline-board, places, saved-views, tasks, timeline, workspace
 │   │   ├── src/components/ui/   design system (dialog, button, menu, tabs, notices, …)
 │   │   ├── src/layouts/         AppShell, Sidebar, menu utente, navigazione (nessuna topbar)
 │   │   ├── src/lib/             client API, tema, storage, formattazione, salario, sfondi
@@ -53,14 +53,15 @@ apps/api  ──► @jobward/schemas, @jobward/shared, @jobward/database
 
 ## Script (`scripts/`)
 
-| Script                                           | Comando                        | Scopo ed effetti                                                                                                       |
-| ------------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| `check-contrast.mjs`                             | `pnpm check:contrast`          | Contrasto WCAG dei token colore, tema chiaro e scuro; sola lettura                                                     |
-| `check-docs.mjs`                                 | `pnpm check:docs`              | Limiti di dimensione (L0/L1/L3, documenti, immagini), collegamenti relativi, nessun rimando all'archivio; sola lettura |
-| `check-migrations.mjs`                           | `pnpm db:check`                | Schema TypeScript coerente con gli SQL (`drizzle-kit` su copia temporanea); non vede trigger e viste                   |
-| `db-reset-local.mjs`                             | `pnpm db:reset:local -- --yes` | **Cancella** tutto `apps/api/.wrangler/state` del checkout e riapplica le migrazioni; senza `--yes` si rifiuta         |
-| `seed-demo.mjs`                                  | `pnpm db:seed:demo`            | Rigenera il profilo Dati demo tramite `POST /api/v1/demo/reset` sull'API avviata; non tocca i dati reali               |
-| `apps/web/scripts/capture-guide-screenshots.mjs` | `pnpm docs:screenshots`        | Rigenera i Dati demo e salva le schermate della guida in `docs/user/images/`; richiede `pnpm dev`                      |
+| Script                                           | Comando                                      | Scopo ed effetti                                                                                                                                                                                |
+| ------------------------------------------------ | -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `check-contrast.mjs`                             | `pnpm check:contrast`                        | Contrasto WCAG dei token colore, tema chiaro e scuro; sola lettura                                                                                                                              |
+| `check-docs.mjs`                                 | `pnpm check:docs`                            | Limiti di dimensione (L0/L1/L3, documenti, immagini), collegamenti relativi, nessun rimando all'archivio; sola lettura                                                                          |
+| `check-migrations.mjs`                           | `pnpm db:check`                              | Schema TypeScript coerente con gli SQL (`drizzle-kit` su copia temporanea); non vede trigger e viste                                                                                            |
+| `db-reset-local.mjs`                             | `pnpm db:reset:local -- --yes`               | **Cancella** tutto `apps/api/.wrangler/state` del checkout e riapplica le migrazioni; senza `--yes` si rifiuta                                                                                  |
+| `seed-demo.mjs`                                  | `pnpm db:seed:demo`                          | Rigenera il profilo Dati demo tramite `POST /api/v1/demo/reset` sull'API avviata; non tocca i dati reali                                                                                        |
+| `apps/web/scripts/capture-guide-screenshots.mjs` | `pnpm docs:screenshots`                      | Rigenera i Dati demo e salva le schermate della guida in `docs/user/images/`; richiede `pnpm dev`                                                                                               |
+| `apps/web/scripts/build-europe-map.mjs`          | `node apps/web/scripts/build-europe-map.mjs` | Rigenera i confini incorporati della vista Mappa (`map/europe-map.json`) da Natural Earth (`world-atlas`, dipendenza di sviluppo); nessuna rete ([ADR-0019](decisions/0019-opportunity-map.md)) |
 
 Gli strumenti di staging, di marchio e di upgrade delle migrazioni sono stati rimossi in v1 ([ADR-0017](decisions/0017-local-v1-baseline.md)) e restano nella storia git.
 

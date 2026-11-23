@@ -204,35 +204,42 @@ export function Component() {
 
   return (
     <div className="flex h-full min-h-0 flex-col px-4 pt-5 pb-4 sm:px-6 lg:px-8">
-      <WorkspacePageHeader
-        className="mb-3 shrink-0"
-        title="Calendario"
-        description="Colloqui, scadenze delle attività e degli annunci, nel fuso del workspace."
-      />
-      <div className="mb-3 flex shrink-0 flex-wrap items-center gap-2">
+      <WorkspacePageHeader className="mb-3 shrink-0" title="Calendario" />
+      {/* Navigazione del mese al centro, sopra il calendario; «Oggi» a sinistra, legenda a destra. */}
+      <div className="mb-3 grid shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 max-sm:grid-cols-[auto_1fr]">
         <Button
-          variant="secondary"
-          size="icon"
-          aria-label="Mese precedente"
-          onClick={() => go(shiftMonth(first, -1))}
+          variant="ghost"
+          size="sm"
+          className="h-8 justify-self-start rounded-full px-3 text-[13px] max-sm:order-2 max-sm:justify-self-end"
+          onClick={() => go(`${today.slice(0, 7)}-01`)}
         >
-          <ChevronLeft aria-hidden="true" />
-        </Button>
-        <h2 className="min-w-44 text-center text-lg font-semibold capitalize" aria-live="polite">
-          {monthLabel}
-        </h2>
-        <Button
-          variant="secondary"
-          size="icon"
-          aria-label="Mese successivo"
-          onClick={() => go(next)}
-        >
-          <ChevronRight aria-hidden="true" />
-        </Button>
-        <Button variant="ghost" size="sm" onClick={() => go(`${today.slice(0, 7)}-01`)}>
           Oggi
         </Button>
-        <span className="ml-auto flex flex-wrap gap-2 text-xs">
+        <div className="flex items-center justify-center gap-1 rounded-full bg-surface-muted p-1 max-sm:order-1 max-sm:justify-self-start">
+          <button
+            type="button"
+            aria-label="Mese precedente"
+            onClick={() => go(shiftMonth(first, -1))}
+            className="grid size-8 place-items-center rounded-full text-foreground hover:bg-surface focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none max-md:size-11"
+          >
+            <ChevronLeft aria-hidden="true" className="size-4" />
+          </button>
+          <h2
+            className="min-w-36 px-1 text-center text-[15px] font-semibold capitalize"
+            aria-live="polite"
+          >
+            {monthLabel}
+          </h2>
+          <button
+            type="button"
+            aria-label="Mese successivo"
+            onClick={() => go(next)}
+            className="grid size-8 place-items-center rounded-full text-foreground hover:bg-surface focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none max-md:size-11"
+          >
+            <ChevronRight aria-hidden="true" className="size-4" />
+          </button>
+        </div>
+        <span className="flex flex-wrap justify-end gap-1.5 justify-self-end text-xs max-sm:order-3 max-sm:col-span-2 max-sm:justify-self-start">
           {Object.values(KIND).map((k) => (
             <span key={k.label} className={cn('rounded-full px-2 py-0.5', k.tone)}>
               {k.label}

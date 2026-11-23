@@ -12,18 +12,24 @@ export function Sheet({
   onOpenChange,
   title,
   returnFocusRef,
+  hideFrom = 'md',
   children,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
   returnFocusRef?: RefObject<HTMLElement | null>;
+  /** Larghezza da cui il pannello non serve più (menu: `md`; filtri della Mappa: `lg`). */
+  hideFrom?: 'md' | 'lg';
   children: ReactNode;
 }) {
+  const hidden = hideFrom === 'lg' ? 'lg:hidden' : 'md:hidden';
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-scrim data-[state=closed]:animate-[jobward-overlay-out_160ms_ease-in_both] data-[state=open]:animate-[jobward-overlay-in_200ms_ease-out_both] md:hidden" />
+        <Dialog.Overlay
+          className={`fixed inset-0 z-40 bg-scrim data-[state=closed]:animate-[jobward-overlay-out_160ms_ease-in_both] data-[state=open]:animate-[jobward-overlay-in_200ms_ease-out_both] ${hidden}`}
+        />
         <Dialog.Content
           aria-describedby={undefined}
           onCloseAutoFocus={(event) => {
@@ -31,7 +37,7 @@ export function Sheet({
             event.preventDefault();
             returnFocusRef.current.focus();
           }}
-          className="fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] data-[state=closed]:animate-[jobward-slide-out-left_180ms_ease-in_both] data-[state=open]:animate-[jobward-slide-in-left_280ms_cubic-bezier(0.22,1,0.36,1)_both] flex-col border-r border-border bg-sidebar shadow-md md:hidden"
+          className={`fixed inset-y-0 left-0 z-50 flex w-72 max-w-[85vw] data-[state=closed]:animate-[jobward-slide-out-left_180ms_ease-in_both] data-[state=open]:animate-[jobward-slide-in-left_280ms_cubic-bezier(0.22,1,0.36,1)_both] flex-col border-r border-border bg-sidebar shadow-md ${hidden}`}
         >
           <Dialog.Title className="sr-only">{title}</Dialog.Title>
           {children}

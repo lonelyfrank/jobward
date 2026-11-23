@@ -15,14 +15,19 @@ const LIST_KEYS = {
   mode: 'workMode',
   contract: 'contractType',
   label: 'labelId',
+  /** Città della sede (D-07): nomi scritti dall'utente, `none` = non indicata. */
+  city: 'city',
 } as const;
 type ListKey = keyof typeof LIST_KEYS;
 
 export type OpportunityScope = 'all' | 'inbox' | 'applications';
+/** Rappresentazione dei risultati: tabella (predefinita) o mappa (D-07). */
+export type OpportunityLayout = 'table' | 'map';
 
 export interface TableState {
   /** Opportunity Center: tutte, solo Inbox (senza candidature) o solo con candidature. */
   scope: OpportunityScope;
+  layout: OpportunityLayout;
   q: string;
   board: string;
   column: string;
@@ -58,6 +63,7 @@ export function readTableState(params: URLSearchParams): TableState {
     scope: (SCOPES as readonly string[]).includes(scope ?? '')
       ? (scope as OpportunityScope)
       : 'all',
+    layout: params.get('layout') === 'map' ? 'map' : 'table',
     q: (params.get('q') ?? '').slice(0, LIMITS.searchTextMax),
     board: params.get('board') ?? '',
     column: params.get('column') ?? '',
@@ -85,6 +91,7 @@ export function writeTableState(state: TableState): URLSearchParams {
   const params = new URLSearchParams();
   const set = (key: string, value: string) => value && params.set(key, value);
   if (state.scope !== 'all') params.set('vista', state.scope);
+  if (state.layout === 'map') params.set('layout', 'map');
   set('q', state.q.trim());
   set('board', state.board);
   set('column', state.column);
@@ -130,6 +137,16 @@ export function toApiQuery(
   return query;
 }
 
+/**
+ * Parametri della vista Mappa: GLI STESSI filtri dell'elenco, senza ordinamento né pagina (la mappa
+ * mostra tutte le opportunità filtrate).
+ */
+export function toMapQuery(state: TableState): Record<string, string> {
+  const { sort: _sort, dir: _dir, page: _page, pageSize: _size, ...query } = toApiQuery(state);
+  void [_sort, _dir, _page, _size];
+  return query;
+}
+
 /** Filtri attivi, per i contrassegni rimovibili e per il contatore (ricerca, ordine e pagina non sono filtri). */
 export function activeFilterCount(state: TableState, fixedBoard: boolean): number {
   let count = 0;
@@ -149,6 +166,7 @@ export function clearFilters(state: TableState, fixedBoard: boolean): TableState
     ...readTableState(new URLSearchParams()),
     board: fixedBoard ? state.board : '',
     scope: state.scope,
+    layout: state.layout,
     sort: state.sort,
     dir: state.dir,
     dirExplicit: state.dirExplicit,

@@ -41,7 +41,7 @@
   padding-bottom: 1.5rem;
 }
 .overview-panels > .overview-section {
-  padding-top: 1.5rem;
+  padding-top: 1rem;
 }
 @media (min-width: 64rem) {
   .overview-recents {
@@ -58,14 +58,48 @@
     padding-left: 1.5rem;
   }
 }
-/* Short windows and phones keep a natural page flow so every section stays reachable. */
+/* Una sola schermata anche su tablet (da 640 px di larghezza e di altezza): le liste scorrono al loro
+   interno. Telefoni e finestre basse tornano al flusso naturale della pagina. */
+@media (min-width: 40rem) and (max-width: 63.99rem) and (min-height: 40rem) {
+  .overview-page[data-onboarding='false'] {
+    overflow: hidden;
+  }
+  .overview-page[data-onboarding='false'] .overview-panels {
+    flex: 1;
+    min-height: 0;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 0.7fr);
+  }
+  .overview-page[data-onboarding='false'] .overview-recents {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0;
+  }
+  .overview-page[data-onboarding='false'] .overview-recents > :first-child {
+    border-bottom: 0;
+    border-right: 1px solid var(--border);
+    padding-bottom: 0;
+    padding-right: 0.75rem;
+  }
+  .overview-page[data-onboarding='false'] .overview-recents > :last-child {
+    padding-left: 0.75rem;
+  }
+  .overview-page[data-onboarding='false'] .overview-panels > .overview-section {
+    padding-top: 0.5rem;
+  }
+  .overview-page[data-onboarding='false'] .overview-section-content {
+    max-height: none;
+  }
+}
 @media (min-width: 64rem) and (min-height: 40rem) {
   .overview-page[data-onboarding='false'] {
     overflow: hidden;
   }
   .overview-page[data-onboarding='false'] .overview-panels {
     flex: 1;
-    grid-template-rows: minmax(0, 1.7fr) minmax(0, 1fr);
+    /* «Prossime scadenze» più in alto: le liste recenti non riservano spazio vuoto. */
+    grid-template-rows: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 1.25rem;
   }
   .overview-page[data-onboarding='false'] .overview-section-content {
     max-height: none;

@@ -10,3 +10,6 @@ test-results
 **/.env.*
 **/.dev.vars*
 .e2e-state-preview
+
+# Confini della vista Mappa: generati da apps/web/scripts/build-europe-map.mjs (D-07)
+apps/web/src/features/opportunities/map/europe-map.json

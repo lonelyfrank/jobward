@@ -1,6 +1,7 @@
 import { applicationRoutes } from './modules/applications/routes';
 import { calendarRoutes } from './modules/calendar/routes';
 import { companyRoutes } from './modules/companies/routes';
+import { placeRoutes } from './modules/places/routes';
 import { savedViewRoutes } from './modules/saved-views/routes';
 import { exportRoutes } from './modules/export/routes';
 import { insightsRoutes } from './modules/insights/routes';
@@ -48,6 +49,7 @@ export function createApp(deps: AuthDeps = defaultAuthDeps) {
     await next();
   });
   v1.use('*', authenticate(deps));
+  v1.route('/me/places', placeRoutes);
   v1.route('/me', meRoutes);
   v1.route('/workspaces', workspaceRoutes);
   v1.route('/overview', overviewRoutes);

@@ -1,8 +1,14 @@
-import type { OpportunitiesQuery, OpportunitiesResponse } from '@jobward/schemas';
+import type {
+  OpportunityCitiesResponse,
+  OpportunitiesMapResponse,
+  OpportunitiesQuery,
+  OpportunitiesResponse,
+} from '@jobward/schemas';
 import { DEFAULT_SORT_DIR } from '@jobward/schemas';
 import {
   andQueries,
   legacyFiltersToQuery,
+  LIMITS,
   localDate,
   queryLimitIssues,
   queryNeedsClock,
@@ -35,6 +41,7 @@ const SEARCH_COLUMNS = [
   'd.position',
   'k.description',
   'd.location',
+  'd.city',
   'd.source',
 ] as const;
 
@@ -56,13 +63,25 @@ async function workspaceClock(
   return { today: localDate(now, timeZone), timeZone };
 }
 
-export async function searchOpportunities(
+interface CompiledFilter {
+  /** Parametri legati finora (il primo è il workspace); `bind` ne aggiunge altri in coda. */
+  binds: unknown[];
+  bind: (value: unknown) => string;
+  /** CTE della ricerca globale (vuota altrimenti) e clausola FROM … WHERE condivisa. */
+  documents: string;
+  from: string;
+}
+
+/**
+ * Filtri dell'elenco compilati UNA volta: l'elenco paginato e la vista Mappa usano la stessa
+ * clausola, quindi un filtro ha lo stesso significato in ogni vista (PP-07).
+ */
+async function compileOpportunityFilter(
   d1: D1Database,
-  db: Database,
   workspaceId: string,
   query: OpportunitiesQuery,
-  options: { globalSearch?: boolean; now?: number } = {},
-): Promise<OpportunitiesResponse> {
+  options: { globalSearch?: boolean; now?: number },
+): Promise<CompiledFilter> {
   const global = options.globalSearch ?? false;
   const binds: unknown[] = [];
   /** Aggiunge un parametro e restituisce il suo segnaposto numerato. */
@@ -136,6 +155,19 @@ export async function searchOpportunities(
     throw error;
   }
 
+  // Città (D-07): confronto senza maiuscole né spazi ai lati; «none» = città non indicata.
+  if (query.city) {
+    const named = query.city.filter((c) => c !== 'none');
+    const parts: string[] = [];
+    if (named.length > 0) {
+      parts.push(
+        `lower(trim(d.city)) IN (${named.map((c) => `lower(${bind(c.trim())})`).join(', ')})`,
+      );
+    }
+    if (query.city.includes('none')) parts.push("(d.city IS NULL OR trim(d.city) = '')");
+    where.push(`(${parts.join(' OR ')})`);
+  }
+
   if (query.scope === 'inbox') where.push('ca.id IS NULL');
   if (query.scope === 'applications') where.push('ca.id IS NOT NULL');
 
@@ -173,7 +205,22 @@ export async function searchOpportunities(
     LEFT JOIN current_applications ca ON ca.opportunity_id = k.id
     ${global ? 'JOIN search_documents ON search_documents.id = k.id' : ''}
     WHERE ${where.join(' AND ')}`;
+  return { binds, bind, documents, from };
+}
 
+export async function searchOpportunities(
+  d1: D1Database,
+  db: Database,
+  workspaceId: string,
+  query: OpportunitiesQuery,
+  options: { globalSearch?: boolean; now?: number } = {},
+): Promise<OpportunitiesResponse> {
+  const { binds, bind, documents, from } = await compileOpportunityFilter(
+    d1,
+    workspaceId,
+    query,
+    options,
+  );
   const orderBy = compileOrderBy([
     { field: query.sort, dir: query.dir ?? DEFAULT_SORT_DIR[query.sort] },
   ]);
@@ -184,13 +231,13 @@ export async function searchOpportunities(
 
   const select = `${documents} SELECT k.id AS id, k.board_id AS boardId, k.column_id AS columnId, k.title AS title,
       k.description AS description, k.priority AS priority, k.position AS position,
-      d.company AS company, d.position AS jobTitle, d.location AS location,
+      d.company AS company, d.position AS jobTitle, d.location AS location, d.city AS city,
       d.work_mode AS workMode, d.contract_type AS contractType,
       d.salary_min AS salaryMin, d.salary_max AS salaryMax, d.currency AS currency,
       d.salary_period AS salaryPeriod, d.salary_basis AS salaryBasis,
       d.source AS source, d.source_url AS sourceUrl, d.published_on AS publishedOn,
       d.seniority AS seniority, d.deadline_on AS deadlineOn, d.requirements AS requirements,
-      d.benefits AS benefits, d.interest AS interest,
+      d.benefits AS benefits, d.interest AS interest, d.latitude AS latitude, d.longitude AS longitude,
       d.company_id AS companyId, ca.id AS applicationId, coalesce(ca.sequence, 0) AS applicationCount,
       ca.applied_on AS appliedOn, ca.stage AS stage, ca.outcome AS outcome,
       (SELECT coalesce(json_group_array(cl.label_id), '[]') FROM card_labels cl
@@ -222,5 +269,87 @@ export async function searchOpportunities(
     page: query.page,
     pageSize: query.pageSize,
     pageCount: Math.ceil(total / query.pageSize),
+  };
+}
+
+/**
+ * Vista Mappa (D-07): tutte le opportunità che rispettano i filtri, in forma leggera, fino a
+ * `LIMITS.mapPointsMax` (prima quelle con coordinate). Ricerca testuale, filtri, ambito e archivio
+ * valgono come nell'elenco; ordinamento e paginazione dell'elenco qui non hanno effetto.
+ */
+export async function mapOpportunities(
+  d1: D1Database,
+  workspaceId: string,
+  query: OpportunitiesQuery,
+  options: { now?: number } = {},
+): Promise<OpportunitiesMapResponse> {
+  const { binds, bind, from } = await compileOpportunityFilter(d1, workspaceId, query, options);
+  const filterBinds = [...binds];
+  const limit = bind(LIMITS.mapPointsMax);
+  const select = `SELECT k.id AS id, k.title AS title, d.company AS company, d.position AS jobTitle,
+      d.location AS location, d.city AS city, d.latitude AS latitude, d.longitude AS longitude,
+      b.name AS boardName,
+      ca.stage AS stage, ca.outcome AS outcome, k.archived_at AS archivedAt
+    ${from}
+    ORDER BY (d.latitude IS NULL), k.updated_at DESC, k.id
+    LIMIT ${limit}`;
+  const [items, counts] = await d1.batch([
+    d1.prepare(select).bind(...binds),
+    d1
+      .prepare(`SELECT count(*) AS total, count(d.latitude) AS located ${from}`)
+      .bind(...filterBinds),
+  ]);
+  const row = (counts?.results[0] ?? {}) as Row;
+  const total = Number(row['total'] ?? 0);
+  const list = (items?.results ?? []) as unknown as OpportunitiesMapResponse['items'];
+  return {
+    items: list,
+    total,
+    located: Number(row['located'] ?? 0),
+    truncated: list.length < total,
+  };
+}
+
+/**
+ * Città usate nelle opportunità non archiviate (D-07), per le opzioni del filtro «Città».
+ * Raggruppate senza maiuscole né spazi ai lati; si mostra la grafia più frequente (a parità, la
+ * prima in ordine alfabetico).
+ */
+export async function listOpportunityCities(
+  d1: D1Database,
+  workspaceId: string,
+): Promise<OpportunityCitiesResponse> {
+  const [cities, missing] = await d1.batch([
+    d1
+      .prepare(
+        `WITH spelled AS (
+           SELECT lower(trim(d.city)) AS key, trim(d.city) AS city, count(*) AS n
+           FROM cards k
+           JOIN application_details d ON d.card_id = k.id AND d.workspace_id = k.workspace_id
+           WHERE k.workspace_id = ?1 AND k.archived_at IS NULL AND trim(coalesce(d.city, '')) <> ''
+           GROUP BY lower(trim(d.city)), trim(d.city)
+         ),
+         ranked AS (
+           SELECT key, city, n, sum(n) OVER (PARTITION BY key) AS total,
+                  row_number() OVER (PARTITION BY key ORDER BY n DESC, city) AS rank
+           FROM spelled
+         )
+         SELECT city, total AS count FROM ranked WHERE rank = 1 ORDER BY city COLLATE NOCASE`,
+      )
+      .bind(workspaceId),
+    d1
+      .prepare(
+        `SELECT count(*) AS n FROM cards k
+         LEFT JOIN application_details d ON d.card_id = k.id AND d.workspace_id = k.workspace_id
+         WHERE k.workspace_id = ?1 AND k.archived_at IS NULL AND trim(coalesce(d.city, '')) = ''`,
+      )
+      .bind(workspaceId),
+  ]);
+  return {
+    cities: ((cities?.results ?? []) as { city: string; count: number }[]).map((r) => ({
+      city: r.city,
+      count: Number(r.count),
+    })),
+    withoutCity: Number((missing?.results[0] as Row | undefined)?.['n'] ?? 0),
   };
 }

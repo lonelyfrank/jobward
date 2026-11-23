@@ -66,13 +66,16 @@
   .insights-page {
     overflow: hidden;
   }
-  /* Card compatte: non si allungano per riempire la vista, restano sotto un tetto. */
+  /* Le card usano lo spazio libero (senza sottotitolo della pagina) fino a un tetto; il resto va
+     tra le metriche e il piè di pagina, che resta in fondo. */
   .insights-page > .insights-carousel {
-    flex: 0 1 auto;
+    flex: 1 1 auto;
   }
   .insights-carousel-viewport {
-    height: clamp(14rem, 36vh, 19rem);
-    flex: 0 1 auto;
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 14rem;
+    max-height: 28rem;
   }
 }
 
@@ -104,5 +107,20 @@
 @container (min-width: 26rem) {
   .insights-sources-layout {
     gap: 1.75rem;
+  }
+}
+
+/* Tablet (da 640 px di larghezza e di altezza): anche qui una sola schermata, con card più basse. */
+@media (min-width: 40rem) and (max-width: 63.99rem) and (min-height: 40rem) {
+  .insights-page {
+    overflow: hidden;
+  }
+  .insights-page > .insights-carousel {
+    flex: 1 1 auto;
+  }
+  .insights-carousel-viewport {
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 9rem;
   }
 }

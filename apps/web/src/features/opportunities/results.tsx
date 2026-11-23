@@ -103,6 +103,7 @@ export function ResultsTable({
   onSort,
   ctx,
   busy,
+  maxHeight,
 }: {
   items: Opportunity[];
   columns: ColumnDef[];
@@ -110,17 +111,21 @@ export function ResultsTable({
   onSort: (column: ColumnDef) => void;
   ctx: ResultContext;
   busy: boolean;
+  /** Altezza massima (px): la tabella scorre al suo interno e la pagina resta ferma. */
+  maxHeight?: number;
 }) {
   return (
     <div
-      // Lo scorrimento orizzontale resta confinato nel contenitore: la pagina non scorre di lato.
-      className="hidden overflow-x-auto rounded-lg border border-border bg-surface md:block"
+      // Lo scorrimento resta confinato nel contenitore (in orizzontale e, con `maxHeight`, in
+      // verticale con l'intestazione ferma): la pagina non scorre.
+      className="hidden overflow-auto overscroll-contain rounded-lg border border-border bg-surface md:block"
+      style={maxHeight ? { maxHeight } : undefined}
       // WCAG 2.1.1 (axe: scrollable-region-focusable): un'area che scorre deve essere raggiungibile
       // da tastiera per poterla scorrere con le frecce.
       // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
       tabIndex={0}
       role="region"
-      aria-label="Tabella delle opportunità (scorre in orizzontale)"
+      aria-label="Tabella delle opportunità (scorre al suo interno)"
     >
       <table
         aria-busy={busy}
@@ -131,7 +136,7 @@ export function ResultsTable({
           {columns.find((c) => c.sort === state.sort)?.label ?? 'ultima modifica'}{' '}
           {state.dir === 'asc' ? 'in ordine crescente' : 'in ordine decrescente'}
         </caption>
-        <thead className="border-b border-border bg-surface-muted">
+        <thead className="sticky top-0 z-10 border-b border-border bg-surface-muted">
           <tr>
             {columns.map((column) => {
               const sorted = column.sort === state.sort;
@@ -214,17 +219,25 @@ export function ResultsList({
   ctx,
   busy,
   showBoard,
+  maxHeight,
 }: {
   items: Opportunity[];
   ctx: ResultContext;
   busy: boolean;
   showBoard: boolean;
+  /** Altezza massima (px): l'elenco scorre al suo interno e la pagina resta ferma. */
+  maxHeight?: number;
 }) {
   return (
     <ul
       aria-label="Opportunità"
       aria-busy={busy}
-      className={cn('space-y-2 md:hidden', busy && 'opacity-70')}
+      className={cn(
+        'space-y-2 md:hidden',
+        maxHeight && 'overflow-y-auto overscroll-contain',
+        busy && 'opacity-70',
+      )}
+      style={maxHeight ? { maxHeight } : undefined}
     >
       {items.map((item) => {
         const labels = item.labelIds.flatMap((id) => ctx.labelsById.get(id) ?? []);

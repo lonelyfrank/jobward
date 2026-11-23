@@ -385,6 +385,8 @@ describe('compatibilità dei contratti legacy', () => {
     'company',
     'jobTitle',
     'location',
+    // D-07 (0004): città della sede, aggiunta in modo additivo.
+    'city',
     'workMode',
     'contractType',
     'salaryMin',
@@ -400,6 +402,9 @@ describe('compatibilità dei contratti legacy', () => {
     'requirements',
     'benefits',
     'interest',
+    // D-07 (0003): coordinate della sede, aggiunte in modo additivo.
+    'latitude',
+    'longitude',
     'companyId',
     'applicationId',
     'applicationCount',

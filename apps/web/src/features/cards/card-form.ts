@@ -1,5 +1,5 @@
 import { salaryIssues, updateCardInput, type Card, type UpdateCardInput } from '@jobward/schemas';
-import type { Priority } from '@jobward/shared';
+import { formatCoordinates, parseCoordinates, type Priority } from '@jobward/shared';
 
 /**
  * Bozza del modulo di dettaglio: ogni controllo lavora con TESTO (anche numeri e menu, dove
@@ -12,6 +12,9 @@ export interface CardDraft {
   company: string;
   jobTitle: string;
   location: string;
+  city: string;
+  /** Coordinate della sede come testo libero (coppia o link di una mappa), lette senza rete. */
+  coordinates: string;
   workMode: string;
   contractType: string;
   salaryMin: string;
@@ -42,6 +45,11 @@ export function draftFromCard(card: Card): CardDraft {
     company: text(card.company),
     jobTitle: text(card.jobTitle),
     location: text(card.location),
+    city: text(card.city),
+    coordinates:
+      card.latitude !== null && card.longitude !== null
+        ? formatCoordinates({ latitude: card.latitude, longitude: card.longitude })
+        : '',
     workMode: text(card.workMode),
     contractType: text(card.contractType),
     salaryMin: amount(card.salaryMin),
@@ -84,6 +92,10 @@ function typedValues(draft: CardDraft, errors: DraftErrors) {
   if (interest !== null && !(Number.isInteger(interest) && interest >= 1 && interest <= 5)) {
     errors.interest = 'Scegli un valore da 1 a 5';
   }
+  const point = parseCoordinates(draft.coordinates);
+  if (draft.coordinates.trim() !== '' && !point) {
+    errors.coordinates = 'Non riconosciamo delle coordinate valide in questo testo';
+  }
   return {
     title: draft.title.trim(),
     description: nullable(draft.description),
@@ -91,6 +103,7 @@ function typedValues(draft: CardDraft, errors: DraftErrors) {
     company: nullable(draft.company),
     jobTitle: nullable(draft.jobTitle),
     location: nullable(draft.location),
+    city: nullable(draft.city),
     workMode: nullable(draft.workMode),
     contractType: nullable(draft.contractType),
     salaryMin: salaryMin ?? null,
@@ -106,6 +119,8 @@ function typedValues(draft: CardDraft, errors: DraftErrors) {
     requirements: nullable(draft.requirements),
     benefits: nullable(draft.benefits),
     interest: interest !== null && Number.isInteger(interest) ? interest : null,
+    latitude: point?.latitude ?? null,
+    longitude: point?.longitude ?? null,
   };
 }
 
@@ -116,6 +131,7 @@ const KEYS = [
   'company',
   'jobTitle',
   'location',
+  'city',
   'workMode',
   'contractType',
   'salaryMin',
@@ -131,6 +147,8 @@ const KEYS = [
   'requirements',
   'benefits',
   'interest',
+  'latitude',
+  'longitude',
 ] as const;
 
 export interface BuiltChanges {
@@ -156,14 +174,20 @@ export function buildChanges(draft: CardDraft, card: Card): BuiltChanges {
   for (const key of KEYS) {
     if (typed[key] !== savedTyped[key]) changes[key] = typed[key];
   }
+  // Le coordinate viaggiano sempre in coppia (regola del contratto).
+  if ('latitude' in changes || 'longitude' in changes) {
+    changes['latitude'] = typed.latitude;
+    changes['longitude'] = typed.longitude;
+  }
 
   if (Object.keys(changes).length === 0) return { changes, input: null, errors };
 
   const parsed = updateCardInput.safeParse(changes);
   if (!parsed.success) {
     for (const issue of parsed.error.issues) {
-      const key = String(issue.path[0]) as DraftKey;
-      if (key in draft) errors[key] ??= issue.message;
+      const key = String(issue.path[0]);
+      const field = (key === 'latitude' || key === 'longitude' ? 'coordinates' : key) as DraftKey;
+      if (field in draft) errors[field] ??= issue.message;
     }
   }
   // Stato risultante: l'importo richiede la valuta anche se la patch non la tocca.
@@ -184,8 +208,9 @@ export function serverFieldErrors(
 ): DraftErrors {
   const errors: DraftErrors = {};
   for (const issue of issues ?? []) {
-    const key = issue.path.split('.')[0] as DraftKey;
-    if ((KEYS as readonly string[]).includes(key)) errors[key] ??= issue.message;
+    const raw = issue.path.split('.')[0] ?? '';
+    const key = (raw === 'latitude' || raw === 'longitude' ? 'coordinates' : raw) as DraftKey;
+    if ((KEYS as readonly string[]).includes(raw)) errors[key] ??= issue.message;
   }
   return errors;
 }

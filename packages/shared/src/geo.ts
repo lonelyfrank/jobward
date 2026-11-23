@@ -126,3 +126,42 @@ export function rankByDistance<T>(
   located.sort((a, b) => a.km - b.km || a.index - b.index);
   return { located: located.map(({ item, km }) => ({ item, km })), unlocated };
 }
+
+export interface DistanceSummary {
+  /** Opportunità con coordinate, su cui sono calcolati i valori. */
+  count: number;
+  /** Media aritmetica, mediana, minimo e massimo in km; `null` se non c'è alcun punto. */
+  averageKm: number | null;
+  medianKm: number | null;
+  minKm: number | null;
+  maxKm: number | null;
+}
+
+/** Riepilogo delle distanze in linea d'aria da `origin`: i punti non validi sono esclusi (e contati a parte da chi chiama). */
+export function summarizeDistances(
+  origin: GeoPoint,
+  points: readonly (GeoPoint | null | undefined)[],
+): DistanceSummary {
+  if (!isValidGeoPoint(origin)) throw new RangeError('Coordinate di partenza non valide');
+  const km = points
+    .filter(isValidGeoPoint)
+    .map((point) => distanceKm(origin, point))
+    .sort((a, b) => a - b);
+  if (km.length === 0) {
+    return { count: 0, averageKm: null, medianKm: null, minKm: null, maxKm: null };
+  }
+  const middle = Math.floor(km.length / 2);
+  return {
+    count: km.length,
+    averageKm: km.reduce((sum, value) => sum + value, 0) / km.length,
+    medianKm: km.length % 2 === 1 ? km[middle]! : (km[middle - 1]! + km[middle]!) / 2,
+    minKm: km[0]!,
+    maxKm: km[km.length - 1]!,
+  };
+}
+
+/** Coordinate da mostrare e da modificare: «45.4642, 9.19» (punto decimale, al più 6 cifre ≈ 0,1 m). */
+export function formatCoordinates(point: GeoPoint): string {
+  const fixed = (value: number) => String(Number(value.toFixed(6)));
+  return `${fixed(point.latitude)}, ${fixed(point.longitude)}`;
+}

@@ -5,6 +5,8 @@ import {
   isValidGeoPoint,
   parseCoordinates,
   rankByDistance,
+  summarizeDistances,
+  formatCoordinates,
 } from './geo';
 
 const duomo = { latitude: 45.4642, longitude: 9.19 };
@@ -120,5 +122,51 @@ describe('rankByDistance', () => {
     expect(() =>
       rankByDistance({ latitude: Number.NaN, longitude: 0 }, items, (i) => i.point),
     ).toThrow(RangeError);
+  });
+});
+
+describe('summarizeDistances', () => {
+  it('calcola media, mediana, minimo e massimo escludendo i punti non validi', () => {
+    const origin = { latitude: 0, longitude: 0 };
+    const summary = summarizeDistances(origin, [
+      { latitude: 0, longitude: 1 },
+      null,
+      { latitude: 0, longitude: 3 },
+      { latitude: 99, longitude: 0 },
+      { latitude: 0, longitude: 2 },
+    ]);
+    expect(summary.count).toBe(3);
+    expect(summary.minKm).toBeCloseTo(111.195, 2);
+    expect(summary.medianKm).toBeCloseTo(222.39, 1);
+    expect(summary.averageKm).toBeCloseTo(222.39, 1);
+    expect(summary.maxKm).toBeCloseTo(333.585, 1);
+  });
+
+  it('con un numero pari di punti la mediana è la media dei due centrali', () => {
+    const summary = summarizeDistances({ latitude: 0, longitude: 0 }, [
+      { latitude: 0, longitude: 1 },
+      { latitude: 0, longitude: 4 },
+    ]);
+    expect(summary.medianKm).toBeCloseTo((111.195 + 444.78) / 2, 0);
+  });
+
+  it('senza punti restituisce valori nulli, mai zero', () => {
+    expect(summarizeDistances(duomo, [null, undefined])).toEqual({
+      count: 0,
+      averageKm: null,
+      medianKm: null,
+      minKm: null,
+      maxKm: null,
+    });
+    expect(() => summarizeDistances({ latitude: 200, longitude: 0 }, [])).toThrow(RangeError);
+  });
+});
+
+describe('formatCoordinates', () => {
+  it('scrive al più sei decimali, in un formato che parseCoordinates rilegge', () => {
+    expect(formatCoordinates({ latitude: 45.46421234567, longitude: 9.19 })).toBe(
+      '45.464212, 9.19',
+    );
+    expect(parseCoordinates(formatCoordinates(colosseo))).toEqual(colosseo);
   });
 });

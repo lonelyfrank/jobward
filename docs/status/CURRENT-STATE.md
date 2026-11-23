@@ -1,6 +1,6 @@
 # Stato corrente del progetto
 
-**Stato:** canonico per lo stato operativo · **Aggiornato:** 2026-11-22 · **Linea di lavoro:** ramo `main` nel worktree `/home/frank/jobward-core-docs`, pubblicato su `origin/main`. Decisioni di riferimento: [ADR-0017](../architecture/decisions/0017-local-v1-baseline.md) (applicazione locale), [ADR-0018](../architecture/decisions/0018-launch-repository-and-docs-archive.md) (lancio senza storia).
+**Stato:** canonico per lo stato operativo · **Aggiornato:** 2026-11-23 · **Linea di lavoro:** ramo `main` nel worktree `/home/frank/jobward-core-docs`, pubblicato su `origin/main`. Decisioni di riferimento: [ADR-0017](../architecture/decisions/0017-local-v1-baseline.md) (applicazione locale), [ADR-0018](../architecture/decisions/0018-launch-repository-and-docs-archive.md) (lancio senza storia).
 
 ## In una frase
 
@@ -20,6 +20,14 @@ Funzioni ed evidenze: [FEATURE-MATRIX](FEATURE-MATRIX.md).
 ## Aggiunte v1.1
 
 Bacheca canonica «Pipeline» (C-01), inserimento guidato in quattro passi (B-04), aziende e avviso dei duplicati (B-05), viste salvate (D-04). Migrazioni additive `0001_companies`, `0002_saved_views`.
+
+## Mappa delle opportunità (D-07, 2026-11-23)
+
+Vista **Mappa** in Opportunità con gli stessi filtri della tabella, posizioni personali nel Profilo (casa e altri luoghi), coordinate della sede nei Dettagli, riepilogo delle distanze in linea d'aria (MAP-01, [ADR-0019](../architecture/decisions/0019-opportunity-map.md)). Stradario OpenStreetMap facoltativo (decisione del proprietario del 2026-11-23: D7 modificata), con i confini incorporati come riserva. Filtro «Città» (migrazione additiva `0004_opportunity_city`). Migrazioni additive `0003_map_places` e `0004_opportunity_city`, applicate al D1 locale di questo worktree il 2026-11-23 dopo le copie in `apps/api/.wrangler/backups/state-before-map-places-*` e `state-before-opportunity-city-*`.
+
+## Interfaccia in una schermata (2026-11-23)
+
+Overview, Pipeline, Bacheche, Opportunità (Tabella e Mappa), Aziende, Attività, Calendario e Insights stanno in una schermata senza scroll della pagina da 768×1024 a 1920×1080; su telefono anche Pipeline, Bacheche, Opportunità, Aziende, Attività e Calendario. Gli elenchi lunghi scorrono al loro interno. Overview e Insights su telefono (sotto 640 px) e le finestre più basse di 640 px restano a flusso naturale. Rimossi i sottotitoli delle pagine. Hook comune: `apps/web/src/hooks/use-available-height.ts`.
 
 ## Dati
 

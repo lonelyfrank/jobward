@@ -1,6 +1,13 @@
 import { createTaskInput, type Task } from '@jobward/schemas';
 import type { TaskView } from '@jobward/shared';
-import { ListChecks, Plus } from 'lucide-react';
+import {
+  AlarmClock,
+  CalendarCheck,
+  ListChecks,
+  ListTodo,
+  Plus,
+  type LucideIcon,
+} from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -8,7 +15,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Input } from '@/components/ui/input';
 import { useNotify } from '@/components/ui/notices';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Surface } from '@/components/ui/surface';
 import { useCreationOperation } from '@/features/cards/creation-operation';
 import { LoadError, workflowError } from '@/features/cards/workflow-feedback';
 import { cn } from '@/lib/cn';
@@ -114,26 +120,37 @@ export function TasksView() {
   const cardLabel = tasks.find((t) => t.card)?.card;
 
   return (
-    <>
-      <section aria-label="Riepilogo delle attività" className="mb-5 grid grid-cols-3 gap-3">
+    <div className="flex min-h-[24rem] flex-1 flex-col">
+      <section
+        aria-label="Riepilogo delle attività"
+        className="mb-4 grid shrink-0 grid-cols-3 gap-3"
+      >
         <SummaryButton
+          icon={ListTodo}
           label="Da fare"
           value={counts?.open}
           active={view === 'open'}
           onClick={() => setView('open')}
         />
-        <Surface className="p-3 sm:p-4" data-testid="summary-today">
-          <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-            Oggi
-          </p>
-          <p className="mt-1 text-2xl font-extrabold">{counts?.today ?? '–'}</p>
-          {counts?.today === 0 ? (
-            <p className="mt-0.5 hidden text-xs text-muted-foreground sm:block">
-              Niente in scadenza oggi
+        <div className="flex items-center gap-3 rounded-lg px-2 py-2" data-testid="summary-today">
+          <CalendarCheck
+            aria-hidden="true"
+            className="size-7 shrink-0 text-primary-soft-foreground max-sm:hidden"
+          />
+          <div className="min-w-0">
+            <p className="text-2xl leading-none font-extrabold tabular-nums">
+              {counts?.today ?? '–'}
             </p>
-          ) : null}
-        </Surface>
+            <p className="mt-1 text-sm font-semibold text-muted-foreground">Oggi</p>
+            {counts?.today === 0 ? (
+              <p className="hidden text-xs text-muted-foreground sm:block">
+                Niente in scadenza oggi
+              </p>
+            ) : null}
+          </div>
+        </div>
         <SummaryButton
+          icon={AlarmClock}
           label="In ritardo"
           value={counts?.overdue}
           tone={counts && counts.overdue > 0 ? 'danger' : undefined}
@@ -142,7 +159,7 @@ export function TasksView() {
         />
       </section>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-3 flex shrink-0 flex-wrap items-center justify-between gap-3">
         <div
           role="group"
           aria-label="Filtro delle attività"
@@ -154,21 +171,25 @@ export function TasksView() {
               variant={view === v ? 'primary' : 'secondary'}
               size="sm"
               aria-pressed={view === v}
-              className="shrink-0"
+              className="h-8 shrink-0 rounded-full px-3 text-[13px]"
               onClick={() => setView(v)}
             >
               {VIEW_LABELS[v]}
             </Button>
           ))}
         </div>
-        <Button onClick={() => setDialog({ kind: 'create' })}>
+        <Button
+          size="sm"
+          className="h-9 rounded-full"
+          onClick={() => setDialog({ kind: 'create' })}
+        >
           <Plus aria-hidden="true" />
           Nuova attività
         </Button>
       </div>
 
       {cardId ? (
-        <p className="mb-3 flex flex-wrap items-center gap-2 text-sm">
+        <p className="mb-3 flex shrink-0 flex-wrap items-center gap-2 text-sm">
           <span>
             Candidatura:{' '}
             <strong>
@@ -192,7 +213,13 @@ export function TasksView() {
         {list.isSuccess ? `${tasks.length} attività caricate` : ''}
       </p>
 
-      <div ref={listRef} aria-busy={list.isPending} className="space-y-6">
+      {/* Le sezioni si dividono l'altezza disponibile: intestazione ferma, righe che scorrono dentro
+          ciascuna sezione. L'elenco nel suo insieme non scorre (solo in finestre minuscole). */}
+      <div
+        ref={listRef}
+        aria-busy={list.isPending}
+        className="flex min-h-48 flex-1 flex-col gap-3 overflow-y-auto"
+      >
         {list.isPending ? (
           <div className="space-y-2" aria-hidden="true">
             {Array.from({ length: 4 }, (_, i) => (
@@ -215,17 +242,27 @@ export function TasksView() {
           />
         ) : groups && asOf ? (
           groups.map(({ section, tasks: rows }) => (
-            <section key={section} aria-labelledby={`tasks-${section}`}>
+            <section
+              key={section}
+              aria-labelledby={`tasks-${section}`}
+              // Altezza naturale finché c'è spazio; se manca, le sezioni lunghe cedono di più, ma
+              // ognuna mostra sempre l'intestazione e almeno una riga intera.
+              className="flex min-h-0 shrink flex-col"
+              style={{ flex: '0 1 auto', minHeight: 40 + Math.min(rows.length, 1) * 72 }}
+            >
               <h2
                 id={`tasks-${section}`}
                 className={cn(
-                  'mb-1 text-sm font-bold tracking-wide uppercase',
+                  'shrink-0 border-b border-border py-2 text-sm font-bold tracking-wide uppercase',
                   section === 'overdue' ? 'text-danger' : 'text-muted-foreground',
                 )}
               >
                 {TASK_SECTION_LABELS[section]} <span className="font-normal">({rows.length})</span>
               </h2>
-              <ul aria-labelledby={`tasks-${section}`}>
+              <ul
+                aria-labelledby={`tasks-${section}`}
+                className="min-h-0 overflow-y-auto overscroll-contain pr-1"
+              >
                 {rows.map((t) => (
                   <TaskRow
                     key={t.id}
@@ -242,7 +279,10 @@ export function TasksView() {
             </section>
           ))
         ) : asOf ? (
-          <ul aria-label={VIEW_LABELS[view]}>
+          <ul
+            aria-label={VIEW_LABELS[view]}
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain pr-1"
+          >
             {tasks.map((t) => (
               <TaskRow
                 key={t.id}
@@ -260,6 +300,8 @@ export function TasksView() {
         {list.hasNextPage ? (
           <Button
             variant="secondary"
+            size="sm"
+            className="shrink-0 self-start rounded-full"
             disabled={list.isFetchingNextPage}
             onClick={() => void list.fetchNextPage()}
           >
@@ -276,17 +318,19 @@ export function TasksView() {
           onClose={() => setDialog(null)}
         />
       ) : null}
-    </>
+    </div>
   );
 }
 
 function SummaryButton({
+  icon: Icon,
   label,
   value,
   active,
   tone,
   onClick,
 }: {
+  icon: LucideIcon;
   label: string;
   value: number | undefined;
   active: boolean;
@@ -299,18 +343,29 @@ function SummaryButton({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        'min-h-11 rounded-lg border bg-surface p-3 text-left outline-none transition-colors duration-100 hover:bg-hover-soft focus-visible:ring-2 focus-visible:ring-primary sm:p-4',
-        active ? 'border-primary' : 'border-border',
+        // Senza sfondo né bordo, come gli indicatori dell'Overview; la vista attiva ha un fondo tenue.
+        'flex min-h-11 items-center gap-3 rounded-lg px-2 py-2 text-left outline-none transition-colors duration-100 hover:bg-hover-soft focus-visible:ring-2 focus-visible:ring-primary',
+        active && 'bg-primary-soft/60',
       )}
     >
-      {/* Nome accessibile = testo visibile («Da fare 4»): nessuna etichetta che lo contraddica (WCAG 2.5.3). */}
-      <span className="block text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-        {label}
-      </span>{' '}
-      <span
-        className={cn('mt-1 block text-2xl font-extrabold', tone === 'danger' && 'text-danger')}
-      >
-        {value ?? '–'}
+      <Icon
+        aria-hidden="true"
+        className={cn(
+          'size-7 shrink-0 max-sm:hidden',
+          tone === 'danger' ? 'text-danger' : 'text-primary-soft-foreground',
+        )}
+      />
+      {/* Icona, numero e, a capo, l'etichetta. Nome accessibile = testo visibile («4 Da fare»). */}
+      <span className="min-w-0">
+        <span
+          className={cn(
+            'block text-2xl leading-none font-extrabold tabular-nums',
+            tone === 'danger' && 'text-danger',
+          )}
+        >
+          {value ?? '–'}
+        </span>{' '}
+        <span className="mt-1 block text-sm font-semibold text-muted-foreground">{label}</span>
       </span>
     </button>
   );
@@ -351,7 +406,7 @@ function QuickAdd() {
     <form
       onSubmit={(e) => void submit(e)}
       noValidate
-      className="mb-5 space-y-1"
+      className="mb-3 shrink-0 space-y-1"
       aria-label="Creazione rapida"
     >
       <div className="flex gap-2">
@@ -362,13 +417,19 @@ function QuickAdd() {
           aria-label="Aggiungi un’attività"
           placeholder="Aggiungi un’attività…"
           maxLength={200}
+          className="h-10 rounded-full px-4"
           aria-invalid={error ? true : undefined}
           onChange={(e) => {
             setTitle(e.target.value);
             setError(null);
           }}
         />
-        <Button type="submit" disabled={pending || (!operation.locked && !title.trim())}>
+        <Button
+          type="submit"
+          size="sm"
+          className="h-10 rounded-full"
+          disabled={pending || (!operation.locked && !title.trim())}
+        >
           {operation.locked ? 'Riprova' : 'Aggiungi'}
         </Button>
       </div>

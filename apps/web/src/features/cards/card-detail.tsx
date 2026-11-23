@@ -57,6 +57,8 @@ import { PipelinePanel } from '@/features/pipeline/pipeline-panel';
 import { PipelineStatusBadge } from '@/features/pipeline/status-badge';
 import { DirtyGuardContext, useDirtyReporter } from './dirty-guard';
 import { DetailSection } from './detail-section';
+import { COORDINATES_HINT } from '@/features/places/coordinates';
+import { useOpportunityCities } from '@/features/opportunities/api';
 import { CardTasksSection } from '@/features/tasks/card-tasks-section';
 import { SmartSummary } from './smart-summary';
 import { ApplicationsPanel } from '@/features/applications/applications-panel';
@@ -251,6 +253,8 @@ export function CardDetailForm({
   };
 
   // Sezioni aperte all'inizio solo se contengono già qualcosa; gli errori le aprono comunque.
+  // Città già usate: suggerimenti, così la stessa città si scrive sempre allo stesso modo.
+  const cityOptions = useOpportunityCities();
   const opportunityKeys = [
     'jobTitle',
     'seniority',
@@ -258,6 +262,8 @@ export function CardDetailForm({
     'requirements',
     'benefits',
     'location',
+    'city',
+    'coordinates',
     'workMode',
     'contractType',
     'salaryMin',
@@ -282,6 +288,8 @@ export function CardDetailForm({
       placeholder?: string;
       type?: string;
       inputMode?: 'url' | 'numeric';
+      /** `id` di un `<datalist>` di suggerimenti. */
+      list?: string;
     } = {},
   ) => (
     <Field id={`card-${key}`} label={label} hint={extra.hint} error={errors[key]}>
@@ -289,6 +297,7 @@ export function CardDetailForm({
         id={`card-${key}`}
         type={extra.type ?? 'text'}
         {...(extra.inputMode ? { inputMode: extra.inputMode } : {})}
+        {...(extra.list ? { list: extra.list } : {})}
         value={draft[key]}
         maxLength={extra.max ?? LIMITS.nameMax}
         disabled={archived}
@@ -565,6 +574,22 @@ export function CardDetailForm({
                 {text('location', 'Sede')}
                 {choice('workMode', 'Modalità di lavoro', labelled(WORK_MODES, WORK_MODE_LABELS))}
               </div>
+              {text('city', 'Città', {
+                max: LIMITS.cityMax,
+                placeholder: 'Milano',
+                hint: 'Serve al filtro «Città» delle opportunità e della Mappa.',
+                list: 'card-city-options',
+              })}
+              <datalist id="card-city-options">
+                {(cityOptions.data?.cities ?? []).map((c) => (
+                  <option key={c.city} value={c.city} />
+                ))}
+              </datalist>
+              {text('coordinates', 'Coordinate', {
+                max: LIMITS.urlMax,
+                placeholder: '45.4642, 9.19',
+                hint: `Della sede di lavoro. ${COORDINATES_HINT} Servono alla vista Mappa delle opportunità.`,
+              })}
               {choice(
                 'contractType',
                 'Tipo di contratto',

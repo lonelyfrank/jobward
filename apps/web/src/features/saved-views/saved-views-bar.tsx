@@ -27,7 +27,16 @@ const canonical = (params: string) => [...new URLSearchParams(params).entries()]
  * Viste salvate dell'Opportunity Center (D-04): scorciatoie verso combinazioni di ambito, ricerca, filtri e
  * ordinamento. `current` è lo stato attuale dell'indirizzo (senza «?»).
  */
-export function SavedViewsBar({ current, basePath }: { current: string; basePath: string }) {
+export function SavedViewsBar({
+  current,
+  basePath,
+  singleRow = false,
+}: {
+  current: string;
+  basePath: string;
+  /** Sui telefoni una sola riga che scorre in orizzontale (vista Mappa a schermo pieno). */
+  singleRow?: boolean;
+}) {
   const views = useSavedViews();
   const { create, update, remove } = useSavedViewMutations();
   const notify = useNotify();
@@ -58,7 +67,15 @@ export function SavedViewsBar({ current, basePath }: { current: string; basePath
 
   if (views.isError) return null;
   return (
-    <div className="flex flex-wrap items-center gap-2" aria-label="Viste salvate" role="group">
+    <div
+      className={cn(
+        'flex flex-wrap items-center gap-2',
+        singleRow &&
+          'max-md:flex-nowrap max-md:overflow-x-auto max-md:pb-1 max-md:[scrollbar-width:none] max-md:[&>*]:shrink-0',
+      )}
+      aria-label="Viste salvate"
+      role="group"
+    >
       <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground">
         <Bookmark aria-hidden="true" className="size-3.5" />
         Viste

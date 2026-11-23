@@ -8,15 +8,15 @@ Rappresentazioni multiple della stessa fonte di dati, motore condiviso di query,
 
 ## Stato attuale
 
-| Vista               | In `jobward-v1`                                                                                |
-| ------------------- | ---------------------------------------------------------------------------------------------- |
-| Kanban              | ✅ per bacheca                                                                                 |
-| Tabella             | ✅ per bacheca e trasversale (`/opportunities`), stato nell'URL, elenco a schede su telefono   |
-| Timeline            | 🟡 solo per singola scheda                                                                     |
-| Calendario          | ✅ mensile (agenda su telefono): colloqui, scadenze delle attività e degli annunci (CAL-01)    |
-| Mappa               | ⬜                                                                                             |
-| Matrice comparativa | ⬜                                                                                             |
-| Dashboard           | 🟡 Overview con contatori e pagina Insights fissa (ANA-02); nessuna dashboard personalizzabile |
+| Vista               | In `jobward-v1`                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------- |
+| Kanban              | ✅ per bacheca                                                                                    |
+| Tabella             | ✅ per bacheca e trasversale (`/opportunities`), stato nell'URL, elenco a schede su telefono      |
+| Timeline            | 🟡 solo per singola scheda                                                                        |
+| Calendario          | ✅ mensile (agenda su telefono): colloqui, scadenze delle attività e degli annunci (CAL-01)       |
+| Mappa               | ✅ in `/opportunities` (`layout=map`): stessi filtri, distanze dalle posizioni del Profilo (D-07) |
+| Matrice comparativa | ⬜                                                                                                |
+| Dashboard           | 🟡 Overview con contatori e pagina Insights fissa (ANA-02); nessuna dashboard personalizzabile    |
 
 - Selettore Kanban/Tabella nella bacheca (`apps/web/src/routes/board.tsx`).
 - Filtri implementati in SQL per `GET /opportunities`; il Kanban carica tutte le schede attive della bacheca.
@@ -27,7 +27,7 @@ Rappresentazioni multiple della stessa fonte di dati, motore condiviso di query,
 
 - Le viste non possiedono dati ([CORE §4.4](../product/CORE.md#44-data-driven-workspace)).
 - Un filtro ha lo stesso significato in ogni vista e negli insights (PP-07).
-- Mappa: nessun provider esterno, nessuna coordinata inventata (D7).
+- Mappa: nessuna coordinata inventata; confini incorporati sempre disponibili; stradario OpenStreetMap **facoltativo** e disattivabile, senza altri provider (D7 modificata da [ADR-0019](../architecture/decisions/0019-opportunity-map.md)).
 
 ## Gap e voci di roadmap
 
@@ -36,7 +36,6 @@ Rappresentazioni multiple della stessa fonte di dati, motore condiviso di query,
 | Selettore di layout unico                           | D-02 |
 | Motore di query condiviso (esteso alle altre viste) | D-03 |
 | Timeline globale                                    | D-05 |
-| Mappa                                               | D-07 |
 | Preferenze lato server                              | D-08 |
 | Matrice comparativa                                 | B-07 |
 

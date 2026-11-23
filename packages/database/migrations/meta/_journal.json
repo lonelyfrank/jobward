@@ -22,6 +22,20 @@
       "when": 1795262138274,
       "tag": "0002_saved_views",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1795389631458,
+      "tag": "0003_map_places",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1795400409288,
+      "tag": "0004_opportunity_city",
+      "breakpoints": true
     }
   ]
 }

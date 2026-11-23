@@ -47,7 +47,7 @@ Dipendenze e percorso critico: [DEPENDENCIES](DEPENDENCIES.md). Classificazione 
 | D-04 | Viste salvate                                    | P1  | Implementata (v1.1, tabella)  | SW.8                |
 | D-05 | Timeline globale                                 | P1  | Pianificata                   | SW.5                |
 | D-06 | Calendario                                       | P2  | Implementata (v1)             | nuovo               |
-| D-07 | Mappa geografica                                 | P2  | Pianificata                   | SW.17               |
+| D-07 | Mappa geografica                                 | P2  | Implementata (MAP-01)         | SW.17               |
 | D-08 | Preferenze utente lato server                    | P2  | Proposta                      | nuovo               |
 | D-09 | Smart Boards e raggruppamenti virtuali           | P1  | Pianificata                   | SW.4, SW.9          |
 | D-10 | Dashboard personalizzabili                       | P2  | Pianificata                   | SW.19               |
@@ -467,9 +467,9 @@ Dipendenze e percorso critico: [DEPENDENCIES](DEPENDENCIES.md). Classificazione 
 
 ### D-07 Mappa geografica
 
-- **Priorità** P2 · **Stato** In corso (calcolo della distanza in `@jobward/shared`; migrazione e vista da approvare) · **Aggancio** SW.17, D7 (dati incorporati, nessun provider esterno, nessuna coordinata inventata).
+- **Priorità** P2 · **Stato** Implementata il 2026-11-23 (MAP-01, [ADR-0019](../architecture/decisions/0019-opportunity-map.md)) · **Aggancio** SW.17, D7 (dati incorporati, nessun provider esterno, nessuna coordinata inventata).
 - **Obiettivo:** distribuzione e distanza delle opportunità dalle posizioni scelte dall'utente.
-- **Decisioni del proprietario (2026-11-22):** la posizione di casa si salva nei dati dell'utente, nella sezione **Profilo**, insieme ad altre posizioni catalogate (per esempio per valutare un trasferimento); ogni identità ha le sue, quindi la demo non vede quelle reali. Nella scheda Opportunità la vista **Mappa** confronta le distanze delle opportunità da queste posizioni, con copertura **almeno europea**. La vista Mappa si sviluppa dopo le ottimizzazioni in corso.
+- **Decisioni del proprietario (2026-11-22):** la posizione di casa si salva nei dati dell'utente, nella sezione **Profilo**, insieme ad altre posizioni catalogate (per esempio per valutare un trasferimento); ogni identità ha le sue, quindi la demo non vede quelle reali. Nella scheda Opportunità la vista **Mappa** confronta le distanze delle opportunità da queste posizioni, con copertura **almeno europea**. Il 2026-11-23 il proprietario ha chiesto di implementarla subito, senza un filtro per azienda: i filtri esistenti bastano a scegliere quali aziende compaiono, e la mappa deve dare una panoramica della distanza media da casa o dai punti considerati casa. Lo stesso giorno ha deciso di usare lo stradario OpenStreetMap (D7 modificata, facoltativo e disattivabile).
 - **Dati:** geografia (migrazione), coordinate confermate dall'utente.
 - **Dipendenze:** SW.7, SW.12. **Impatto:** licenze e dimensione del bundle.
 - **Accettazione / Test:** opportunità senza posizione sempre conteggiate; nessuna chiamata esterna.

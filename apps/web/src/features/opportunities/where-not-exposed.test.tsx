@@ -44,7 +44,8 @@ function server() {
 }
 
 const listRequests = (calls: { method: string; path: string }[]) =>
-  calls.filter((c) => c.method === 'GET' && c.path.startsWith('/opportunities'));
+  // Solo l'elenco (`/opportunities?…`): `/opportunities/cities` e simili non portano filtri.
+  calls.filter((c) => c.method === 'GET' && /^\/opportunities(\?|$)/.test(c.path));
 
 describe('`where` non esposto: Tabella', () => {
   it('l’elenco Opportunità non invia `where` anche se è nell’indirizzo, e i filtri storici restano', async () => {

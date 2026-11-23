@@ -4,16 +4,17 @@
 
 ## Sviluppo
 
-| Comando                         | Effetto                                                                                                                                   |
-| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm dev`                      | API (`wrangler dev --env dev`, porta 8787) e web (Vite, porta 5174)                                                                       |
-| `pnpm dev:api` / `pnpm dev:web` | Separatamente                                                                                                                             |
-| `pnpm db:reset:local -- --yes`  | **Cancella** il D1 locale (anche i dati reali) dopo averne copiato lo stato in `apps/api/.wrangler/backups/`, poi riapplica le migrazioni |
-| `pnpm db:seed:demo`             | Con l'API avviata, rigenera il solo profilo **Dati demo** (come Impostazioni → Rigenera dati demo)                                        |
-| `pnpm db:migrate:local`         | Applica le migrazioni mancanti al D1 locale                                                                                               |
-| `pnpm db:generate`              | Nuova migrazione da `packages/database/src/schema.ts`                                                                                     |
-| `pnpm format`                   | Prettier in scrittura su tutta la repository (documenti inclusi)                                                                          |
-| `pnpm docs:screenshots`         | Con `pnpm dev` avviato: rigenera i Dati demo e salva le schermate della guida in `docs/user/images/` (Chromium di Playwright)             |
+| Comando                                      | Effetto                                                                                                                                                                                                                     |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`                                   | API (`wrangler dev --env dev`, porta 8787) e web (Vite, porta 5174)                                                                                                                                                         |
+| `pnpm dev:api` / `pnpm dev:web`              | Separatamente                                                                                                                                                                                                               |
+| `pnpm db:reset:local -- --yes`               | **Cancella** il D1 locale (anche i dati reali) dopo averne copiato lo stato in `apps/api/.wrangler/backups/`, poi riapplica le migrazioni                                                                                   |
+| `pnpm db:seed:demo`                          | Con l'API avviata, rigenera il solo profilo **Dati demo** (come Impostazioni → Rigenera dati demo)                                                                                                                          |
+| `pnpm db:migrate:local`                      | Applica le migrazioni mancanti al D1 locale                                                                                                                                                                                 |
+| `pnpm db:generate`                           | Nuova migrazione da `packages/database/src/schema.ts`                                                                                                                                                                       |
+| `pnpm format`                                | Prettier in scrittura su tutta la repository (documenti inclusi)                                                                                                                                                            |
+| `pnpm docs:screenshots`                      | Con `pnpm dev` avviato: rigenera i Dati demo e salva le schermate della guida in `docs/user/images/` (Chromium di Playwright)                                                                                               |
+| `node apps/web/scripts/build-europe-map.mjs` | Rigenera i confini della vista Mappa (`apps/web/src/features/opportunities/map/europe-map.json`) da Natural Earth; solo se cambiano copertura o risoluzione ([ADR-0019](../architecture/decisions/0019-opportunity-map.md)) |
 
 ## Verifiche
 

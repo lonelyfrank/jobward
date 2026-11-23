@@ -63,6 +63,11 @@ export const opportunitiesQuery = z
     workMode: withNone(WORK_MODES).optional(),
     contractType: withNone(CONTRACT_TYPES).optional(),
     labelId: list(idSchema, LIMITS.labelsPerCardMax).optional(),
+    /**
+     * Città della sede (D-07), confrontate senza maiuscole né spazi ai lati; `none` = non indicata.
+     * Più città in OR, come gli altri elenchi.
+     */
+    city: list(z.string().trim().min(1).max(LIMITS.cityMax), LIMITS.citiesPerFilterMax).optional(),
     appliedFrom: calendarDate.optional(),
     appliedTo: calendarDate.optional(),
     salaryMin: integer(LIMITS.salaryAmountMax).optional(),
@@ -133,3 +138,44 @@ export const pipelineBoardResponse = z.object({
   cards: z.array(cardSchema.extend({ boardName: z.string().nullable() })),
 });
 export type PipelineBoardResponse = z.infer<typeof pipelineBoardResponse>;
+
+/**
+ * Vista Mappa (D-07): le opportunità che rispettano GLI STESSI filtri dell'elenco, in forma
+ * leggera. Le coordinate sono quelle confermate dall'utente; senza coordinate l'opportunità resta
+ * nell'elenco come «non localizzabile» (mai scartata, mai collocata per deduzione).
+ */
+export const opportunityMapItemSchema = z.object({
+  id: idSchema,
+  title: z.string(),
+  company: z.string().nullable(),
+  jobTitle: z.string().nullable(),
+  location: z.string().nullable(),
+  city: z.string().nullable(),
+  latitude: z.number().nullable(),
+  longitude: z.number().nullable(),
+  boardName: z.string().nullable(),
+  stage: z.enum(STAGES).nullable(),
+  outcome: z.enum(OUTCOMES).nullable(),
+  archivedAt: z.number().int().nullable(),
+});
+export type OpportunityMapItem = z.infer<typeof opportunityMapItemSchema>;
+
+export const opportunitiesMapResponse = z.object({
+  /** Al massimo `LIMITS.mapPointsMax`, prima quelle con coordinate. */
+  items: z.array(opportunityMapItemSchema),
+  /** Opportunità che rispettano i filtri (anche oltre il tetto). */
+  total: z.number().int().nonnegative(),
+  /** Di queste, quante hanno coordinate. */
+  located: z.number().int().nonnegative(),
+  /** `true` se `items` non contiene tutte le opportunità filtrate. */
+  truncated: z.boolean(),
+});
+export type OpportunitiesMapResponse = z.infer<typeof opportunitiesMapResponse>;
+
+/** Città usate nelle opportunità del workspace (non archiviate), per il filtro «Città». */
+export const opportunityCitiesResponse = z.object({
+  cities: z.array(z.object({ city: z.string(), count: z.number().int().positive() })),
+  /** Opportunità senza città indicata. */
+  withoutCity: z.number().int().nonnegative(),
+});
+export type OpportunityCitiesResponse = z.infer<typeof opportunityCitiesResponse>;

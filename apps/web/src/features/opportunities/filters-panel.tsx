@@ -68,17 +68,19 @@ function SidebarCheckGroup({
   options,
   selected,
   onChange,
+  defaultOpen,
 }: {
   legend: string;
   options: { value: string; label: ReactNode }[];
   selected: string[];
   onChange: (values: string[]) => void;
+  defaultOpen?: boolean;
 }) {
   return (
     <SidebarSection
       title={legend}
       count={selected.length}
-      defaultOpen={legend === 'Priorità' || legend === 'Fase'}
+      defaultOpen={defaultOpen ?? (legend === 'Priorità' || legend === 'Fase')}
     >
       <fieldset className="min-w-0 space-y-1">
         <legend className="sr-only">{legend}</legend>
@@ -126,7 +128,13 @@ export function FiltersPanel({
   boards,
   salaryHint,
   dateHint,
+  cities,
+  citiesFirst = false,
 }: {
+  /** Città usate nelle opportunità (filtro «Città», D-07); assente = gruppo nascosto. */
+  cities?: { city: string; count: number }[] | undefined;
+  /** Vista Mappa: il gruppo «Città» viene per primo, già aperto. */
+  citiesFirst?: boolean;
   state: TableState;
   onChange: (patch: Partial<TableState>) => void;
   labels: Label[];
@@ -138,6 +146,40 @@ export function FiltersPanel({
 }) {
   const setList = (key: ListKey) => (values: string[]) =>
     onChange({ lists: { ...state.lists, [key]: values } });
+
+  // Città (D-07): le opzioni sono le città scritte nelle opportunità, più «Non indicata».
+  const cityGroup =
+    cities && cities.length === 0 && state.lists.city.length === 0 ? (
+      <SidebarSection title="Città" count={0} defaultOpen={citiesFirst}>
+        <p className="px-1 pb-1 text-xs text-muted-foreground">
+          Nessuna città ancora: scrivila nei Dettagli di ogni opportunità (campo «Città») e potrai
+          filtrare la mappa e l’elenco per città.
+        </p>
+      </SidebarSection>
+    ) : cities ? (
+      <SidebarCheckGroup
+        legend="Città"
+        defaultOpen={citiesFirst || state.lists.city.length > 0}
+        options={[
+          ...cities.map((c) => ({
+            value: c.city,
+            label: (
+              <span className="flex w-full items-center justify-between gap-2">
+                <span className="min-w-0 break-words">{c.city}</span>
+                <span className="text-xs text-muted-foreground tabular-nums">{c.count}</span>
+              </span>
+            ),
+          })),
+          // Città nell'indirizzo che non compaiono più tra le opzioni: restano deselezionabili.
+          ...state.lists.city
+            .filter((v) => v !== 'none' && !cities.some((c) => c.city === v))
+            .map((v) => ({ value: v, label: v })),
+          { value: 'none', label: 'Non indicata' },
+        ]}
+        selected={state.lists.city}
+        onChange={setList('city')}
+      />
+    ) : null;
 
   return (
     <div className="min-w-0">
@@ -181,6 +223,7 @@ export function FiltersPanel({
           </div>
         </SidebarSection>
       ) : null}
+      {citiesFirst ? cityGroup : null}
       <SidebarCheckGroup
         legend="Priorità"
         options={PRIORITIES.map((p) => ({
@@ -214,6 +257,7 @@ export function FiltersPanel({
         selected={state.lists.contract}
         onChange={setList('contract')}
       />
+      {citiesFirst ? null : cityGroup}
       {labels.length > 0 ? (
         <SidebarCheckGroup
           legend="Etichette (anche una sola)"

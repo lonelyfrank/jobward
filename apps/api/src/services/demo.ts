@@ -6,6 +6,7 @@ import {
   createInterviewInput,
   createLabelInput,
   createNoteInput,
+  createPlaceInput,
   createSavedViewInput,
   createTaskInput,
   pipelineTransitionInput,
@@ -31,6 +32,7 @@ import { completeInterview, createInterview } from './interviews';
 import { assignLabel, createLabel } from './labels';
 import { createNote } from './notes';
 import { transitionCard } from './pipeline';
+import { createPlace } from './places';
 import { createSavedView } from './saved-views';
 import { changeTaskState, createTask } from './tasks';
 import { createWorkspace } from './workspaces';
@@ -124,6 +126,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
       company: 'Brera Digital',
       jobTitle: 'Full Stack Engineer (TypeScript)',
       location: 'Via Solferino, Milano (Brera)',
+      city: 'Milano',
+      latitude: 45.476,
+      longitude: 9.1866,
       workMode: 'hybrid',
       contractType: 'permanent',
       ...eur(42_000, 50_000),
@@ -202,6 +207,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
       company: 'Nordlight Software',
       jobTitle: 'Frontend Developer',
       location: 'Via Gaetano de Castillia, Milano (Isola)',
+      city: 'Milano',
+      latitude: 45.487,
+      longitude: 9.1915,
       workMode: 'hybrid',
       contractType: 'permanent',
       ...eur(36_000, 42_000),
@@ -263,6 +271,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Sistemi Alpini',
       location: 'Viale Sarca, Milano (Bicocca)',
+      city: 'Milano',
+      latitude: 45.5165,
+      longitude: 9.2125,
       workMode: 'onsite',
       contractType: 'permanent',
       ...eur(28_000, 32_000),
@@ -297,6 +308,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Fintech Navigli',
       location: 'Ripa di Porta Ticinese, Milano (Navigli)',
+      city: 'Milano',
+      latitude: 45.451,
+      longitude: 9.1715,
       workMode: 'remote',
       contractType: 'permanent',
       ...eur(40_000, 48_000),
@@ -332,6 +346,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Studio Vela',
       location: 'Via Tortona, Milano (Tortona)',
+      city: 'Milano',
+      latitude: 45.4535,
+      longitude: 9.165,
       workMode: 'hybrid',
       contractType: 'fixed_term',
       ...eur(32_000, 36_000),
@@ -358,6 +375,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Cloudnova',
       location: 'Via Gattamelata, Milano (Portello)',
+      city: 'Milano',
+      latitude: 45.4885,
+      longitude: 9.149,
       workMode: 'remote',
       contractType: 'permanent',
       source: 'LinkedIn',
@@ -375,6 +395,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Lumen Health',
       location: 'Via Celoria, Milano (Città Studi)',
+      city: 'Milano',
+      latitude: 45.4765,
+      longitude: 9.2305,
       workMode: 'hybrid',
       contractType: 'permanent',
       ...eur(34_000, 40_000),
@@ -401,6 +424,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Orbita Labs',
       location: 'Via Ventura, Milano (Lambrate)',
+      city: 'Milano',
+      latitude: 45.4845,
+      longitude: 9.242,
       workMode: 'hybrid',
       contractType: 'permanent',
       ...eur(45_000, 55_000),
@@ -417,6 +443,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Officine Dati',
       location: 'Via Durando, Milano (Bovisa)',
+      city: 'Milano',
+      latitude: 45.5035,
+      longitude: 9.1555,
       workMode: 'onsite',
       contractType: 'apprenticeship',
       source: 'Indeed',
@@ -432,6 +461,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Arcobaleno Retail',
       location: 'Corso Lodi, Milano (Porta Romana)',
+      city: 'Milano',
+      latitude: 45.4475,
+      longitude: 9.2075,
       workMode: 'onsite',
       contractType: 'permanent',
       ...eur(30_000, 34_000),
@@ -466,6 +498,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Pixel Ponte',
       location: 'Via Padova, Milano (NoLo)',
+      city: 'Milano',
+      latitude: 45.496,
+      longitude: 9.2215,
       workMode: 'hybrid',
       source: 'Indeed',
       interest: 2,
@@ -481,6 +516,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Verdi Logistica',
       location: 'Via Rogoredo, Milano (Santa Giulia)',
+      city: 'Milano',
+      latitude: 45.438,
+      longitude: 9.233,
       workMode: 'onsite',
       contractType: 'fixed_term',
       source: 'Sito aziendale',
@@ -507,6 +545,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Alpenrise',
       location: 'Zurigo',
+      city: 'Zurigo',
+      latitude: 47.3769,
+      longitude: 8.5417,
       workMode: 'remote',
       contractType: 'permanent',
       salaryMin: 95_000,
@@ -529,6 +570,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Kestrel Labs',
       location: 'Berlino',
+      city: 'Berlino',
+      latitude: 52.52,
+      longitude: 13.405,
       workMode: 'hybrid',
       contractType: 'permanent',
       ...eur(60_000, 72_000),
@@ -544,6 +588,9 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Agenzia Riva',
       location: 'Corso Sempione, Milano (Sempione)',
+      city: 'Milano',
+      latitude: 45.4805,
+      longitude: 9.168,
       workMode: 'hybrid',
       source: 'LinkedIn',
     },
@@ -556,6 +603,7 @@ const OPPORTUNITIES: OpportunitySpec[] = [
     details: {
       company: 'Nimbus Travel',
       location: 'Via Washington, Milano (De Angeli)',
+      city: 'Milano',
       workMode: 'remote',
       source: 'Newsletter',
     },
@@ -573,6 +621,12 @@ const GENERAL_TASKS: TaskSpec[] = [
     done: true,
   },
 ];
+
+/** Posizioni personali del profilo demo (D-07): casa a Milano e un'ipotesi di trasferimento. */
+const PLACES = [
+  { name: 'Casa', kind: 'home', latitude: 45.486, longitude: 9.216 },
+  { name: 'Torino (trasferimento)', kind: 'other', latitude: 45.0703, longitude: 7.6869 },
+] as const;
 
 const SAVED_VIEWS = [
   { name: 'Da remoto', params: 'mode=remote' },
@@ -821,6 +875,12 @@ export async function resetDemoWorkspace(
 
   for (const view of SAVED_VIEWS) {
     await createSavedView(d1, db, ws, createSavedViewInput.parse(view), now - 60_000);
+  }
+
+  // Le posizioni appartengono all'identità demo (non al workspace): si rigenerano anche loro.
+  await d1.prepare('DELETE FROM user_places WHERE user_id = ?1').bind(user.id).run();
+  for (const place of PLACES) {
+    await createPlace(d1, db, user.id, createPlaceInput.parse(place), now - 60_000);
   }
   return workspace;
 }

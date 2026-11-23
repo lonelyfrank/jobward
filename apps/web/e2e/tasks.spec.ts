@@ -217,7 +217,7 @@ test('scadenza passata: «In ritardo», contatore e completata in ritardo', asyn
   const today = await api.today();
   await api.create({ title, dueOn: addDays(today, -1) });
   await page.goto('/tasks');
-  await expect(page.getByRole('button', { name: /^In ritardo\s*[1-9]/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^[1-9]\d*\s*In ritardo$/ })).toBeVisible();
   const overdue = page.getByRole('region', { name: /In ritardo/ });
   const row = overdue.locator('[data-task-row]').filter({ hasText: title });
   await expect(row.getByText('Scaduta ieri')).toBeVisible();

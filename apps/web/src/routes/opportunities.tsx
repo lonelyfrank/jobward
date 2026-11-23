@@ -6,11 +6,7 @@ import { OpportunitiesView } from '@/features/opportunities/opportunities-view';
 export function Component() {
   return (
     <>
-      <WorkspacePageHeader
-        title="Opportunità"
-        canCreateCard
-        description="Tutte le tue schede in una tabella: cerca, filtra e ordina tra bacheche diverse."
-      />
+      <WorkspacePageHeader title="Opportunità" canCreateCard />
       <OpportunitiesView />
       {/* Pannello di dettaglio: sotto la stessa rotta, ricerca e filtri restano nell'indirizzo. */}
       <Outlet />

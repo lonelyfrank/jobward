@@ -181,6 +181,13 @@ export type InterviewResult = (typeof INTERVIEW_RESULTS)[number];
 export const MEMBER_ROLES = ['owner', 'editor', 'viewer'] as const;
 export type MemberRole = (typeof MEMBER_ROLES)[number];
 
+/**
+ * Posizioni personali dell'utente (D-07): «casa» (al massimo una) e altre posizioni catalogate,
+ * per esempio una città in cui valuti di trasferirti. Riferimenti per le distanze della Mappa.
+ */
+export const PLACE_KINDS = ['home', 'other'] as const;
+export type PlaceKind = (typeof PLACE_KINDS)[number];
+
 export const THEME_PREFERENCES = ['light', 'dark', 'system'] as const;
 export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 
@@ -226,6 +233,14 @@ export const LIMITS = {
   tasksPerWorkspaceMax: 5_000,
   taskPageDefault: 50,
   taskPageMax: 100,
+  /** Posizioni personali per utente (atomico) e lunghezza del nome (D-07). */
+  placesPerUserMax: 20,
+  placeNameMax: 60,
+  /** Città della sede di un'opportunità e città selezionabili insieme nel filtro (D-07). */
+  cityMax: 80,
+  citiesPerFilterMax: 10,
+  /** Opportunità restituite dalla vista Mappa in una sola risposta (le altre sono dichiarate). */
+  mapPointsMax: 1_000,
   /** Dimensione massima del body JSON accettato dall'API, in byte. */
   requestBodyMaxBytes: 64 * 1024,
 } as const;

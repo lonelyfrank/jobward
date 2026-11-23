@@ -92,4 +92,46 @@ describe('bozza ↔ patch del pannello di dettaglio', () => {
       ]),
     ).toEqual({ salaryMax: 'm' });
   });
+
+  it('coordinate: incollate o da un link, inviate sempre in coppia; testo non valido → errore', () => {
+    const c = base();
+    const pasted = buildChanges({ ...draftFromCard(c), coordinates: '45,4642; 9,19' }, c);
+    expect(pasted.errors).toEqual({});
+    expect(pasted.input).toEqual({ latitude: 45.4642, longitude: 9.19 });
+
+    const link = 'https://www.openstreetmap.org/?mlat=45.07&mlon=7.68#map=15/45.07/7.68';
+    expect(buildChanges({ ...draftFromCard(c), coordinates: link }, c).input).toEqual({
+      latitude: 45.07,
+      longitude: 7.68,
+    });
+
+    const invalid = buildChanges({ ...draftFromCard(c), coordinates: 'Milano centro' }, c);
+    expect(invalid.input).toBeNull();
+    expect(invalid.errors.coordinates).toMatch(/coordinate valide/);
+
+    // Cambia solo la longitudine: la patch contiene comunque entrambe.
+    const saved = { ...c, latitude: 45.4642, longitude: 9.19 };
+    expect(draftFromCard(saved).coordinates).toBe('45.4642, 9.19');
+    expect(
+      buildChanges({ ...draftFromCard(saved), coordinates: '45.4642, 9.2' }, saved).input,
+    ).toEqual({ latitude: 45.4642, longitude: 9.2 });
+    // Svuotare il campo azzera la coppia.
+    expect(buildChanges({ ...draftFromCard(saved), coordinates: '' }, saved).input).toEqual({
+      latitude: null,
+      longitude: null,
+    });
+    expect(serverFieldErrors([{ path: 'longitude', message: 'x' }])).toEqual({ coordinates: 'x' });
+  });
+
+  it('città: testo libero rifilato, vuoto = nessuna città', () => {
+    const c = base();
+    expect(buildChanges({ ...draftFromCard(c), city: '  Milano ' }, c).input).toEqual({
+      city: 'Milano',
+    });
+    const saved = { ...c, city: 'Milano' };
+    expect(draftFromCard(saved).city).toBe('Milano');
+    expect(buildChanges({ ...draftFromCard(saved), city: '' }, saved).input).toEqual({
+      city: null,
+    });
+  });
 });

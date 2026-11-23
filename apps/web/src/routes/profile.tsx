@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Surface } from '@/components/ui/surface';
 import { UserAvatar } from '@/components/ui/user-avatar';
 import { WorkspacePageHeader } from '@/components/ui/workspace-page-header';
+import { PlacesSection } from '@/features/places/places-section';
 import { useWorkspace } from '@/features/workspace/context';
 
 export function ProfilePage() {
@@ -25,6 +26,7 @@ export function ProfilePage() {
             </div>
           </div>
         </Surface>
+        <PlacesSection />
         <Surface className="p-6">
           <h2 className="text-[17px] font-bold">Il tuo workspace</h2>
           <dl className="mt-4 grid grid-cols-[max-content_minmax(0,1fr)] gap-x-6 gap-y-3 text-sm">

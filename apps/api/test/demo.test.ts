@@ -1,4 +1,10 @@
-import { insightsResponse, meResponse, overviewResponse } from '@jobward/schemas';
+import {
+  insightsResponse,
+  meResponse,
+  opportunitiesMapResponse,
+  overviewResponse,
+  placesResponse,
+} from '@jobward/schemas';
 import { describe, expect, it } from 'vitest';
 import { createApp } from '../src/app';
 import { accessEnv, call, createAccessSigner, devEnv } from './helpers';
@@ -55,6 +61,26 @@ describe('profilo dati demo', () => {
       (await call(app, env, `/api/v1/overview?workspaceId=${realWs}`)).body,
     );
     expect(realOverview.counts.opportunities).toBe(0);
+
+    // Posizioni (D-07): la demo ha le sue, rigenerate senza duplicati; l'identità reale nessuna.
+    const demoPlaces = placesResponse.parse(
+      (await call(app, env, '/api/v1/me/places', { headers: DEMO })).body,
+    ).places;
+    expect(demoPlaces.map((p) => [p.name, p.kind])).toEqual([
+      ['Casa', 'home'],
+      ['Torino (trasferimento)', 'other'],
+    ]);
+    const realPlaces = placesResponse.parse((await call(app, env, '/api/v1/me/places')).body);
+    expect(realPlaces.places).toEqual([]);
+    const map = opportunitiesMapResponse.parse(
+      (
+        await call(app, env, `/api/v1/opportunities/map?workspaceId=${second.body.workspace.id}`, {
+          headers: DEMO,
+        })
+      ).body,
+    );
+    expect(map.located).toBeGreaterThan(10);
+    expect(map.located).toBeLessThan(map.total);
   });
 
   it('il dataset popola Overview e Insights con date relative a oggi', async () => {

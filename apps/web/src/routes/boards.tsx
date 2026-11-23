@@ -67,7 +67,6 @@ export function BoardsPage() {
   const header = (
     <WorkspacePageHeader
       title="Bacheche"
-      description="Una bacheca raccoglie le opportunità di una ricerca, organizzate nelle tue colonne."
       canCreateCard={ordered.some((board) => board.columnCount > 0)}
       actions={[
         {

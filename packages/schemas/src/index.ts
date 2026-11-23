@@ -9,6 +9,7 @@ export * from './export';
 export * from './calendar';
 export * from './company';
 export * from './saved-view';
+export * from './place';
 export * from './custom-field';
 export * from './interview';
 export * from './pipeline';

@@ -23,3 +23,4 @@ Una decisione si cambia con un nuovo ADR che sostituisce il precedente, non risc
 | [0016](0016-smart-workspace-domain.md)                 | Smart Workspace: Opportunity/Application, bacheche, viste e insights          | Accettato; percorso di migrazione superato da ADR-0017 |
 | [0017](0017-local-v1-baseline.md)                      | Jobward v1 locale: base unica, candidature come fonte dello stato             | Accettato                                              |
 | [0018](0018-launch-repository-and-docs-archive.md)     | Repository di lancio: nessuna storia pubblicata, storico fuori da `main`      | Accettato                                              |
+| [0019](0019-opportunity-map.md)                        | Mappa delle opportunità: posizioni, coordinate, confini e stradario OSM       | Accettato                                              |

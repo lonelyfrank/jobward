@@ -1,6 +1,6 @@
 # Contratti API (catalogo corrente)
 
-**Stato:** canonico per l'elenco degli endpoint esistenti · **Verificato su:** `jobward-v1` (2026-11-21). I contratti per milestone sono nell'archivio storico non pubblicato ([ADR-0018](../architecture/decisions/0018-launch-repository-and-docs-archive.md)); in caso di dubbio prevale il codice.
+**Stato:** canonico per l'elenco degli endpoint esistenti · **Verificato su:** `main` (2026-11-23, D-07). I contratti per milestone sono nell'archivio storico non pubblicato ([ADR-0018](../architecture/decisions/0018-launch-repository-and-docs-archive.md)); in caso di dubbio prevale il codice.
 
 Fonti: rotte in `apps/api/src/modules/<risorsa>/routes.ts`, schemi in [`packages/schemas/src`](../../packages/schemas/src), catena in [`apps/api/src/app.ts`](../../apps/api/src/app.ts).
 
@@ -8,7 +8,7 @@ Fonti: rotte in `apps/api/src/modules/<risorsa>/routes.ts`, schemi in [`packages
 
 - Base: `/api/v1`. Unica rotta pubblica: `GET /api/health`.
 - Autenticazione obbligatoria su tutto `/api/v1` ([SECURITY](SECURITY.md)).
-- Tutte le rotte di dominio, tranne `/me` e `/workspaces`, richiedono `?workspaceId=`; la membership è verificata in un solo punto (`middleware/workspace.ts`). Workspace inesistente o altrui → **404**. Ruolo `viewer` = sola lettura.
+- Tutte le rotte di dominio, tranne `/me` (con `/me/places`) e `/workspaces`, richiedono `?workspaceId=`; la membership è verificata in un solo punto (`middleware/workspace.ts`). Workspace inesistente o altrui → **404**. Ruolo `viewer` = sola lettura.
 - Mutazioni: corpo JSON obbligatorio (`Content-Type: application/json`, anche `{}` per DELETE e comandi), massimo 64 KiB.
 - Validazione: input Zod quasi sempre `.strict()`; anche le risposte sono validate con gli schemi condivisi, **tranne** `/me`, `/workspaces`, `/overview` (schemi esistenti ma non applicati).
 - Errori: `{ "error": { "code", "message", "requestId", "issues?" } }`. Codici: `validation_error`, `unauthenticated`, `forbidden`, `not_found`, `conflict`, `payload_too_large`, `unsupported_media_type`, `csrf_rejected`, `rate_limited` (definito, mai usato), `auth_misconfigured`, `internal_error`. I messaggi sono in italiano; i client si basano sul codice.
@@ -68,6 +68,15 @@ La pipeline (`POST /cards/:id/pipeline`) crea la candidatura n. 1 con snapshot a
 | duplicati     | `GET /opportunities/duplicates?title=&company=&sourceUrl=&excludeId=` | possibili duplicati (stesso link, stessa azienda e titolo simile, stesso titolo) |
 | aziende       | `GET /companies` · `GET/PATCH /companies/:id`                         | elenco con conteggi; dettaglio con le opportunità; modifica di nome, sito, note  |
 | viste salvate | `GET/POST /views` · `PATCH/DELETE /views/:id`                         | definizioni dell'Opportunity Center (`params` = query string)                    |
+
+## Rotte aggiunte per la Mappa (D-07, [ADR-0019](decisions/0019-opportunity-map.md))
+
+| Risorsa             | Metodo e percorso                                                                                               | Contratto e note                                                                                                                                                                                      |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| posizioni personali | `GET/POST /me/places` · `PATCH/DELETE /me/places/:id`                                                           | `createPlaceInput`/`updatePlaceInput` → `placeResponse`/`placesResponse`. Dell'**utente** (nessun `workspaceId`); ≤ 20, nome univoco (409), una sola casa: `kind: 'home'` rende «altra» la precedente |
+| mappa               | `GET /opportunities/map`                                                                                        | stessi parametri e filtri di `GET /opportunities` (ordine e pagina ignorati) → `opportunitiesMapResponse` `{ items ≤ 1000, total, located, truncated }`, prima le opportunità con coordinate          |
+| città               | `GET /opportunities/cities` · parametro `city` di `/opportunities` e `/opportunities/map` · `city` nei dettagli | città usate (grafia prevalente, conteggi) e opportunità senza città; filtro senza maiuscole, `none` = non indicata, ≤ 10 città                                                                        |
+| coordinate          | `PATCH /cards/:id` · `POST /cards` (`details`)                                                                  | `latitude` ∈ [−90, 90] e `longitude` ∈ [−180, 180], **sempre insieme** (numeri o `null`), altrimenti 400; restituite in ogni scheda                                                                   |
 
 ## Risorse assenti
 

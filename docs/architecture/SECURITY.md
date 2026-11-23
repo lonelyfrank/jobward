@@ -19,7 +19,7 @@
 - **CSRF** (`middleware/guards.ts`) su metodi non sicuri: `Content-Type` esattamente `application/json` (415), `Origin` uguale all'origine dell'API o ad `APP_ORIGIN`, `Sec-Fetch-Site` same-origin o none.
 - **Limite del corpo:** 64 KiB.
 - **CORS:** mai concesso (un'unica origine).
-- **Header:** CSP `default-src 'none'; frame-ancestors 'none'` per l'API, CORP same-origin, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`, `x-request-id` (`middleware/request.ts`). La SPA ha la sua CSP in `apps/web/public/_headers`, verificata dalla suite preview.
+- **Header:** CSP `default-src 'none'; frame-ancestors 'none'` per l'API, CORP same-origin, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Cache-Control: no-store`, `x-request-id` (`middleware/request.ts`). La SPA ha la sua CSP in `apps/web/public/_headers`, verificata dalla suite preview; `img-src` ammette solo `https://tile.openstreetmap.org` oltre all'origine, per lo stradario facoltativo della Mappa ([ADR-0019](decisions/0019-opportunity-map.md)).
 - **Log:** metodo, percorso, stato e durata; gli errori sconosciuti solo per nome. Nessun testo riservato.
 - **Rate limiting:** **assente** (codice `rate_limited` definito ma non usato). Accettabile per un solo utente dietro Access; necessario prima della multiutenza (M5).
 

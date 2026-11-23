@@ -204,6 +204,10 @@
     transform: none;
   }
 }
+/* Stradario OpenStreetMap in tema scuro: tile invertite (stessi colori della mappa scura). */
+.dark .map-tiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.88);
+}
 @keyframes jobward-slide-in-right {
   from {
     transform: translateX(100%);

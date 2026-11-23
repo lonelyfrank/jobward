@@ -9,6 +9,7 @@ import {
   INTERVIEW_TYPES,
   MEMBER_ROLES,
   OUTCOMES,
+  PLACE_KINDS,
   PRIORITIES,
   TASK_KINDS,
   SALARY_BASES,
@@ -24,6 +25,7 @@ import {
   index,
   integer,
   primaryKey,
+  real,
   sqliteTable,
   sqliteView,
   text,
@@ -278,6 +280,38 @@ export const savedViews = sqliteTable(
   ],
 );
 
+/**
+ * Posizioni personali dell'utente (D-07): casa (al massimo una) e altre posizioni catalogate.
+ * Appartengono all'IDENTITÀ, non al workspace: ogni utente (anche il profilo demo) vede solo le sue.
+ */
+export const userPlaces = sqliteTable(
+  'user_places',
+  {
+    id: id(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    kind: text('kind', { enum: PLACE_KINDS }).notNull().default('other'),
+    latitude: real('latitude').notNull(),
+    longitude: real('longitude').notNull(),
+    position: integer('position').notNull().default(0),
+    createdAt: createdAt(),
+    updatedAt: updatedAt(),
+  },
+  (t) => [
+    uniqueIndex('user_places_user_name_unique').on(t.userId, sql`lower(${t.name})`),
+    uniqueIndex('user_places_one_home')
+      .on(t.userId)
+      .where(sql`${t.kind} = 'home'`),
+    index('user_places_user_position_idx').on(t.userId, t.position),
+    check('user_places_name_length', sql`length(${t.name}) between 1 and 60`),
+    check('user_places_kind_valid', inList(t.kind, PLACE_KINDS)),
+    check('user_places_latitude_range', sql`${t.latitude} between -90 and 90`),
+    check('user_places_longitude_range', sql`${t.longitude} between -180 and 180`),
+  ],
+);
+
 /** Informazioni strutturate dell'opportunità. 1:1 con la scheda, tutti i campi facoltativi. */
 export const applicationDetails = sqliteTable(
   'application_details',
@@ -289,6 +323,8 @@ export const applicationDetails = sqliteTable(
     company: text('company'),
     position: text('position'),
     location: text('location'),
+    /** Città della sede (D-07, `0004`): scritta dall'utente, per filtrare e raggruppare; mai dedotta. */
+    city: text('city'),
     workMode: text('work_mode', { enum: WORK_MODES }),
     contractType: text('contract_type', { enum: CONTRACT_TYPES }),
     /** Importi in unità intere della valuta (non in centesimi). */
@@ -311,6 +347,13 @@ export const applicationDetails = sqliteTable(
     interest: integer('interest'),
     /** Azienda collegata (stesso workspace: trigger `application_details_company_tenant_*`). */
     companyId: text('company_id').references(() => companies.id, { onDelete: 'set null' }),
+    /**
+     * Coordinate della sede (D-07), inserite o confermate dall'utente: mai dedotte dal testo.
+     * Entrambe valorizzate o entrambe NULL, negli intervalli geografici: trigger
+     * `application_details_coordinates_*` (0003), perché un CHECK aggiunto obbligherebbe a ricreare la tabella.
+     */
+    latitude: real('latitude'),
+    longitude: real('longitude'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },

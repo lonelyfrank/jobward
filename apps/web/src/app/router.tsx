@@ -74,7 +74,12 @@ export const appRoutes: RouteObject[] = [
             lazy: () => import('@/routes/company'),
             handle: handle('Azienda'),
           },
-          { path: 'tasks', lazy: () => import('@/routes/tasks'), handle: handle('Attività') },
+          {
+            path: 'tasks',
+            lazy: () => import('@/routes/tasks'),
+            // A tutta altezza: riepilogo e filtri fermi, scorre solo l'elenco.
+            handle: handle('Attività', { fullBleed: true }),
+          },
           {
             path: 'calendar',
             lazy: () => import('@/routes/calendar'),

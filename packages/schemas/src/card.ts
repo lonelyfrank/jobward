@@ -13,6 +13,7 @@ import {
 import { z } from 'zod';
 import { boardSchema, columnSchema } from './board';
 import { interviewSummarySchema } from './interview';
+import { latitudeSchema, longitudeSchema } from './place';
 import { calendarDate, httpUrl, idSchema, optionalText, requiredText } from './primitives';
 
 /** Testo facoltativo dei dettagli: rifilato, e la stringa vuota equivale a "nessun valore" (`null`). */
@@ -32,6 +33,8 @@ const detailsShape = {
   /** Titolo della posizione (colonna `application_details.position`; `position` della scheda è l'ordine). */
   jobTitle: detailText(LIMITS.nameMax),
   location: detailText(LIMITS.nameMax),
+  /** Città della sede (D-07): testo libero, base del filtro «Città». */
+  city: detailText(LIMITS.cityMax),
   workMode: z.enum(WORK_MODES).nullable(),
   contractType: z.enum(CONTRACT_TYPES).nullable(),
   salaryMin: salaryAmount.nullable(),
@@ -53,6 +56,9 @@ const detailsShape = {
   benefits: detailText(LIMITS.descriptionMax),
   /** Interesse personale 1–5: valutazione dell'utente, mai calcolata. */
   interest: z.number().int().min(1).max(5).nullable(),
+  /** Coordinate della sede (D-07): inserite o confermate dall'utente, sempre in coppia. */
+  latitude: latitudeSchema.nullable(),
+  longitude: longitudeSchema.nullable(),
 };
 
 export const DETAIL_KEYS = Object.keys(detailsShape) as (keyof typeof detailsShape)[];
@@ -83,9 +89,23 @@ export function salaryIssues(state: SalaryState): SalaryIssue[] {
 }
 
 /** Nel solo payload si può verificare soltanto l'intervallo (la valuta può essere già salvata). */
-const payloadRange = (d: SalaryState, ctx: z.RefinementCtx) => {
+const payloadRange = (
+  d: SalaryState & { latitude?: number | null; longitude?: number | null },
+  ctx: z.RefinementCtx,
+) => {
   for (const issue of rangeIssue(d)) {
     ctx.addIssue({ code: 'custom', message: issue.message, path: [issue.path] });
+  }
+  // Le coordinate si scrivono sempre insieme: entrambe numeri o entrambe `null`.
+  if (
+    (d.latitude === undefined) !== (d.longitude === undefined) ||
+    (d.latitude === null) !== (d.longitude === null)
+  ) {
+    ctx.addIssue({
+      code: 'custom',
+      message: 'Indica latitudine e longitudine insieme',
+      path: ['longitude'],
+    });
   }
 };
 
@@ -161,6 +181,7 @@ export const cardSchema = z.object({
   company: z.string().nullable(),
   jobTitle: z.string().nullable(),
   location: z.string().nullable(),
+  city: z.string().nullable(),
   workMode: z.enum(WORK_MODES).nullable(),
   contractType: z.enum(CONTRACT_TYPES).nullable(),
   salaryMin: z.number().int().nullable(),
@@ -176,6 +197,8 @@ export const cardSchema = z.object({
   requirements: z.string().nullable(),
   benefits: z.string().nullable(),
   interest: z.number().int().nullable(),
+  latitude: z.number().nullable(),
+  longitude: z.number().nullable(),
   /**
    * Stato della candidatura CORRENTE (sola lettura: si cambia con la pipeline). Tutti `null` se l'opportunità
    * non ha ancora candidature (`applicationCount = 0`).

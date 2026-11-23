@@ -16,7 +16,7 @@ import {
   type PipelineTransitionKind,
 } from '@jobward/shared';
 import { ArrowRightLeft, CalendarClock, GripVertical } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -41,6 +41,7 @@ import {
 } from '@/features/pipeline-board/columns';
 import { PipelineConfirmation } from '@/features/pipeline/pipeline-panel';
 import { STATUS_LABELS } from '@/features/pipeline/presentation';
+import { useAvailableHeight } from '@/hooks/use-available-height';
 import { cn } from '@/lib/cn';
 
 type BoardCard = Card & { boardName: string | null };
@@ -161,20 +162,21 @@ function Column({
       ref={setNodeRef}
       aria-labelledby={`pipeline-col-${id}`}
       className={cn(
-        'flex w-72 shrink-0 flex-col rounded-xl border border-border bg-surface-muted/60 p-2 max-md:w-full',
+        // Da `md` la colonna è alta quanto l'area e le schede scorrono al suo interno.
+        'flex w-72 shrink-0 flex-col rounded-xl border border-border bg-surface-muted/60 p-2 max-md:w-full md:h-full md:min-h-0',
         isOver && 'ring-2 ring-primary',
       )}
     >
       <h2
         id={`pipeline-col-${id}`}
-        className="flex items-center justify-between px-1.5 pt-1 pb-2 text-sm font-semibold"
+        className="flex shrink-0 items-center justify-between px-1.5 pt-1 pb-2 text-sm font-semibold"
       >
         {title}
         <span className="rounded-full bg-surface px-2 text-xs tabular-nums text-muted-foreground">
           {cards.length}
         </span>
       </h2>
-      <ul className="flex min-h-16 flex-col gap-2">
+      <ul className="flex min-h-16 flex-col gap-2 md:min-h-0 md:flex-1 md:overflow-y-auto md:overscroll-contain">
         {cards.map((card) => (
           <li key={card.id}>
             <PipelineCard card={card} onMove={onMove} />
@@ -191,6 +193,10 @@ function Column({
  * della pipeline: lo stato cambia solo con una transizione esplicita e validata.
  */
 export function Component() {
+  const boardRef = useRef<HTMLDivElement>(null);
+  const available = useAvailableHeight(boardRef);
+  // Finestre molto basse: almeno 320 px, poi scorre la pagina.
+  const boardHeight = available > 0 ? Math.max(320, available) : undefined;
   const board = usePipelineBoard();
   const move = useMoveRequest();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -212,11 +218,7 @@ export function Component() {
 
   return (
     <>
-      <WorkspacePageHeader
-        title="Pipeline"
-        description="Le tue candidature per stato. Spostare una scheda propone il cambio di stato e chiede conferma."
-        canCreateCard
-      />
+      <WorkspacePageHeader title="Pipeline" canCreateCard />
       {board.isError ? (
         <Surface className="p-6" role="alert">
           Impossibile caricare la pipeline. Riprova tra poco.
@@ -237,7 +239,10 @@ export function Component() {
             // Come la tabella delle opportunità: WCAG 2.1.1 richiede che una regione scorrevole sia focalizzabile.
             // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
             tabIndex={0}
-            className="flex gap-3 overflow-x-auto rounded-xl pb-4 focus-visible:outline-2 focus-visible:outline-offset-2 max-md:flex-col"
+            // Alta quanto lo spazio visibile: la pagina non scorre (su telefono scorre quest'area).
+            ref={boardRef}
+            style={boardHeight ? { height: boardHeight } : undefined}
+            className="flex gap-3 overflow-x-auto rounded-xl pb-2 focus-visible:outline-2 focus-visible:outline-offset-2 max-md:flex-col max-md:overflow-y-auto"
           >
             {PIPELINE_COLUMNS.map((c) => (
               <Column
